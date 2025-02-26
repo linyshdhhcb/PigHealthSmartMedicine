@@ -3,6 +3,9 @@ package com.linyi.pig.controller;
 import com.linyi.pig.common.model.PageResult;
 import com.linyi.pig.common.model.Result;
 import com.linyi.pig.entity.Sessions;
+import com.linyi.pig.entity.vo.sessions.SessionsAddVo;
+import com.linyi.pig.entity.vo.sessions.SessionsQueryVo;
+import com.linyi.pig.entity.vo.sessions.SessionsUpdateVo;
 import com.linyi.pig.service.SessionsService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -20,10 +23,10 @@ import java.util.List;
 * @Date: 2025-02-26 08:42:14
 * @ClassName: SessionsController
 * @Version: 1.0
-* @Description:  控制层
+* @Description:  对话控制层
 */
 
-@Tag(name = "管理模块")
+@Tag(name = "对话管理模块")
 @Slf4j
 @Validated
 @RestController

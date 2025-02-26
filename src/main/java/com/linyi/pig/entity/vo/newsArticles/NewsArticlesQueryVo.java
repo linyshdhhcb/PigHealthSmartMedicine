@@ -18,9 +18,6 @@ import java.io.Serializable;
 */
 
 @Data
-@Builder
-@NoArgsConstructor
-@AllArgsConstructor
 @Schema(name = "新闻资讯查询实体")
 public class NewsArticlesQueryVo extends PageResponse implements Serializable {
 

@@ -6,6 +6,9 @@ import com.linyi.pig.entity.Files;
 import com.linyi.pig.entity.vo.files.FilesAddVo;
 import com.linyi.pig.entity.vo.files.FilesQueryVo;
 import com.linyi.pig.entity.vo.files.FilesUpdateVo;
+import org.springframework.web.multipart.MultipartFile;
+
+import java.util.Map;
 
 /**
 * @Author: linyi
@@ -38,4 +41,18 @@ public interface FilesService extends IService<Files> {
      * @return Boolean
      */
     Boolean filesUpdate(FilesUpdateVo filesUpdateVo);
+
+    /**
+     * 一个文件和一个文件名，将文件上传到MinIO
+     *
+     * @param file 要上传的文件，类型为MultipartFile
+     * @return 返回一个Result对象，其中包含上传文件的临时URL
+     */
+    FilesAddVo updoadFileAndName(MultipartFile file);
+
+    Map policy(String fileName);
+
+    String getPolicyUrl(String fileName);
+
+    String getUrl(String fileName);
 }

@@ -17,9 +17,6 @@ import java.io.Serializable;
 */
 
 @Data
-@Builder
-@NoArgsConstructor
-@AllArgsConstructor
 @Schema(name = "新增实体")
 public class SessionsAddVo implements Serializable {
 

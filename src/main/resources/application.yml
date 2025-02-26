@@ -47,11 +47,23 @@ spring:
         max-idle: 10
         max-wait: -1ms
         min-idle: 0
+
+  servlet:
+    multipart:
+      max-file-size: 10MB
+      max-request-size: 10MB
+  #minio配置
+  minio:
+    access-key: linyi
+    secret-key: lpy.3826
+    url: http://172.17.45.92:9000
+    bucket-name: pig-health
 # mybatis-plus配置
 mybatis-plus:
   configuration:
     map-underscore-to-camel-case: true
     log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+
 
   # sa-token配置
   sa-token:

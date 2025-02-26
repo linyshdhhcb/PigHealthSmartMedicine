@@ -17,9 +17,6 @@ import java.io.Serializable;
 */
 
 @Data
-@Builder
-@NoArgsConstructor
-@AllArgsConstructor
 @Schema(name = "新闻资讯新增实体")
 public class NewsArticlesAddVo implements Serializable {
 

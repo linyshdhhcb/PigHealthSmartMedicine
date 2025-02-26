@@ -1,5 +1,6 @@
 package com.linyi.pig.entity.vo.articleTypes;
 
+import com.baomidou.mybatisplus.annotation.TableField;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -26,5 +27,12 @@ public class ArticleTypesUpdateVo implements Serializable {
     * 主键ID
     */
     private Serializable id;
+
+    /**
+     * 文章类型名称
+     */
+    @TableField("type_name")
+    @Schema(name = "typeName",description = "文章类型名称",type = "varchar")
+    private String typeName;
 
 }
