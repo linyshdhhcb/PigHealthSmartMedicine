@@ -1,0 +1,111 @@
+server:
+  port: 9999
+spring:
+  application:
+    name: "PigHealthSmartMedicine"
+    description: “生猪健康智慧医药系统”
+  # 数据源配置
+  datasource:
+    username: root
+    password: abc123
+    url: jdbc:mysql://127.0.0.1:3306/smart_medicine?serverTimezone=Hongkong&useAffectedRows=true&characterEncoding=utf-8
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    type: com.alibaba.druid.pool.DruidDataSource
+
+  jackson:
+    date-format: yyyy-MM-dd HH:mm:ss
+    time-zone: GMT+8
+  # 邮件配置
+  mail:
+    username: 1830280916@qq.com
+    password: atrycvfsgomabahj
+    host: smtp.qq.com
+    port: 465
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+            required: true
+          socketFactory:
+            port: 465
+            class: javax.net.ssl.SSLSocketFactory
+            fallback: false
+    valid: 30
+    title: "面向生猪健康管理的智慧医药系统 - 用户认证"
+    template: "您的动态验证码为：<strong style='color: red'>%s</strong>，%d分钟内有效，若非本人操作，请勿泄露。"
+  data:
+    redis:
+      host: 172.17.45.92
+      port: 5379
+      password: lpy.3826
+      timeout: 1800
+      database: 0
+      pool:
+        max-active: 200
+        max-idle: 10
+        max-wait: -1ms
+        min-idle: 0
+# mybatis-plus配置
+mybatis-plus:
+  configuration:
+    map-underscore-to-camel-case: true
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+
+  # sa-token配置
+  sa-token:
+    # token名称 (同时也是cookie名称)
+    token-name: satoken
+    # token有效期，单位s 默认30天, -1代表永不过期
+    timeout: 2592000
+    # token临时有效期 (指定时间内无操作就视为token过期) 单位: 秒
+    activity-timeout: -1
+    # 是否允许同一账号并发登录 (为true时允许一起登录, 为false时新登录挤掉旧登录)
+    allow-concurrent-login: true
+    # 在多人登录同一账号时，是否共用一个token (为true时所有登录共用一个token, 为false时每次登录新建一个token)
+    is-share: false
+    # token风格
+    token-style: uuid
+
+# 日志配置
+logging:
+  level:
+    world.world.xuewei.dao.mapper: debug
+
+# 阿里云通义千问配置
+ai-key: sk-xxxxxxxxxxxxx
+# 阿里云对象存储配置
+oss:
+  bucket-name: xxxxxxxxxxx
+  end-point: xxxxxxxxxx
+  access-key: xxxxxxxxxxxxxxxx
+  access-secret: xxxxxxxxxxxxxxx
+# springdoc-openapi项目配置
+springdoc:
+  version: 1.0.0
+  swagger-ui:
+    path: /swagger-ui.html
+    tags-sorter: alpha
+    operations-sorter: alpha
+  api-docs:
+    path: /v3/api-docs
+  group-configs:
+    - group: 'default'
+      paths-to-match: '/**'
+      packages-to-scan: com.linyi.pig.controller
+# knife4j的增强配置，不需要增强可以不配
+knife4j:
+  enable: true
+  api:
+    title: 面向生猪健康管理的智慧医药系统 API 文档
+    description: "这是一个用于面向生猪健康管理的智慧医药系统API文档"
+    version: 1.0.0
+    contact:
+      name: linyi
+      email: linyi@example.com
+    license:
+      name: Apache 2.0
+      url: http://www.apache.org/licenses/LICENSE-2.0.html
+  setting:
+    language: zh_cn
