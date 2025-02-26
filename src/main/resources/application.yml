@@ -84,15 +84,6 @@ mybatis-plus:
 logging:
   level:
     world.world.xuewei.dao.mapper: debug
-
-# 阿里云通义千问配置
-ai-key: sk-xxxxxxxxxxxxx
-# 阿里云对象存储配置
-oss:
-  bucket-name: xxxxxxxxxxx
-  end-point: xxxxxxxxxx
-  access-key: xxxxxxxxxxxxxxxx
-  access-secret: xxxxxxxxxxxxxxx
 # springdoc-openapi项目配置
 springdoc:
   version: 1.0.0
@@ -110,7 +101,7 @@ springdoc:
 knife4j:
   enable: true
   api:
-    title: 面向生猪健康管理的智慧医药系统 API 文档
+    title: "面向生猪健康管理的智慧医药系统 API 文档"
     description: "这是一个用于面向生猪健康管理的智慧医药系统API文档"
     version: 1.0.0
     contact:
@@ -129,11 +120,3 @@ ai:
     chat:
       options:
         model: deepseek-r1:14b # 模型名称 本地ollama 下载的模型名称（需要根据你自己的更换）
-
-## 配置ai
-#ai:
-#  ollama:
-#    url: http://localhost:11434 #这里是我本地部署的ollama默认地址（需要根据你自己的更换）
-#    chat:
-#      options:
-#        model: deepseek-r1:14b # 模型名称 本地ollama 下载的模型名称（需要根据你自己的更换）
