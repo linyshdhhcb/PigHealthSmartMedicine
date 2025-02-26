@@ -47,4 +47,8 @@ public interface ConversationService extends IService<Conversation> {
      * @return
      */
     List<Conversation> getHistoryNum(Integer num);
+
+    Conversation getOllama(String prompt);
+
+    Conversation getApiLLM(String prompt);
 }

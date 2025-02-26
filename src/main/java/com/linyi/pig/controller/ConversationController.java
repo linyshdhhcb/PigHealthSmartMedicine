@@ -37,6 +37,8 @@ public class ConversationController {
     @Autowired
     private ConversationService conversationService;
 
+
+
     /**
      * 分页查询对话
      *
@@ -118,6 +120,18 @@ public class ConversationController {
     @GetMapping("/getHistory")
     public Result<List<Conversation>> getHistoryNum(@RequestParam Integer num) {
         return Result.success(conversationService.getHistoryNum(num));
+    }
+
+    @Operation(summary = "通过ollama调用大模型")
+    @GetMapping("/getOllama")
+    public Result<Conversation> getOllama(@RequestParam String prompt) {
+       return Result.success(conversationService.getOllama(prompt));
+    }
+
+    @Operation(summary = "调用大模型API")
+    @GetMapping("/getApiLLM")
+    public Result<Conversation> getApiLLM(@RequestParam String prompt) {
+        return Result.success(conversationService.getApiLLM(prompt));
     }
 
 
