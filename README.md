@@ -61,6 +61,52 @@
 - 用户反馈（feedback）
 - 文件管理（files）
 
+## 安装与部署
+### 1. **环境要求**
+- **JDK 17+**
+- **MySQL 8+**
+- **Redis 6+**
+- **Docker（可选，用于部署 AI 大模型）**
+- **Maven 3.8+**
+
+### 2. **数据库初始化**
+数据库建表的SQL文件在项目的SQL文件夹
+```sql
+CREATE DATABASE pig_health_smart_medicine;
+```
+然后在 `application.yml` 配置数据库连接信息,根据图片的红标修改自己的
+
+![mysql](img\mysql.png)
+
+配置邮箱：
+
+![mail](img\mail.png)
+
+配置Redis：
+
+![redis](img\redis.png)
+
+配置Minio
+
+![minio](img\minio.png)
+
+配置Ollama：
+
+![ollama](img\ollama.png)
+
+### 3. **启动后端服务**
+
+```sh
+git clone https://gitee.com/hsdchb/pig-health-smart-medicine.git
+cd pig-health-smart-medicine
+mvn clean package
+java -jar target/pig-health-smart-medicine.jar
+```
+## 测试账号
+```
+管理员：username: admin | password: 123123
+普通用户：username: linyi | password: 123123
+```
 
 ## 数据库设计
 ### 主要数据表
@@ -266,35 +312,6 @@
 |  10  | img_path     | varchar(255) | 255  | YES      | --                | --     | 用户头像                     |
 |  11  | create_time  | datetime     | --   | YES      | CURRENT_TIMESTAMP | --     | 创建时间                     |
 |  12  | update_time  | datetime     | --   | YES      | CURRENT_TIMESTAMP | --     | 更新时间                     |
-
-## 安装与部署
-### 1. **环境要求**
-- **JDK 17+**
-- **MySQL 8+**
-- **Redis 6+**
-- **Docker（可选，用于部署 AI 大模型）**
-- **Maven 3.8+**
-
-### 2. **数据库初始化**
-```sql
-CREATE DATABASE pig_health_smart_medicine;
-```
-然后在 `application.yml` 配置数据库连接信息：
-```yaml
-spring:
-  datasource:
-    url: jdbc:mysql://localhost:3306/pig_health_smart_medicine?serverTimezone=UTC
-    username: yourusername
-    password: yourpassword
-```
-
-### 3. **启动后端服务**
-```sh
-git clone https://gitee.com/hsdchb/pig-health-smart-medicine.git
-cd pig-health-smart-medicine
-mvn clean package
-java -jar target/pig-health-smart-medicine.jar
-```
 
 ## API 文档
 启动后访问 `http://localhost:9999/doc.html` 查看完整 API 文档。
