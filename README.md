@@ -76,7 +76,7 @@ CREATE DATABASE pig_health_smart_medicine;
 ```
 然后在 `application.yml` 配置数据库连接信息,根据图片的红标修改自己的
 
-![mysql](img\mysql.png)
+![mysql](img/mysql.png)
 
 配置邮箱：
 
@@ -84,15 +84,15 @@ CREATE DATABASE pig_health_smart_medicine;
 
 配置Redis：
 
-![redis](img\redis.png)
+![redis](img/redis.png)
 
 配置Minio
 
-![minio](img\minio.png)
+![minio](img/minio.png)
 
 配置Ollama：
 
-![ollama](img\ollama.png)
+![ollama](img/ollama.png)
 
 ### 3. **启动后端服务**
 
