@@ -24,7 +24,7 @@ public class SaTokenConfigure implements WebMvcConfigurer {
                         "/swagger-resources/**",
                         "/swagger-ui/**",
                         "/favicon.ico",
-                        "favicon.ico/**",
+                        "/favicon.ico/**",
                         "/v3/**")
                 // 登录白名单
                 .excludePathPatterns(

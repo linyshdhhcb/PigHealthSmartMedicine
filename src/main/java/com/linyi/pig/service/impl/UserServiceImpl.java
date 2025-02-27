@@ -57,10 +57,17 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
 
     @Override
     public Boolean userAdd(UserAddVo userAddVo) {
+        //检查账号是否已存在
+        if (userMapper.selectOne(new LambdaQueryWrapper<User>().eq(User::getUserAccount, userAddVo.getUserAccount())) != null) {
+            log.error("账号已存在");
+            throw new LinyiException("账号已存在");
+        }
         //创建实体对象
         User user = new User();
         //复制属性
         BeanUtils.copyProperties(userAddVo, user);
+        //密码加密
+        user.setUserPwd(PasswordUtil.encodePassword(userAddVo.getUserPwd()));
         //插入数据
         return userMapper.insert(user) > 0 ? true : false;
     }

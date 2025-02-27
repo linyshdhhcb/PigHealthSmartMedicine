@@ -42,12 +42,6 @@ public class UserUpdateVo implements Serializable {
     @Schema(name = "userName",description = "用户的真实名字",type = "varchar")
     private String userName;
 
-    /**
-     * 用户密码
-     */
-    @TableField("user_pwd")
-    @Schema(name = "userPwd",description = "用户密码",type = "varchar")
-    private String userPwd;
 
     /**
      * 用户年龄
