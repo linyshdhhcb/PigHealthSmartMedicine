@@ -11,7 +11,7 @@
  Target Server Version : 80035 (8.0.35)
  File Encoding         : 65001
 
- Date: 27/02/2025 22:26:47
+ Date: 27/02/2025 23:18:16
 */
 
 SET NAMES utf8mb4;
@@ -411,11 +411,12 @@ CREATE TABLE `user`  (
   `update_time` datetime NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
   PRIMARY KEY (`id`) USING BTREE,
   INDEX `create_time`(`create_time` ASC) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 7 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = '用户' ROW_FORMAT = DYNAMIC;
+) ENGINE = InnoDB AUTO_INCREMENT = 9 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = '用户' ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Records of user
 -- ----------------------------
+INSERT INTO `user` VALUES (2, 'admin', '林总', '$2a$10$xEnUOD0KyHD6H6UGoagAOOpHHvc1OqvVrroLxjjriGibWNHau49xy', 18, '男', '13@qq.com', '', 1, 'https://tse4-mm.cn.bing.net/th/id/OIP-C.Xd88RmKtrH3ORAfPnL3gwAAAAA?w=168&h=180&c=7&r=0&o=5&dpr=1.3&pid=1.7', '2025-02-27 23:00:40', '2025-02-27 23:00:49');
 INSERT INTO `user` VALUES (6, 'linyi', '林一', '$2a$10$aE8s0MmPVyE1x/QBc9kxXuF172CML5whPA23S2ACu0V.H/zOHYobC', 18, '男', '13112665250@qq.com', NULL, 0, 'https://tse4-mm.cn.bing.net/th/id/OIP-C.Xd88RmKtrH3ORAfPnL3gwAAAAA?w=168&h=180&c=7&r=0&o=5&dpr=1.3&pid=1.7', '2025-02-25 23:15:33', '2025-02-25 23:33:21');
 
 SET FOREIGN_KEY_CHECKS = 1;

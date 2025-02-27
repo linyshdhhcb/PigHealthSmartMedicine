@@ -3,22 +3,30 @@ server:
 spring:
   application:
     name: "PigHealthSmartMedicine"
-    description: “生猪健康智慧医药系统”
+    description: "面向生猪健康管理的智慧医药系统"
   # 数据源配置
   datasource:
-    username: root
-    password: abc123
-    url: jdbc:mysql://127.0.0.1:3306/pig_health_smart_medicine?serverTimezone=Hongkong&useAffectedRows=true&characterEncoding=utf-8
     driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://127.0.0.1:3306/pig_health_smart_medicine?serverTimezone=Hongkong&useAffectedRows=true&characterEncoding=utf-8
+    username: your_username               #数据库用户名
+    password: your_password               #数据库密码
     type: com.alibaba.druid.pool.DruidDataSource
+    initialSize: 5                        # 初始化时创建的连接数
+    minIdle: 5                            # 最小空闲连接数
+    maxActive: 20                         # 最大活跃连接数
+    testWhileIdle: true                   # 是否在空闲时测试连接的有效性
+    validationQuery: SELECT 1 FROM DUAL   # 验证连接的查询语句
+    timeBetweenEvictionRunsMillis: 60000  # 检查连接是否空闲的时间间隔
+    minEvictableIdleTimeMillis: 300000    # 连接在池中最小生存时间
+
 
   jackson:
     date-format: yyyy-MM-dd HH:mm:ss
     time-zone: GMT+8
   # 邮件配置
   mail:
-    username: 1830280916@qq.com
-    password: atrycvfsgomabahj
+    username: your_email@xxx.com # qq邮箱
+    password: your_email_password # qq邮箱授权码
     host: smtp.qq.com
     port: 465
     properties:
@@ -37,9 +45,9 @@ spring:
     template: "您的动态验证码为：<strong style='color: red'>%s</strong>，%d分钟内有效，若非本人操作，请勿泄露。"
   data:
     redis:
-      host: 172.17.45.92
-      port: 5379
-      password: lpy.3826
+      host: your_redis_host
+      port: 6379
+      password: your_redis_password
       timeout: 1800
       database: 0
       pool:
@@ -54,9 +62,9 @@ spring:
       max-request-size: 10MB
   #minio配置
   minio:
-    access-key: linyi
-    secret-key: lpy.3826
-    url: http://172.17.45.92:9000
+    access-key: your_minio_access_key
+    secret-key: your_minio_secret_key
+    url: your_url
     bucket-name: pig-health
 # mybatis-plus配置
 mybatis-plus:
@@ -106,7 +114,7 @@ knife4j:
     version: 1.0.0
     contact:
       name: linyi
-      email: linyi@example.com
+      email: jingshuihuayue@qq.com
     license:
       name: Apache 2.0
       url: http://www.apache.org/licenses/LICENSE-2.0.html
