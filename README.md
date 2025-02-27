@@ -80,7 +80,7 @@ CREATE DATABASE pig_health_smart_medicine;
 
 配置邮箱：
 
-![mail](img\mail.png)
+![mail](img/mail.png)
 
 配置Redis：
 
