@@ -7,6 +7,10 @@ import lombok.NoArgsConstructor;
 import java.io.Serializable;
 import java.util.Date;
 
+/**
+ * 统一响应结果类
+ * @param <T>
+ */
 @Data
 @NoArgsConstructor
 @AllArgsConstructor

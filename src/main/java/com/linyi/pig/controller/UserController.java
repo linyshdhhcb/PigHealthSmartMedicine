@@ -5,6 +5,7 @@ import com.linyi.pig.common.model.PageResult;
 import com.linyi.pig.common.model.Result;
 import com.linyi.pig.entity.User;
 import com.linyi.pig.entity.vo.user.*;
+
 import com.linyi.pig.service.UserService;
 import com.linyi.pig.config.EmailConfig;
 import io.swagger.v3.oas.annotations.Operation;
@@ -218,5 +219,7 @@ public class UserController{
     public Result<Boolean> savePassword(@RequestParam String oldPass,@RequestParam String newPass) {
         return Result.success(userService.savePassword(oldPass, newPass));
     }
+
+
 
 }

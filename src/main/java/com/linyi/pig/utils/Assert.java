@@ -1,6 +1,7 @@
 package com.linyi.pig.utils;
 
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -106,5 +107,6 @@ public class Assert {
     private static String throwException(String name) {
         throw new RuntimeException("REQUEST_PARAM_IS_NULL 请求参数<" + name + ">为空");
     }
+
 
 }
