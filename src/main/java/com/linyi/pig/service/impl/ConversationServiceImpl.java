@@ -57,7 +57,15 @@ public class ConversationServiceImpl extends ServiceImpl<ConversationMapper, Con
     @Override
     public PageResult<Conversation> conversationPage(ConversationQueryVo conversationQueryVo) {
         LambdaQueryWrapper<Conversation> queryWrapper = new LambdaQueryWrapper<>();
-        //TODO 需要补充条件查询
+        queryWrapper.eq(Optional.ofNullable(conversationQueryVo.getId()).isPresent(), Conversation::getId, conversationQueryVo.getId());
+        queryWrapper.eq(Optional.ofNullable(conversationQueryVo.getUserId()).isPresent(), Conversation::getUserId, conversationQueryVo.getUserId());
+        queryWrapper.eq(StringUtils.isNotBlank(conversationQueryVo.getUserInput()), Conversation::getUserInput, conversationQueryVo.getUserInput());
+        queryWrapper.eq(StringUtils.isNotBlank(conversationQueryVo.getAiResponse()), Conversation::getAiResponse, conversationQueryVo.getAiResponse());
+        queryWrapper.eq(Optional.ofNullable(conversationQueryVo.getAiResponse()).isPresent(), Conversation::getAiResponse, conversationQueryVo.getAiResponse());
+        queryWrapper.gt(Optional.ofNullable(conversationQueryVo.getStartConversationTime()).isPresent(), Conversation::getConversationTime, conversationQueryVo.getStartConversationTime());
+        queryWrapper.lt(Optional.ofNullable(conversationQueryVo.getEndConversationTime()).isPresent(), Conversation::getConversationTime, conversationQueryVo.getEndConversationTime());
+        queryWrapper.eq(StringUtils.isNotBlank(conversationQueryVo.getModelName()), Conversation::getModelName, conversationQueryVo.getModelName());
+        queryWrapper.ge(Optional.ofNullable(conversationQueryVo.getResponseTime()).isPresent(), Conversation::getResponseTime, conversationQueryVo.getResponseTime());
 
         //分页数据
         Page<Conversation> page = new Page<>(conversationQueryVo.getPageNum(),conversationQueryVo.getPageSize());

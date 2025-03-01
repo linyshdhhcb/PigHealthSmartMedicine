@@ -44,9 +44,13 @@ public class FilesQueryVo extends PageResponse implements Serializable {
     /**
      * 文件大小，单位为字节
      */
-    @TableField("file_size")
-    @Schema(name = "fileSize",description = "文件大小，单位为字节",type = "bigint")
-    private Long fileSize;
+    @Schema(name = "fileSizeMin",description = "文件大小，单位为字节",type = "bigint")
+    private Long fileSizeMin;
+    /**
+     * 文件大小，单位为字节
+     */
+    @Schema(name = "fileSizeMax",description = "文件大小，单位为字节",type = "bigint")
+    private Long fileSizeMax;
 
     /**
      * 文件的 MIME 类型

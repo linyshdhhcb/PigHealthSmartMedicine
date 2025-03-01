@@ -86,8 +86,12 @@ public class MedicineQueryVo extends PageResponse implements Serializable {
     /**
      * 药的价格
      */
-    @TableField("medicine_price")
-    @Schema(name = "medicinePrice",description = "药的价格",type = "decimal")
-    private BigDecimal medicinePrice;
+    @Schema(name = "medicinePriceMin",description = "药的价格最低",type = "decimal")
+    private BigDecimal medicinePriceMin;
+    /**
+     * 药的价格
+     */
+    @Schema(name = "medicinePriceMax",description = "药的价格最高",type = "decimal")
+    private BigDecimal medicinePriceMax;
 
 }

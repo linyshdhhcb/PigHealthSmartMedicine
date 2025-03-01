@@ -19,6 +19,7 @@ import com.linyi.pig.service.FilesService;
 import io.minio.MinioClient;
 import io.minio.http.Method;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -58,7 +59,13 @@ public class FilesServiceImpl extends ServiceImpl<FilesMapper, Files> implements
     @Override
     public PageResult<Files> filesPage(FilesQueryVo filesQueryVo) {
         LambdaQueryWrapper<Files> queryWrapper = new LambdaQueryWrapper<>();
-        //TODO 需要补充条件查询
+        queryWrapper.like(StringUtils.isNotBlank(filesQueryVo.getFileName()), Files::getFileName, filesQueryVo.getFileName());
+        queryWrapper.like(StringUtils.isNotBlank(filesQueryVo.getFilePath()), Files::getFilePath, filesQueryVo.getFilePath());
+        queryWrapper.ge(Optional.ofNullable(filesQueryVo.getFileSizeMin()).isPresent(), Files::getFileSize, filesQueryVo.getFileSizeMin());
+        queryWrapper.le(Optional.ofNullable(filesQueryVo.getFileSizeMax()).isPresent(), Files::getFileSize, filesQueryVo.getFileSizeMax());
+        queryWrapper.eq(StringUtils.isNotBlank(filesQueryVo.getContentType()), Files::getContentType, filesQueryVo.getContentType());
+        queryWrapper.like(StringUtils.isNotBlank(filesQueryVo.getUrl()), Files::getUrl, filesQueryVo.getUrl());
+        queryWrapper.eq(StringUtils.isNotBlank(filesQueryVo.getBucketName()), Files::getBucketName, filesQueryVo.getBucketName());
 
         //分页数据
         Page<Files> page = new Page<>(filesQueryVo.getPageNum(),filesQueryVo.getPageSize());

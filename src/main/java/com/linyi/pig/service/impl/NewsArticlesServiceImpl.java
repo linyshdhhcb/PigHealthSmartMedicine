@@ -11,6 +11,7 @@ import com.linyi.pig.entity.vo.newsArticles.NewsArticlesUpdateVo;
 import com.linyi.pig.mapper.NewsArticlesMapper;
 import com.linyi.pig.service.NewsArticlesService;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -20,12 +21,12 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.Optional;
 
 /**
-* @Author: linyi
-* @Date: 2025-02-26 08:42:14
-* @ClassName: NewsArticlesServiceImpl
-* @Version: 1.0
-* @Description: 新闻资讯 服务实现层
-*/
+ * @Author: linyi
+ * @Date: 2025-02-26 08:42:14
+ * @ClassName: NewsArticlesServiceImpl
+ * @Version: 1.0
+ * @Description: 新闻资讯 服务实现层
+ */
 @Slf4j
 @Service
 @Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
@@ -38,10 +39,16 @@ public class NewsArticlesServiceImpl extends ServiceImpl<NewsArticlesMapper, New
     @Override
     public PageResult<NewsArticles> newsArticlesPage(NewsArticlesQueryVo newsArticlesQueryVo) {
         LambdaQueryWrapper<NewsArticles> queryWrapper = new LambdaQueryWrapper<>();
-        //TODO 需要补充条件查询
-
+        queryWrapper.like(StringUtils.isNotBlank(newsArticlesQueryVo.getUrl()), NewsArticles::getUrl, newsArticlesQueryVo.getUrl());
+        queryWrapper.like(StringUtils.isNotBlank(newsArticlesQueryVo.getTitle()), NewsArticles::getTitle, newsArticlesQueryVo.getTitle());
+        queryWrapper.like(StringUtils.isNotBlank(newsArticlesQueryVo.getContent()), NewsArticles::getContent, newsArticlesQueryVo.getContent());
+        queryWrapper.like(StringUtils.isNotBlank(newsArticlesQueryVo.getAuthor()), NewsArticles::getAuthor, newsArticlesQueryVo.getAuthor());
+        queryWrapper.ge(Optional.ofNullable(newsArticlesQueryVo.getStartPublishTime()).isPresent(), NewsArticles::getPublishTime, newsArticlesQueryVo.getStartPublishTime());
+        queryWrapper.le(Optional.ofNullable(newsArticlesQueryVo.getEndPublishTime()).isPresent(), NewsArticles::getPublishTime, newsArticlesQueryVo.getEndPublishTime());
+        queryWrapper.like(StringUtils.isNotBlank(newsArticlesQueryVo.getSource()), NewsArticles::getSource, newsArticlesQueryVo.getSource());
+        queryWrapper.like(StringUtils.isNotBlank(newsArticlesQueryVo.getSummary()), NewsArticles::getSummary, newsArticlesQueryVo.getSummary());
         //分页数据
-        Page<NewsArticles> page = new Page<>(newsArticlesQueryVo.getPageNum(),newsArticlesQueryVo.getPageSize());
+        Page<NewsArticles> page = new Page<>(newsArticlesQueryVo.getPageNum(), newsArticlesQueryVo.getPageSize());
         //查询数据
         Page<NewsArticles> pageNew = newsArticlesMapper.selectPage(page, queryWrapper);
         //返回分页数据
@@ -49,7 +56,7 @@ public class NewsArticlesServiceImpl extends ServiceImpl<NewsArticlesMapper, New
     }
 
     @Override
-    public Boolean newsArticlesAdd(NewsArticlesAddVo newsArticlesAddVo){
+    public Boolean newsArticlesAdd(NewsArticlesAddVo newsArticlesAddVo) {
         //创建实体对象
         NewsArticles newsArticles = new NewsArticles();
         //复制属性
@@ -59,11 +66,11 @@ public class NewsArticlesServiceImpl extends ServiceImpl<NewsArticlesMapper, New
     }
 
     @Override
-    public Boolean newsArticlesUpdate(NewsArticlesUpdateVo newsArticlesUpdateVo){
+    public Boolean newsArticlesUpdate(NewsArticlesUpdateVo newsArticlesUpdateVo) {
         //根据ID查询数据
-        NewsArticles byId=this.getById(newsArticlesUpdateVo.getId());
+        NewsArticles byId = this.getById(newsArticlesUpdateVo.getId());
         //判断数据是否存在
-        if(Optional.ofNullable(byId).isEmpty()){
+        if (Optional.ofNullable(byId).isEmpty()) {
             log.error("数据不存在");
             return false;
         }

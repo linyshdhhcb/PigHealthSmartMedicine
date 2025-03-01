@@ -11,6 +11,7 @@ import com.linyi.pig.entity.vo.history.HistoryUpdateVo;
 import com.linyi.pig.mapper.HistoryMapper;
 import com.linyi.pig.service.HistoryService;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -38,7 +39,9 @@ public class HistoryServiceImpl extends ServiceImpl<HistoryMapper, History> impl
     @Override
     public PageResult<History> historyPage(HistoryQueryVo historyQueryVo) {
         LambdaQueryWrapper<History> queryWrapper = new LambdaQueryWrapper<>();
-        //TODO 需要补充条件查询
+        queryWrapper.eq(Optional.ofNullable(historyQueryVo.getUserId()).isPresent(),History::getUserId, historyQueryVo.getUserId());
+        queryWrapper.eq(StringUtils.isNotBlank(historyQueryVo.getKeyword()),History::getKeyword, historyQueryVo.getKeyword());
+        queryWrapper.eq(Optional.ofNullable(historyQueryVo.getOperateType()).isPresent(),History::getOperateType, historyQueryVo.getOperateType());
 
         //分页数据
         Page<History> page = new Page<>(historyQueryVo.getPageNum(),historyQueryVo.getPageSize());

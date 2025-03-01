@@ -11,6 +11,7 @@ import com.linyi.pig.entity.vo.feedback.FeedbackUpdateVo;
 import com.linyi.pig.mapper.FeedbackMapper;
 import com.linyi.pig.service.FeedbackService;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -38,7 +39,10 @@ public class FeedbackServiceImpl extends ServiceImpl<FeedbackMapper, Feedback> i
     @Override
     public PageResult<Feedback> feedbackPage(FeedbackQueryVo feedbackQueryVo) {
         LambdaQueryWrapper<Feedback> queryWrapper = new LambdaQueryWrapper<>();
-        //TODO 需要补充条件查询
+        queryWrapper.like(StringUtils.isNotBlank(feedbackQueryVo.getName()), Feedback::getName, feedbackQueryVo.getName());
+        queryWrapper.eq(StringUtils.isNotBlank(feedbackQueryVo.getEmail()), Feedback::getEmail, feedbackQueryVo.getEmail());
+        queryWrapper.like(StringUtils.isNotBlank(feedbackQueryVo.getTitle()), Feedback::getTitle, feedbackQueryVo.getTitle());
+        queryWrapper.like(StringUtils.isNotBlank(feedbackQueryVo.getContent()), Feedback::getContent, feedbackQueryVo.getContent());
 
         //分页数据
         Page<Feedback> page = new Page<>(feedbackQueryVo.getPageNum(),feedbackQueryVo.getPageSize());

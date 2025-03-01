@@ -11,6 +11,7 @@ import com.linyi.pig.entity.vo.articles.ArticlesUpdateVo;
 import com.linyi.pig.mapper.ArticlesMapper;
 import com.linyi.pig.service.ArticlesService;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -38,7 +39,10 @@ public class ArticlesServiceImpl extends ServiceImpl<ArticlesMapper, Articles> i
     @Override
     public PageResult<Articles> articlesPage(ArticlesQueryVo articlesQueryVo) {
         LambdaQueryWrapper<Articles> queryWrapper = new LambdaQueryWrapper<>();
-        //TODO 需要补充条件查询
+        queryWrapper.eq(StringUtils.isNotBlank(articlesQueryVo.getTitle()),Articles::getTitle, articlesQueryVo.getTitle());
+        queryWrapper.eq(StringUtils.isNotBlank(articlesQueryVo.getContent()),Articles::getContent, articlesQueryVo.getContent());
+        queryWrapper.eq(StringUtils.isNotBlank(articlesQueryVo.getAuthor()),Articles::getAuthor, articlesQueryVo.getAuthor());
+        queryWrapper.eq(Optional.ofNullable(articlesQueryVo.getTypeId()).isPresent(),Articles::getTypeId, articlesQueryVo.getTypeId());
 
         //分页数据
         Page<Articles> page = new Page<>(articlesQueryVo.getPageNum(),articlesQueryVo.getPageSize());

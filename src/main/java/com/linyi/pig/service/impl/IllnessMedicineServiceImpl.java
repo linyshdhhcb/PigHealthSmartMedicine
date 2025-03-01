@@ -38,8 +38,8 @@ public class IllnessMedicineServiceImpl extends ServiceImpl<IllnessMedicineMappe
     @Override
     public PageResult<IllnessMedicine> illnessMedicinePage(IllnessMedicineQueryVo illnessMedicineQueryVo) {
         LambdaQueryWrapper<IllnessMedicine> queryWrapper = new LambdaQueryWrapper<>();
-        //TODO 需要补充条件查询
-
+        queryWrapper.like(Optional.ofNullable(illnessMedicineQueryVo.getIllnessId()).isPresent(), IllnessMedicine::getIllnessId, illnessMedicineQueryVo.getIllnessId());
+        queryWrapper.like(Optional.ofNullable(illnessMedicineQueryVo.getMedicineId()).isPresent(), IllnessMedicine::getMedicineId, illnessMedicineQueryVo.getMedicineId());
         //分页数据
         Page<IllnessMedicine> page = new Page<>(illnessMedicineQueryVo.getPageNum(),illnessMedicineQueryVo.getPageSize());
         //查询数据

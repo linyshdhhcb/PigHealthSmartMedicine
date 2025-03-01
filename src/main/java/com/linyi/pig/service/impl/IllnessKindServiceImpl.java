@@ -11,6 +11,7 @@ import com.linyi.pig.entity.vo.illnessKind.IllnessKindUpdateVo;
 import com.linyi.pig.mapper.IllnessKindMapper;
 import com.linyi.pig.service.IllnessKindService;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -38,7 +39,8 @@ public class IllnessKindServiceImpl extends ServiceImpl<IllnessKindMapper, Illne
     @Override
     public PageResult<IllnessKind> illnessKindPage(IllnessKindQueryVo illnessKindQueryVo) {
         LambdaQueryWrapper<IllnessKind> queryWrapper = new LambdaQueryWrapper<>();
-        //TODO 需要补充条件查询
+        queryWrapper.eq(StringUtils.isNotBlank(illnessKindQueryVo.getName()),IllnessKind::getName, illnessKindQueryVo.getName());
+        queryWrapper.like(StringUtils.isNotBlank(illnessKindQueryVo.getInfo()),IllnessKind::getInfo, illnessKindQueryVo.getInfo());
 
         //分页数据
         Page<IllnessKind> page = new Page<>(illnessKindQueryVo.getPageNum(),illnessKindQueryVo.getPageSize());

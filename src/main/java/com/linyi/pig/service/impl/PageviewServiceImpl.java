@@ -38,7 +38,9 @@ public class PageviewServiceImpl extends ServiceImpl<PageviewMapper, Pageview> i
     @Override
     public PageResult<Pageview> pageviewPage(PageviewQueryVo pageviewQueryVo) {
         LambdaQueryWrapper<Pageview> queryWrapper = new LambdaQueryWrapper<>();
-        //TODO 需要补充条件查询
+        queryWrapper.ge(Optional.ofNullable(pageviewQueryVo.getPageviewsMax()).isPresent(),Pageview::getPageviews, pageviewQueryVo.getPageviewsMax());
+        queryWrapper.le(Optional.ofNullable(pageviewQueryVo.getPageviewsMin()).isPresent(),Pageview::getPageviews, pageviewQueryVo.getPageviewsMin());
+        queryWrapper.eq(Optional.ofNullable(pageviewQueryVo.getIllnessId()).isPresent(),Pageview::getIllnessId, pageviewQueryVo.getIllnessId());
 
         //分页数据
         Page<Pageview> page = new Page<>(pageviewQueryVo.getPageNum(),pageviewQueryVo.getPageSize());

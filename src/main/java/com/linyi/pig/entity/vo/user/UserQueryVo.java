@@ -39,19 +39,17 @@ public class UserQueryVo extends PageResponse implements Serializable {
     @Schema(name = "userName",description = "用户的真实名字",type = "varchar")
     private String userName;
 
-    /**
-     * 用户密码
-     */
-    @TableField("user_pwd")
-    @Schema(name = "userPwd",description = "用户密码",type = "varchar")
-    private String userPwd;
 
     /**
-     * 用户年龄
+     * 用户年龄-max
      */
-    @TableField("user_age")
-    @Schema(name = "userAge",description = "用户年龄",type = "int")
-    private Integer userAge;
+    @Schema(name = "userAgeMax",description = "用户年龄",type = "int")
+    private Integer userAgeMax;
+    /**
+     * 用户年龄-min
+     */
+    @Schema(name = "userAgeMin",description = "用户年龄",type = "int")
+    private Integer userAgeMin;
 
     /**
      * 用户性别

@@ -26,11 +26,16 @@ import java.io.Serializable;
 public class PageviewQueryVo extends PageResponse implements Serializable {
 
     /**
-     * 浏览量
+     * 浏览量-max
      */
-    @TableField("pageviews")
-    @Schema(name = "pageviews",description = "浏览量",type = "int")
-    private Integer pageviews;
+    @Schema(name = "pageviewsMax",description = "浏览量",type = "int")
+    private Integer pageviewsMax;
+
+    /**
+     * 浏览量-min
+     */
+    @Schema(name = "pageviewsMin",description = "浏览量",type = "int")
+    private Integer pageviewsMin;
 
     /**
      * 病的id

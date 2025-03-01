@@ -12,6 +12,7 @@ import com.linyi.pig.mapper.UserMapper;
 import com.linyi.pig.service.UserService;
 import com.linyi.pig.utils.PasswordUtil;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -45,7 +46,14 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
     @Override
     public PageResult<User> userPage(UserQueryVo userQueryVo) {
         LambdaQueryWrapper<User> queryWrapper = new LambdaQueryWrapper<>();
-        //TODO 需要补充条件查询
+        queryWrapper.like(StringUtils.isNotBlank(userQueryVo.getUserAccount()), User::getUserAccount, userQueryVo.getUserAccount());
+        queryWrapper.eq(StringUtils.isNotBlank(userQueryVo.getUserName()), User::getUserName, userQueryVo.getUserName());
+        queryWrapper.eq(StringUtils.isNotBlank(userQueryVo.getUserEmail()), User::getUserEmail, userQueryVo.getUserEmail());
+        queryWrapper.like(StringUtils.isNotBlank(userQueryVo.getUserTel()), User::getUserTel, userQueryVo.getUserTel());
+        queryWrapper.eq(StringUtils.isNotBlank(userQueryVo.getUserSex()), User::getUserSex, userQueryVo.getUserSex());
+        queryWrapper.ge(Optional.ofNullable(userQueryVo.getUserAgeMin()).isPresent(), User::getUserAge, userQueryVo.getUserAgeMin());
+        queryWrapper.le(Optional.ofNullable(userQueryVo.getUserAgeMax()).isPresent(), User::getUserAge, userQueryVo.getUserAgeMax());
+        queryWrapper.eq(Optional.ofNullable(userQueryVo.getRoleStatus()).isPresent(), User::getRoleStatus, userQueryVo.getRoleStatus());
 
         //分页数据
         Page<User> page = new Page<>(userQueryVo.getPageNum(), userQueryVo.getPageSize());

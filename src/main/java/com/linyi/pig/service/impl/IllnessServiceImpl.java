@@ -11,6 +11,7 @@ import com.linyi.pig.entity.vo.illness.IllnessUpdateVo;
 import com.linyi.pig.mapper.IllnessMapper;
 import com.linyi.pig.service.IllnessService;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -38,7 +39,11 @@ public class IllnessServiceImpl extends ServiceImpl<IllnessMapper, Illness> impl
     @Override
     public PageResult<Illness> illnessPage(IllnessQueryVo illnessQueryVo) {
         LambdaQueryWrapper<Illness> queryWrapper = new LambdaQueryWrapper<>();
-        //TODO 需要补充条件查询
+        queryWrapper.eq(Optional.ofNullable(illnessQueryVo.getKindId()).isPresent(), Illness::getKindId, illnessQueryVo.getKindId());
+        queryWrapper.like(StringUtils.isNotBlank(illnessQueryVo.getIllnessName()), Illness::getIllnessName, illnessQueryVo.getIllnessName());
+        queryWrapper.like(StringUtils.isNotBlank(illnessQueryVo.getIncludeReason()), Illness::getIncludeReason, illnessQueryVo.getIncludeReason());
+        queryWrapper.like(StringUtils.isNotBlank(illnessQueryVo.getIllnessSymptom()), Illness::getIllnessSymptom, illnessQueryVo.getIllnessSymptom());
+        queryWrapper.like(StringUtils.isNotBlank(illnessQueryVo.getSpecialSymptom()), Illness::getSpecialSymptom, illnessQueryVo.getSpecialSymptom());
 
         //分页数据
         Page<Illness> page = new Page<>(illnessQueryVo.getPageNum(),illnessQueryVo.getPageSize());

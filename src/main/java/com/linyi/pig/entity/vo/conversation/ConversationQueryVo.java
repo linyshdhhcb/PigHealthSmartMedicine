@@ -58,12 +58,18 @@ public class ConversationQueryVo extends PageResponse implements Serializable {
     private String aiResponse;
 
     /**
-     * 对话时间
+     * 对话时间-开始
      */
-    @TableField("conversation_time")
-    @Schema(name = "conversationTime",description = "对话时间",type = "datetime")
+    @Schema(name = "startConversationTime",description = "对话时间",type = "datetime")
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
-    private Date conversationTime;
+    private Date startConversationTime;
+
+    /**
+     * 对话时间-结束
+     */
+    @Schema(name = "endConversationTime",description = "对话时间",type = "datetime")
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
+    private Date endConversationTime;
 
     /**
      * AI模型名称
@@ -73,7 +79,7 @@ public class ConversationQueryVo extends PageResponse implements Serializable {
     private String modelName;
 
     /**
-     * AI响应时间（秒）
+     * AI响应时间（秒）大于
      */
     @TableField("response_time")
     @Schema(name = "responseTime",description = "AI响应时间（秒）",type = "decimal")

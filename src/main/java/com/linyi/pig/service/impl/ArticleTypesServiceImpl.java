@@ -11,6 +11,7 @@ import com.linyi.pig.entity.vo.articleTypes.ArticleTypesUpdateVo;
 import com.linyi.pig.mapper.ArticleTypesMapper;
 import com.linyi.pig.service.ArticleTypesService;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -38,7 +39,7 @@ public class ArticleTypesServiceImpl extends ServiceImpl<ArticleTypesMapper, Art
     @Override
     public PageResult<ArticleTypes> articleTypesPage(ArticleTypesQueryVo articleTypesQueryVo) {
         LambdaQueryWrapper<ArticleTypes> queryWrapper = new LambdaQueryWrapper<>();
-        //TODO 需要补充条件查询
+        queryWrapper.eq(StringUtils.isNotBlank(articleTypesQueryVo.getTypeName()), ArticleTypes::getTypeName, articleTypesQueryVo.getTypeName());
 
         //分页数据
         Page<ArticleTypes> page = new Page<>(articleTypesQueryVo.getPageNum(),articleTypesQueryVo.getPageSize());

@@ -11,6 +11,7 @@ import com.linyi.pig.entity.vo.medicine.MedicineUpdateVo;
 import com.linyi.pig.mapper.MedicineMapper;
 import com.linyi.pig.service.MedicineService;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -38,8 +39,16 @@ public class MedicineServiceImpl extends ServiceImpl<MedicineMapper, Medicine> i
     @Override
     public PageResult<Medicine> medicinePage(MedicineQueryVo medicineQueryVo) {
         LambdaQueryWrapper<Medicine> queryWrapper = new LambdaQueryWrapper<>();
-        //TODO 需要补充条件查询
-
+        queryWrapper.like(StringUtils.isNotBlank(medicineQueryVo.getMedicineName()), Medicine::getMedicineName, medicineQueryVo.getMedicineName());
+        queryWrapper.like(StringUtils.isNotBlank(medicineQueryVo.getKeyword()), Medicine::getKeyword, medicineQueryVo.getKeyword());
+        queryWrapper.like(StringUtils.isNotBlank(medicineQueryVo.getMedicineEffect()), Medicine::getMedicineEffect, medicineQueryVo.getMedicineEffect());
+        queryWrapper.like(StringUtils.isNotBlank(medicineQueryVo.getMedicineBrand()), Medicine::getMedicineBrand, medicineQueryVo.getMedicineBrand());
+        queryWrapper.like(StringUtils.isNotBlank(medicineQueryVo.getInteraction()), Medicine::getInteraction, medicineQueryVo.getInteraction());
+        queryWrapper.like(StringUtils.isNotBlank(medicineQueryVo.getTaboo()), Medicine::getTaboo, medicineQueryVo.getTaboo());
+        queryWrapper.like(StringUtils.isNotBlank(medicineQueryVo.getUsAge()), Medicine::getUsAge, medicineQueryVo.getUsAge());
+        queryWrapper.like(Optional.ofNullable(medicineQueryVo.getMedicineType()).isPresent(), Medicine::getMedicineType, medicineQueryVo.getMedicineType());
+        queryWrapper.ge(Optional.ofNullable(medicineQueryVo.getMedicinePriceMin()).isPresent(), Medicine::getMedicinePrice, medicineQueryVo.getMedicinePriceMin());
+        queryWrapper.le(Optional.ofNullable(medicineQueryVo.getMedicinePriceMax()).isPresent(), Medicine::getMedicinePrice, medicineQueryVo.getMedicinePriceMax());
         //分页数据
         Page<Medicine> page = new Page<>(medicineQueryVo.getPageNum(),medicineQueryVo.getPageSize());
         //查询数据
