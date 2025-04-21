@@ -36,3 +36,57 @@ build/
 
 ### Mac OS ###
 .DS_Store
+
+# Spring Boot 项目忽略规则
+### IntelliJ IDEA ###
+.idea/
+*.iws
+*.iml
+*.ipr
+
+### Eclipse ###
+.classpath
+.project
+.settings/
+
+### Maven ###
+target/
+
+### Logs ###
+logs/
+*.log
+
+### Cache ###
+.cache/
+
+### Database ###
+db.mv.db
+db.trace.db
+
+# 前端项目忽略规则
+### Node.js ###
+node_modules/
+npm-debug.log
+yarn-error.log
+
+### React ###
+build/
+
+### Vue ###
+dist/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+### Prettier ###
+.prettierrc
+
+### ESLint ###
+.eslintcache
+
+### Stylelint ###
+.stylelintcache
+
+### EditorConfig ###
+.editorconfig
+
