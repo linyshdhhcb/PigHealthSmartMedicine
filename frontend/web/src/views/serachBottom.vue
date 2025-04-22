@@ -113,7 +113,12 @@
         <img src="@/assets/images/goTop.png" alt="回到顶部" />
       </div>
     </div>
+
+
+    <buttom2 />
   </div>
+
+  
 </template>
 
 <script setup>
@@ -122,6 +127,7 @@ import { useRouter } from 'vue-router';
 import { illnessKindPage, illnessPage, illnessMedicinePage, medicinePage } from '@/api/admin/FindIllness';
 import { ElMessage } from 'element-plus';
 import nav2 from '@/components/nav2.vue';
+import buttom2 from '@/components/buttom2.vue';
 
 const router = useRouter();
 
@@ -476,12 +482,13 @@ const scrollToTop = () => {
 }
 
 .categories-history {
-  display: flex;
+  /* display: flex; */
   justify-content: space-between;
   margin-top: 40px;
 }
 
 .categories-container, .history-container {
+  display: flex;
   flex: 1;
 }
 

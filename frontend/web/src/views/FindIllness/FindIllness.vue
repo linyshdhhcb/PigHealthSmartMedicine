@@ -1,3 +1,5 @@
+
+
 <template>
       <nav2 />
   <div class="container">
@@ -466,9 +468,10 @@ const handleSizeChange = (size) => {
   max-width: calc(100% - 240px);
 }
 
+/* 卡片容器 */
 .card-grid {
   display: grid;
-  grid-template-columns: 1fr; /* ✏️ 一行只显示一张卡片 */
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
   gap: 20px;
   margin-bottom: 30px;
 }
@@ -606,13 +609,9 @@ const handleSizeChange = (size) => {
     max-width: calc(100% - 100px);
   }
   
-  /* 卡片容器 */
-.card-grid {
-  display: grid;
-  grid-template-columns: 1fr; /* ✏️ 修改这里：一行只显示一张卡片 */
-  gap: 20px;
-  margin-bottom: 30px;
-}
+  .card-grid {
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  }
 }
 
 @media (max-width: 768px) {
@@ -628,7 +627,9 @@ const handleSizeChange = (size) => {
     max-width: 100%;
   }
   
-
+  .card-grid {
+    grid-template-columns: 1fr;
+  }
   
   .pagination-container {
     padding: 0 10px;

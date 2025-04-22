@@ -5,11 +5,11 @@
 
 ## 技术栈
 - **后端**：Java、SpringBoot、Spring AI、SaToken
+- **前端**：Vue3、JavaScript、Vite、Pinia
 - **AI 模型**：Ollama + DeepSeek 
 - **数据库**：MySQL
 - **缓存**：Redis
 - **API 文档**：knife4j
-## 
 
 | 依赖项                         | 版本          | 描述                |
 | ------------------------------ | ------------- | ------------------- |
@@ -31,8 +31,24 @@
 | Spring Boot Starter Mail       |               | 邮件服务            |
 | Apache HttpClient              | 4.5.13        | HTTP 客户端         |
 | FastJson                       | 2.0.54        | JSON 解析库         |
-- **前端**：开发中。。。
+## 项目实现图
+
+<div style="display: flex; flex-wrap: wrap;">
+    <img src="./doc/img/pig1.png" alt="pig1" style="width: 50%; padding: 5px; box-sizing: border-box;">
+    <img src="./doc/img/pig2.png" alt="pig2" style="width: 50%; padding: 5px; box-sizing: border-box;">
+    <img src="./doc/img/pig3.png" alt="pig3" style="width: 50%; padding: 5px; box-sizing: border-box;">
+    <img src="./doc/img/pig4.png" alt="pig4" style="width: 50%; padding: 5px; box-sizing: border-box;">
+    <img src="./doc/img/pig5.png" alt="pig5" style="width: 50%; padding: 5px; box-sizing: border-box;">
+    <img src="./doc/img/pig6.png" alt="pig6" style="width: 50%; padding: 5px; box-sizing: border-box;">
+    <img src="./doc/img/pig7.png" alt="pig7" style="width: 50%; padding: 5px; box-sizing: border-box;">
+    <img src="./doc/img/pig8.png" alt="pig8" style="width: 50%; padding: 5px; box-sizing: border-box;">
+    <img src="./doc/img/pig9.png" alt="pig9" style="width: 50%; padding: 5px; box-sizing: border-box;">
+    <img src="./doc/img/pig10.png" alt="pig10" style="width: 50%; padding: 5px; box-sizing: border-box;">
+    <img src="./doc/img/pig11.png" alt="pig11" style="width: 50%; padding: 5px; box-sizing: border-box;">
+</div>    
+
 ## 核心功能
+
 ### 1. **用户管理**
 - 用户注册、登录
 - 养殖户 / 兽医 / 管理员身份权限区分
@@ -68,6 +84,7 @@
 - **Redis 6+**
 - **Docker（可选，用于部署 AI 大模型）**
 - **Maven 3.8+**
+- **node 16+**
 
 ### 2. **数据库初始化**
 数据库建表的SQL文件在项目的SQL文件夹
@@ -76,23 +93,23 @@ CREATE DATABASE pig_health_smart_medicine;
 ```
 然后在 `application.yml` 配置数据库连接信息,根据图片的红标修改自己的
 
-![mysql](img/mysql.png)
+![mysql](./doc/img/mysql.png)
 
 配置邮箱：
 
-![mail](img/mail.png)
+![mail](./doc/img/mail.png)
 
 配置Redis：
 
-![redis](img/redis.png)
+![redis](./doc/img/redis.png)
 
 配置Minio
 
-![minio](img/minio.png)
+![minio](./doc/img/minio.png)
 
 配置Ollama：
 
-![ollama](img/ollama.png)
+![ollama](./doc/img/ollama.png)
 
 ### 3. **启动后端服务**
 

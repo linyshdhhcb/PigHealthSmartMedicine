@@ -1,21 +1,22 @@
 <template>
   <el-card class="p-0">
     <h1>用户管理模块</h1>
+
     <!-- 数据列表 -->
-    <el-row class="h-full flex flex-col overflow-x-auto overflow-y-hidden">
+    <el-row class="w-full h-full flex flex-col overflow-x-auto overflow-y-hidden">
       <!-- 查询条件 -->
       <div class="w-full">
         <!-- 查询条件在同一行 -->
-        <el-row :gutter="10"  class="w-full"  v-if="showSearchRow">
+        <el-row :gutter="10" class="w-full" v-if="showSearchRow">
           <el-col :span="6">
-            <el-form :model="searchForm"  inline label-position="left" >
+            <el-form :model="searchForm" inline label-position="left">
               <el-form-item label="用户名">
                 <el-input v-model="searchForm.userAccount" placeholder="请输入用户名" />
               </el-form-item>
             </el-form>
           </el-col>
           <el-col :span="6">
-            <el-form :model="searchForm"  >
+            <el-form :model="searchForm" inline label-position="left">
               <el-form-item label="真实姓名">
                 <el-input v-model="searchForm.userName" placeholder="请输入真实姓名" />
               </el-form-item>
@@ -27,126 +28,185 @@
         <el-row :gutter="10" class="w-full mt-3">
           <el-col :span="12">
             <el-button type="primary" @click="getPageList(false)">
-              <template #icon>
-                <el-icon><Search /></el-icon>
-              </template>
+              <el-icon><Search /></el-icon>
               查询
             </el-button>
             <el-button @click="getPageList(true)">
-              <template #icon>
-                <el-icon><Refresh /></el-icon>
-              </template>
+              <el-icon><Refresh /></el-icon>
               重置
             </el-button>
           </el-col>
           <el-col :span="12" style="text-align: right; display: flex; justify-content: flex-end;">
             <!-- 添加 -->
             <el-button type="primary" @click="addBtnClick()">
-              <template #icon>
-                <el-icon><Plus /></el-icon>
-              </template>
+              <el-icon><Plus /></el-icon>
               添加用户
             </el-button>
 
             <!-- 刷新 -->
             <el-button shape="circle" @click="getPageList(false)">
-              <template #icon>
-                <el-icon><Refresh /></el-icon>
-              </template>
+              <el-icon><Refresh /></el-icon>
             </el-button>
 
             <!-- 收缩/展开 -->
             <el-button shape="circle" @click="showSearchRow = !showSearchRow">
-              <template #icon>
-                <el-icon v-if="showSearchRow">
-                  <ArrowDown />
-                </el-icon>
-                <el-icon v-else>
-                  <ArrowUp />
-                </el-icon>
-              </template>
+              <el-icon>
+                <ArrowUp v-if="showSearchRow" />
+                <ArrowDown v-else />
+              </el-icon>
             </el-button>
           </el-col>
         </el-row>
 
-        <el-divider v-if="showSearchRow" class="mt-2" />
+        <el-divider v-if="showSearchRow" class="mt-2 border-dashed" />
 
         <!-- 数据展示区 -->
-        <el-row class="w-full flex-1 mt-3 overflow-y-auto" style="margin: 10px auto;">
+        <div class="table-container overflow-x-auto">
           <el-table
-            class="w-full"
+            class="min-w-full"
             :data="datatable.records"
             :loading="datatable.loading"
-            style="width: 100%; table-layout: fixed; height: calc(100vh - 350px);"
-            :fit="true"
-            :header-cell-style="{ background: '#f5f7fa', color: '#606266' }"
+            style="height: calc(100vh - 350px);"
+            border
+            :header-cell-style="{ background: '#f5f7fa', fontWeight: '600' }"
           >
-            <el-table-column prop="userAccount" label="用户名" min-width="150" align="center" />
-            <el-table-column prop="userName" label="真实姓名" min-width="150" align="center" />
-            <el-table-column prop="userAge" label="年龄" min-width="100" align="center" />
-            <el-table-column prop="userSex" label="性别" min-width="100" align="center" />
-            <el-table-column prop="userEmail" label="邮箱" min-width="200" align="center" />
-            <el-table-column label="操作" min-width="160" fixed="right" align="center">
+            <el-table-column 
+              fixed
+              prop="userAccount" 
+              label="用户名" 
+              align="center" 
+              min-width="200"
+            />
+            <el-table-column 
+              prop="userName" 
+              label="真实姓名" 
+              align="center" 
+              min-width="180"
+            />
+            <el-table-column 
+              prop="userAge" 
+              label="年龄" 
+              align="center" 
+              min-width="100"
+            />
+            <el-table-column 
+              prop="userSex" 
+              label="性别" 
+              align="center" 
+              min-width="100"
+            />
+            <el-table-column 
+              prop="userEmail" 
+              label="邮箱" 
+              align="center" 
+              min-width="240"
+            />
+            <el-table-column 
+              label="操作" 
+              align="center" 
+              width="280" 
+              fixed="right" 
+              class-name="fixed-column"
+            >
               <template #default="scope">
-                <el-space>
-                  <el-button type="text"  @click="updateBtnClick(scope.row.id)">
-                    <template #icon>
-                      <el-icon><Edit /></el-icon>
-                    </template>
-                    修改
-                  </el-button>
-                  <el-popconfirm content="确认要删除吗?" @confirm="deleteBtnOkClick(scope.row.id)">
-                    <template #reference>
-                      <el-button type="text"  status="danger">
-                        <template #icon>
-                          <el-icon><Delete /></el-icon>
-                        </template>
-                        删除
-                      </el-button>
-                    </template>
-                  </el-popconfirm>
-                  <el-button type="text"  @click="detailBtnClick(scope.row.id)">
-                    <template #icon>
-                      <el-icon><View /></el-icon>
-                    </template>
-                    详情
-                  </el-button>
-                </el-space>
+                <div class="action-buttons">
+                  <el-space size="small">
+                    <el-button 
+                      type="primary" 
+                      @click="updateBtnClick(scope.row.id)"
+                    >
+                      <el-icon><Edit /></el-icon> 修改
+                    </el-button>
+                    <el-popconfirm 
+                      title="确认删除该用户？" 
+                      @confirm="deleteBtnOkClick(scope.row.id)"
+                    >
+                      <template #reference>
+                        <el-button type="danger">
+                          <el-icon><Delete /></el-icon> 删除
+                        </el-button>
+                      </template>
+                    </el-popconfirm>
+                    <el-button 
+                      type="info" 
+                      @click="detailBtnClick(scope.row.id)"
+                    >
+                      <el-icon><View /></el-icon> 详情
+                    </el-button>
+                  </el-space>
+                </div>
               </template>
             </el-table-column>
           </el-table>
+        </div>
 
-          <!-- 分页 -->
-          <el-row class="w-full flex justify-end mt-2" style="margin: 10px auto;">
-            <el-pagination
-              v-if="datatable.total > 0"
-              v-model:current-page="searchForm.pageNum"
-              v-model:page-size="searchForm.pageSize"
-              :total="datatable.total"
-              :page-sizes="[10, 20, 50, 100, 200]"
-              layout="total, sizes, prev, pager, next, jumper"
-              @current-change="handlePageChange"
-              @size-change="handleSizeChange"
-            />
-          </el-row>
+        <!-- 分页 -->
+        <el-row class="w-full flex justify-end mt-2">
+          <el-pagination
+            v-if="datatable.total > 0"
+            v-model:current-page="searchForm.pageNum"
+            v-model:page-size="searchForm.pageSize"
+            :total="datatable.total"
+            :page-sizes="[10, 20, 50, 100, 200]"
+            layout="total, sizes, prev, pager, next, jumper"
+            @current-change="handlePageChange"
+            @size-change="handleSizeChange"
+          />
         </el-row>
       </div>
     </el-row>
 
     <!-- 添加/修改 模态框 -->
-    <el-dialog v-model="modal.visible" fullscreen :esc-close="true" :modal="true" draggable :footer="false">
+    <el-dialog 
+      v-model="modal.visible" 
+      fullscreen 
+      :close-on-click-modal="false" 
+      draggable
+    >
       <template #header>
-        <span>{{ modal.title }}</span>
+        <div class="flex justify-between items-center">
+          <span>{{ modal.title }}</span>
+          <el-button 
+            type="text" 
+            @click="onCancel"
+          >
+            <el-icon><Close /></el-icon>
+          </el-button>
+        </div>
       </template>
-      <component :is="modal.component" :params="modal.params" @ok="onOk" @cancel="onCancel" v-if="modal.visible" />
+      <component 
+        :is="modal.component" 
+        :params="modal.params" 
+        @ok="onOk" 
+        @cancel="onCancel" 
+        v-if="modal.visible" 
+      />
     </el-dialog>
 
     <!-- 详情 模态框 -->
-    <el-dialog v-model="detailModal.visible" fullscreen :esc-close="true" :modal="true" draggable :footer="false">
+    <el-dialog 
+      v-model="detailModal.visible" 
+      fullscreen 
+      :close-on-click-modal="false" 
+      draggable
+    >
       <template #header>
-        <span>{{ detailModal.title }}</span>
+        <div class="flex justify-between items-center">
+          <span>{{ detailModal.title }}</span>
+          <el-button 
+            type="text" 
+            @click="detailOnCancel"
+          >
+            <el-icon><Close /></el-icon>
+          </el-button>
+        </div>
       </template>
-      <component :is="detailModal.component" :params="detailModal.params" @cancel="detailOnCancel" v-if="detailModal.visible" />
+      <component 
+        :is="detailModal.component" 
+        :params="detailModal.params" 
+        @cancel="detailOnCancel" 
+        v-if="detailModal.visible" 
+      />
     </el-dialog>
   </el-card>
 </template>
@@ -157,31 +217,25 @@ import { userPage, userDelete } from '@/api/user.js';
 import UserEdit from './UserEdit.vue';
 import UserDetail from './UserDetail.vue';
 import { ElMessage } from 'element-plus';
-import { Search, Refresh, Plus, ArrowUp, ArrowDown, Edit, Delete, View } from '@element-plus/icons-vue';
+import { 
+  Search, Refresh, Plus, ArrowUp, ArrowDown, 
+  Edit, Delete, View, Close 
+} from '@element-plus/icons-vue';
 
-// 获取全局实例
 const { proxy } = getCurrentInstance();
-
-// 是否展示搜索区域
 const showSearchRow = ref(true);
-// 查询参数表单
 const searchForm = reactive({
   userAccount: null,
   userName: null,
   pageNum: 1,
   pageSize: 100,
 });
-// 数据列表配置
 const datatable = reactive({
   loading: false,
   records: [],
   total: 0,
 });
 
-// 加载中
-const spinLoading = ref(false);
-
-// 查询数据列表
 const getPageList = (isReset = false) => {
   if (isReset) {
     searchForm.userAccount = null;
@@ -190,33 +244,24 @@ const getPageList = (isReset = false) => {
     searchForm.pageSize = 100;
   }
   datatable.loading = true;
-  spinLoading.value = true; // 设置加载状态
-
-  // 调用分页接口
   userPage(searchForm)
     .then(res => {
-      datatable.records = res.records;
-      datatable.total = res.total;
+      datatable.records = res.data.data;
+      datatable.total = res.data.total;
     })
-    .finally(() => {
-      datatable.loading = false;
-      spinLoading.value = false; // 关闭加载状态
-    });
+    .finally(() => datatable.loading = false);
 };
 
-// 处理页码变化
 const handlePageChange = (pageNum) => {
   searchForm.pageNum = pageNum;
   getPageList();
 };
 
-// 处理每页显示条数变化
 const handleSizeChange = (pageSize) => {
   searchForm.pageSize = pageSize;
   getPageList();
 };
 
-// 公共模态框
 const modal = reactive({
   visible: false,
   title: '用户管理',
@@ -224,7 +269,6 @@ const modal = reactive({
   component: null,
 });
 
-// 详情模态框
 const detailModal = reactive({
   visible: false,
   title: '用户详情',
@@ -232,28 +276,24 @@ const detailModal = reactive({
   component: null,
 });
 
-// 添加按钮点击事件
 const addBtnClick = () => {
   modal.visible = true;
   modal.title = '添加用户';
-  modal.params = { operationType: 'add' }; // 传递 operationType
   modal.component = shallowRef(UserEdit);
+  modal.params = { operationType: 'add' };
 };
 
-// 表格行"修改"按钮点击事件
 const updateBtnClick = (id) => {
   modal.visible = true;
   modal.title = '修改用户';
-  modal.params = { operationType: 'update', id }; // 传递 id 和 operationType
   modal.component = shallowRef(UserEdit);
+  modal.params = { operationType: 'update', id };
 };
 
-// 表格行"删除"按钮点击事件
 const deleteBtnOkClick = (id) => {
   userDelete(id)
     .then(response => {
-      console.log('删除响应:', response); // 打印响应
-      if (response.data) { // 假设响应包含 data 属性
+      if (response.code === 200) {
         ElMessage.success('删除成功');
         getPageList();
       } else {
@@ -266,35 +306,45 @@ const deleteBtnOkClick = (id) => {
     });
 };
 
-// 表格行"详情"按钮点击事件
 const detailBtnClick = (id) => {
   detailModal.visible = true;
-  detailModal.title = '用户详情';
-  detailModal.params = { id };
   detailModal.component = shallowRef(UserDetail);
+  detailModal.params = { id };
 };
 
-// 模态框确认回调
 const onOk = () => {
   modal.visible = false;
-  // 刷新列表
   getPageList();
 };
 
-// 模态框取消回调
 const onCancel = () => {
   modal.visible = false;
 };
 
-// 详情模态框取消回调
 const detailOnCancel = () => {
   detailModal.visible = false;
 };
 
-// 初始查询数据列表
 getPageList();
 </script>
 
 <style scoped>
+/* 继承文件管理模块基础样式 */
 
+/* 用户管理自定义样式 */
+:deep(.fixed-column) {
+  box-shadow: -2px 0 8px rgba(0, 0, 0, 0.08);
+  background: #ffffff;
+}
+
+:deep(.el-table__header th) {
+  padding: 16px 8px;
+  font-size: 14px;
+  color: #303133;
+}
+
+:deep(.el-table__body td) {
+  padding: 12px 8px;
+  vertical-align: middle;
+}
 </style>

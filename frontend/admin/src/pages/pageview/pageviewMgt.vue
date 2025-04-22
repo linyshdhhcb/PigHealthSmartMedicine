@@ -1,29 +1,34 @@
 <template>
-  <el-card class="p-0">
+  <el-card class="p-0" style="height: 100%;">
     <h1>浏览量管理模块</h1>
 
     <!-- 数据列表 -->
     <el-row class="w-full h-full flex flex-col overflow-x-auto overflow-y-hidden">
       <!-- 查询条件 -->
-      <div class="w-full" >
-        <el-row :gutter="10" class="w-full" v-if="showSearchRow">
-        <el-form :model="searchForm" inline label-position="left" >
-          <el-form-item label="浏览量">
-            <el-input-number v-model="searchForm.pageviewsMin" :precision="0" :step="1" placeholder="最小浏览量" />
-            <span class="mx-2">-</span>
-            <el-input-number v-model="searchForm.pageviewsMax" :precision="0" :step="1" placeholder="最大浏览量" />
-          </el-form-item>
-          <el-form-item label="疾病的ID">
-            <el-input v-model="searchForm.illnessId" placeholder="请输入疾病的ID" />
-          </el-form-item>
-        </el-form>
-      </el-row>
-      
-    
+      <div class="w-full" v-if="showSearchRow">
+        <!-- 查询条件在同一行 -->
+        <el-row :gutter="10" class="w-full">
+          <el-col :span="6">
+            <el-form :model="searchForm" inline label-position="left">
+              <el-form-item label="浏览量范围">
+                <el-input-number v-model="searchForm.pageviewsMin" :precision="0" :step="1" placeholder="最小浏览量" />
+                <span class="mx-2">-</span>
+                <el-input-number v-model="searchForm.pageviewsMax" :precision="0" :step="1" placeholder="最大浏览量" />
+              </el-form-item>
+            </el-form>
+          </el-col>
+          <el-col :span="6">
+            <el-form :model="searchForm" inline label-position="left">
+              <el-form-item label="疾病ID">
+                <el-input v-model="searchForm.illnessId" placeholder="请输入疾病的ID" />
+              </el-form-item>
+            </el-form>
+          </el-col>
+        </el-row>
 
-
-      <el-row :gutter="10" class="w-full mt-3">
-        <el-col :span="12">
+        <!-- 查询、重置、添加、刷新、收缩/展开在同一行 -->
+        <el-row :gutter="10" class="w-full mt-3">
+          <el-col :span="12">
             <el-button type="primary" @click="getPageList(false)">
               <el-icon><Search /></el-icon>
               查询
@@ -32,72 +37,77 @@
               <el-icon><Refresh /></el-icon>
               重置
             </el-button>
-        </el-col>
-        <el-col :span="12" style="text-align: right; display: flex; justify-content: flex-end;">
-          <!-- 添加 -->
-          <el-button type="primary"  @click="addBtnClick">
-            <el-icon><Plus /></el-icon>
-            添加浏览量
-          </el-button>
+          </el-col>
+          <el-col :span="12" style="text-align: right; display: flex; justify-content: flex-end;">
+            <!-- 添加 -->
+            <el-button type="primary" @click="addBtnClick">
+              <el-icon><Plus /></el-icon>
+              添加浏览量
+            </el-button>
 
-          <!-- 刷新 -->
-          <el-button shape="circle"  @click="getPageList(false)">
-            <el-icon><Refresh /></el-icon>
-          </el-button>
+            <!-- 刷新 -->
+            <el-button shape="circle" @click="getPageList(false)">
+              <el-icon><Refresh /></el-icon>
+            </el-button>
 
-          <!-- 收缩/展开 -->
-          <el-button shape="circle"  @click="showSearchRow = !showSearchRow">
-            <el-icon>
-              <ArrowUp v-if="showSearchRow" />
-              <ArrowDown v-else />
-            </el-icon>
-          </el-button>
+            <!-- 收缩/展开 -->
+            <el-button shape="circle" @click="showSearchRow = !showSearchRow">
+              <el-icon>
+                <ArrowUp v-if="showSearchRow" />
+                <ArrowDown v-else />
+              </el-icon>
+            </el-button>
+          </el-col>
+        </el-row>
 
-        </el-col>
-      </el-row>
+        <el-divider v-if="showSearchRow" class="mt-2" />
 
-      </div>
-
-      <!-- 分割线 -->
-      <el-divider v-if="showSearchRow" class="mt-2" />
-
-      <!-- 数据展示区 -->
-      <el-row class="w-full flex-1 mt-3 overflow-y-auto">
-        <el-table class="w-full" :data="datatable.records" :loading="datatable.loading"
-        style="width: 100%; table-layout: fixed; height: calc(100vh - 350px);">
-          <el-table-column prop="pageviews" label="浏览量" align="center" min-width="100" />
-          <!-- 修改疾病的ID显示为疾病名称 -->
-          <el-table-column label="疾病名称" align="center" min-width="150">
-            <template #default="scope">
-              {{ illnessMap[scope.row.illnessId] || '未知疾病' }}
-            </template>
-          </el-table-column>
-          <el-table-column label="操作" align="center" min-width="200" fixed="right">
-            <template #default="scope">
-              <el-space>
-                <!-- 查看详情 -->
-                <el-button type="info"  @click="detailBtnClick(scope.row.id)">
-                  <el-icon><View /></el-icon>
-                  详情
-                </el-button>
-                <!-- 修改 -->
-                <el-button type="primary"  @click="updateBtnClick(scope.row.id)">
-                  <el-icon><Edit /></el-icon>
-                  修改
-                </el-button>
-                <!-- 删除 -->
-                <el-popconfirm title="确认要删除吗?" @confirm="deleteBtnOkClick(scope.row.id)">
-                  <template #reference>
-                    <el-button type="danger" >
-                      <el-icon><Delete /></el-icon>
-                      删除
-                    </el-button>
-                  </template>
-                </el-popconfirm>
-              </el-space>
-            </template>
-          </el-table-column>
-        </el-table>
+        <!-- 数据展示区 -->
+        <el-row class="w-full flex-1 mt-3 overflow-y-auto">
+          <div class="table-container">
+            <el-table
+              style="width: 100%; min-width: 800px; height: calc(100vh - 350px);"
+              border
+              :data="datatable.records"
+              :loading="datatable.loading"
+              :header-cell-style="{ background: '#f5f7fa', color: '#606266' }"
+            >
+              <el-table-column prop="pageviews" label="浏览量" align="center" min-width="400" />
+              <el-table-column label="疾病名称" align="center" min-width="450">
+                <template #default="scope">
+                  {{ illnessMap[scope.row.illnessId] || '未知疾病' }}
+                </template>
+              </el-table-column>
+              <el-table-column label="操作" align="center" min-width="280" fixed="right" class-name="fixed-column">
+                <template #default="scope">
+                  <div class="acticon-button">
+                    <el-space>
+                      <!-- 查看详情 -->
+                      <el-button type="info" @click="detailBtnClick(scope.row.id)">
+                        <el-icon><View /></el-icon>
+                        详情
+                      </el-button>
+                      <!-- 修改 -->
+                      <el-button type="primary" @click="updateBtnClick(scope.row.id)">
+                        <el-icon><Edit /></el-icon>
+                        修改
+                      </el-button>
+                      <!-- 删除 -->
+                      <el-popconfirm title="确认要删除吗?" @confirm="deleteBtnOkClick(scope.row.id)">
+                        <template #reference>
+                          <el-button type="danger">
+                            <el-icon><Delete /></el-icon>
+                            删除
+                          </el-button>
+                        </template>
+                      </el-popconfirm>
+                    </el-space>
+                  </div>
+                </template>
+              </el-table-column>
+            </el-table>
+          </div>
+        </el-row>
 
         <!-- 分页 -->
         <el-row class="w-full flex justify-end mt-2" style="margin: 10px auto;">
@@ -112,7 +122,7 @@
             @size-change="handleSizeChange"
           />
         </el-row>
-      </el-row>
+      </div>
     </el-row>
 
     <!-- 添加/修改 模态框 -->
@@ -131,7 +141,7 @@
 
 <script setup>
 import { ref, reactive, shallowRef, onMounted } from 'vue';
-import { pageviewAdd, pageviewPage, pageviewDelete, pageviewUpdate, illnessPage } from '@/api/pageview.js';
+import { pageviewAdd, pageviewPage, pageviewDelete } from '@/api/pageview.js';
 import pageviewEdit from '@/pages/pageview/pageviewEdit.vue';
 import pageviewDetail from '@/pages/pageview/pageviewDetail.vue';
 import { ElMessage } from 'element-plus';
@@ -143,8 +153,6 @@ const showSearchRow = ref(true);
 const searchForm = reactive({
   pageNum: 1,
   pageSize: 10,
-  sortField: "",
-  sortOrder: "",
   pageviewsMin: null,
   pageviewsMax: null,
   illnessId: null,
@@ -155,28 +163,20 @@ const datatable = reactive({
   loading: false,
   total: 0
 });
-
 // 疾病映射对象
 const illnessMap = ref({});
 
 // 获取疾病列表并建立映射
 const getIllnessMap = () => {
-  const params = {
-    pageNum: 1,
-    pageSize: 100 // 假设获取所有疾病数据
-  };
-  illnessPage(params)
-    .then((res) => {
-      if (res.code === 200) {
-        const data = res.data.data || [];
-        data.forEach((item) => {
-          illnessMap.value[item.id] = item.illnessName;
-        });
-      }
-    })
-    .catch((error) => {
-      console.error('获取疾病列表失败', error);
-    });
+  // 假设这里有一个获取疾病列表的 API，示例如下：
+  const illnessList = [
+    { id: 1, illnessName: '疾病1' },
+    { id: 2, illnessName: '疾病2' },
+    // 更多疾病数据...
+  ];
+  illnessList.forEach(item => {
+    illnessMap.value[item.id] = item.illnessName;
+  });
 };
 
 // 查询数据列表
@@ -186,16 +186,16 @@ const getPageList = (isReset = false) => {
     searchForm.pageviewsMax = null;
     searchForm.illnessId = null;
     searchForm.pageNum = 1;
-    searchForm.pageSize = 100;
+    searchForm.pageSize = 10;
   }
-  datatable.loading = true;
+ datatable.loading = true;
 
   // 调用分页接口
   pageviewPage(searchForm)
     .then(res => {
       if (res.code === 200) {
-        datatable.records = res.data.data; // 将浏览量列表赋值给 datatable.records
-        datatable.total = res.data.total; // 设置总记录数
+        datatable.records = res.data.data;
+        datatable.total = res.data.total;
       } else {
         ElMessage.error(res.message || '获取浏览量列表失败');
       }
@@ -205,14 +205,16 @@ const getPageList = (isReset = false) => {
     });
 };
 
-const handlePageChange = (page) => {
-  searchForm.pageNum = page;
+// 处理页码变化
+const handlePageChange = (pageNum) => {
+  searchForm.pageNum = pageNum;
   getPageList();
-}
-const handleSizeChange = (size) => {
-  searchForm.pageSize = size;
+};
+// 处理每页显示条数变化
+const handleSizeChange = (pageSize) => {
+  searchForm.pageSize = pageSize;
   getPageList();
-}
+};
 
 // 公共模态框
 const modal = reactive({
@@ -234,7 +236,7 @@ const detailModal = reactive({
 const addBtnClick = () => {
   modal.visible = true;
   modal.title = '添加浏览量';
-  modal.params = { operationType: 'add' }; // 传递 operationType
+  modal.params = { operationType: 'add' };
   modal.component = shallowRef(pageviewEdit);
 };
 
@@ -242,7 +244,7 @@ const addBtnClick = () => {
 const updateBtnClick = (id) => {
   modal.visible = true;
   modal.title = '修改浏览量';
-  modal.params = { operationType: 'update', id }; // 传递 id 和 operationType
+  modal.params = { operationType: 'update', id };
   modal.component = shallowRef(pageviewEdit);
 };
 
@@ -250,8 +252,7 @@ const updateBtnClick = (id) => {
 const deleteBtnOkClick = (id) => {
   pageviewDelete(id)
     .then(response => {
-      console.log('删除响应:', response); // 打印响应
-      if (response.data) { // 假设响应包含 data 属性
+      if (response.data) {
         ElMessage.success('删除成功');
         getPageList();
       } else {
@@ -275,7 +276,6 @@ const detailBtnClick = (id) => {
 // 模态框确认回调
 const onOk = () => {
   modal.visible = false;
-  // 刷新列表
   getPageList();
 };
 
@@ -297,12 +297,134 @@ onMounted(() => {
 </script>
 
 <style scoped>
-/* 根据需要添加样式 */
+/* 表格内容溢出时显示省略号 */
 .ellipsis {
   display: inline-block;
   width: 100%;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+}
+
+/* 表格容器样式 */
+.table-container {
+  overflow-x: auto;  /* 关键3：容器开启横向滚动 */
+  position: relative;
+}
+
+/* 操作按钮容器 */
+.action-buttons {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+  white-space: nowrap;
+}
+
+/* 保持表头固定 */
+:deep(.el-table__header-wrapper) {
+  position: sticky;
+  top: 0;
+  background: #fff;
+  z-index: 3;
+}
+
+/* 横向滚动条样式 */
+:deep(.el-table__body-wrapper)::-webkit-scrollbar {
+  height: 8px;
+}
+
+:deep(.el-table__body-wrapper)::-webkit-scrollbar-track {
+  background: #f1f1f1;
+}
+
+:deep(.el-table__body-wrapper)::-webkit-scrollbar-thumb {
+  background: #c1c1c1;
+  border-radius: 4px;
+}
+
+/* 优化列宽设置 */
+:deep(.el-table__body) td {
+  white-space: nowrap;
+}
+
+:deep(.el-table__body) .cell {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* 新增关键样式 */
+.table-container {
+  overflow-x: auto;  /* 关键3：容器开启横向滚动 */
+  position: relative;
+}
+
+/* 优化固定列样式 */
+:deep(.fixed-column) {
+  position: sticky !important;
+  right: 0;
+  z-index: 100;
+  background: #fff;
+  box-shadow: -2px 0 8px rgba(0, 0, 0, 0.08);
+  transition: box-shadow 0.3s;
+}
+
+/* 保证表头固定 */
+:deep(.el-table__header-wrapper) {
+  position: sticky;
+  top: 0;
+  z-index: 101;
+  background: #fff;
+}
+
+/* 优化滚动条样式 */
+.table-container::-webkit-scrollbar {
+  height: 8px;
+  width: 8px;
+}
+
+.table-container::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 4px;
+}
+
+.table-container::-webkit-scrollbar-thumb {
+  background: #c1c1c1;
+  border-radius: 4px;
+  transition: background 0.3s;
+}
+
+.table-container::-webkit-scrollbar-thumb:hover {
+  background: #a8a8a8;
+}
+
+/* 强制表格列不换行 */
+:deep(.el-table__body) td .cell {
+  white-space: nowrap;
+}
+
+/* 修复表头对齐问题 */
+:deep(.el-table__header) {
+  width: auto !important;
+}
+
+/* 移动端适配 */
+@media (max-width: 768px) {
+  .table-container {
+    min-width: 100%;
+    overflow-x: scroll;
+  }
+  
+  :deep(.fixed-column) {
+    position: static !important;
+    box-shadow: none;
+  }
+}
+
+:deep(.el-table__fixed-right) {
+  position: sticky !important;
+  right: 0;
+  z-index: 2;
+  background: #fff;
+  box-shadow: -2px 0 8px rgba(0, 0, 0, 0.1);
 }
 </style>

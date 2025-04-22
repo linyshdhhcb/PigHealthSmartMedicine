@@ -9,28 +9,28 @@
         <!-- 查询条件在同一行 -->
         <el-row :gutter="10" class="w-full">
           <el-col :span="6">
-            <el-form :model="searchForm" inline label-position="left" >
+            <el-form :model="searchForm" inline label-position="left">
               <el-form-item label="反馈用户">
                 <el-input v-model="searchForm.name" placeholder="请输入反馈用户" />
               </el-form-item>
             </el-form>
           </el-col>
           <el-col :span="6">
-            <el-form :model="searchForm" inline label-position="left" >
+            <el-form :model="searchForm" inline label-position="left">
               <el-form-item label="邮箱地址">
                 <el-input v-model="searchForm.email" placeholder="请输入邮箱地址" />
               </el-form-item>
             </el-form>
           </el-col>
           <el-col :span="6">
-            <el-form :model="searchForm" inline label-position="left" >
+            <el-form :model="searchForm" inline label-position="left">
               <el-form-item label="反馈标题">
                 <el-input v-model="searchForm.title" placeholder="请输入反馈标题" />
               </el-form-item>
             </el-form>
           </el-col>
           <el-col :span="6">
-            <el-form :model="searchForm" inline label-position="left" >
+            <el-form :model="searchForm" inline label-position="left">
               <el-form-item label="反馈内容">
                 <el-input v-model="searchForm.content" placeholder="请输入反馈内容" />
               </el-form-item>
@@ -75,65 +75,67 @@
         <el-divider v-if="showSearchRow" class="mt-2" />
 
         <!-- 数据展示区 -->
-        <el-row class="w-full flex-1 mt-3 overflow-y-auto">
+        <div class="table-container overflow-x-auto">
           <el-table
-            class="w-full"
+            class="min-w-full"
             :data="datatable.records"
             :loading="datatable.loading"
-            style="width: 100%; table-layout: fixed; height: calc(100vh - 350px);"
-            :fit="true"
-            :header-cell-style="{ background: '#f5f7fa', color: '#606266' }"
+            style="height: calc(100vh - 350px);"
+            border
+            :header-cell-style="{ background: '#f5f7fa', fontWeight: '600' }"
           >
-            <el-table-column prop="name" label="反馈用户" align="center" min-width="150" />
-            <el-table-column prop="email" label="邮箱地址" align="center" min-width="200" />
+            <el-table-column fixed prop="name" label="反馈用户" align="center" min-width="180" />
+            <el-table-column prop="email" label="邮箱地址" align="center" min-width="220" />
             <el-table-column prop="title" label="反馈标题" align="center" min-width="200" />
-            <el-table-column prop="content" label="反馈内容" align="center" min-width="100">
+            <el-table-column prop="content" label="反馈内容" align="center" min-width="300">
               <template #default="scope">
                 <el-tooltip effect="dark" :content="scope.row.content" placement="top">
                   <span class="ellipsis">{{ scope.row.content }}</span>
                 </el-tooltip>
               </template>
             </el-table-column>
-            <el-table-column label="操作" align="center" min-width="200" fixed="right">
+            <el-table-column label="操作" align="center" width="280" fixed="right" class-name="fixed-column">
               <template #default="scope">
-                <el-space>
-                  <!-- 查看详情 -->
-                  <el-button type="info"  @click="detailBtnClick(scope.row.id)">
-                    <el-icon><View /></el-icon>
-                    详情
-                  </el-button>
-                  <!-- 修改 -->
-                  <el-button type="primary"  @click="updateBtnClick(scope.row.id)">
-                    <el-icon><Edit /></el-icon>
-                    修改
-                  </el-button>
-                  <!-- 删除 -->
-                  <el-popconfirm title="确认要删除吗?" @confirm="deleteBtnOkClick(scope.row.id)">
-                    <template #reference>
-                      <el-button type="danger" >
-                        <el-icon><Delete /></el-icon>
-                        删除
-                      </el-button>
-                    </template>
-                  </el-popconfirm>
-                </el-space>
+                <div class="action-buttons">
+                  <el-space>
+                    <!-- 查看详情 -->
+                    <el-button type="info" @click="detailBtnClick(scope.row.id)">
+                      <el-icon><View /></el-icon>
+                      详情
+                    </el-button>
+                    <!-- 修改 -->
+                    <el-button type="primary" @click="updateBtnClick(scope.row.id)">
+                      <el-icon><Edit /></el-icon>
+                      修改
+                    </el-button>
+                    <!-- 删除 -->
+                    <el-popconfirm title="确认要删除吗?" @confirm="deleteBtnOkClick(scope.row.id)">
+                      <template #reference>
+                        <el-button type="danger">
+                          <el-icon><Delete /></el-icon>
+                          删除
+                        </el-button>
+                      </template>
+                    </el-popconfirm>
+                  </el-space>
+                </div>
               </template>
             </el-table-column>
           </el-table>
+        </div>
 
-          <!-- 分页 -->
-          <el-row class="w-full flex justify-end mt-2" style="margin: 10px auto;">
-            <el-pagination
-              v-if="datatable.total > 0"
-              v-model:current-page="searchForm.pageNum"
-              v-model:page-size="searchForm.pageSize"
-              :total="datatable.total"
-              :page-sizes="[10, 20, 50, 100, 200]"
-              layout="total, sizes, prev, pager, next, jumper"
-              @current-change="handlePageChange"
-              @size-change="handleSizeChange"
-            />
-          </el-row>
+        <!-- 分页 -->
+        <el-row class="w-full flex justify-end mt-2" style="margin: 10px auto;">
+          <el-pagination
+            v-if="datatable.total > 0"
+            v-model:current-page="searchForm.pageNum"
+            v-model:page-size="searchForm.pageSize"
+            :total="datatable.total"
+            :page-sizes="[10, 20, 50, 100, 200]"
+            layout="total, sizes, prev, pager, next, jumper"
+            @current-change="handlePageChange"
+            @size-change="handleSizeChange"
+          />
         </el-row>
       </div>
     </el-row>
@@ -159,7 +161,6 @@ import FeedbackEdit from '@/pages/feedback/FeedbackEdit.vue';
 import FeedbackDetail from '@/pages/feedback/FeedbackDetail.vue';
 import { ElMessage } from 'element-plus';
 import { Search, Refresh, Plus, ArrowUp, ArrowDown, Edit, Delete, View } from '@element-plus/icons-vue';
-
 
 // 是否展示搜索区域
 const showSearchRow = ref(true);
@@ -191,12 +192,11 @@ const getPageList = (isReset = false) => {
   }
   datatable.loading = true;
 
-  // 调用分页接口
   feedbackPage(searchForm)
     .then(res => {
       if (res.code === 200) {
-        datatable.records = res.data.data; // 将反馈列表赋值给 datatable.records
-        datatable.total = res.data.total; // 设置总记录数
+        datatable.records = res.data.data;
+        datatable.total = res.data.total;
       } else {
         ElMessage.error(res.message || '获取反馈列表失败');
       }
@@ -206,13 +206,11 @@ const getPageList = (isReset = false) => {
     });
 };
 
-// 处理页码变化
 const handlePageChange = (pageNum) => {
   searchForm.pageNum = pageNum;
   getPageList();
 };
 
-// 处理每页显示条数变化
 const handleSizeChange = (pageSize) => {
   searchForm.pageSize = pageSize;
   getPageList();
@@ -238,19 +236,19 @@ const detailModal = reactive({
 const addBtnClick = () => {
   modal.visible = true;
   modal.title = '添加反馈';
-  modal.params = { operationType: 'add' }; // 传递 operationType
+  modal.params = { operationType: 'add' };
   modal.component = shallowRef(FeedbackEdit);
 };
 
-// 表格行"修改"按钮点击事件
+// 修改按钮点击事件
 const updateBtnClick = (id) => {
   modal.visible = true;
   modal.title = '修改反馈';
-  modal.params = { operationType: 'update', id }; // 传递 id 和 operationType
+  modal.params = { operationType: 'update', id };
   modal.component = shallowRef(FeedbackEdit);
 };
 
-// 表格行"删除"按钮点击事件
+// 删除按钮点击事件
 const deleteBtnOkClick = (id) => {
   feedbackDelete(id)
     .then(response => {
@@ -267,7 +265,7 @@ const deleteBtnOkClick = (id) => {
     });
 };
 
-// 表格行"详情"按钮点击事件
+// 详情按钮点击事件
 const detailBtnClick = (id) => {
   detailModal.visible = true;
   detailModal.title = '反馈详情';
@@ -278,7 +276,6 @@ const detailBtnClick = (id) => {
 // 模态框确认回调
 const onOk = () => {
   modal.visible = false;
-  // 刷新列表
   getPageList();
 };
 
@@ -292,22 +289,73 @@ const detailOnCancel = () => {
   detailModal.visible = false;
 };
 
-// 初始查询数据列表
+// 初始查询数据
 getPageList();
-
-// 获取反馈种类列表
-onMounted(() => {
-  // 如果需要反馈种类列表，可以在这里获取
-});
 </script>
 
 <style scoped>
-/* 根据需要添加样式 */
+/* 继承 filesMgt.vue 样式规范 */
 .ellipsis {
   display: inline-block;
   width: 100%;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+}
+
+.table-container {
+  width: 100%;
+  overflow-x: auto;
+}
+
+:deep(.fixed-column) {
+  position: sticky !important;
+  right: 0;
+  z-index: 100;
+  background: #fff;
+  box-shadow: -2px 0 8px rgba(0, 0, 0, 0.08);
+}
+
+:deep(.el-table__header-wrapper) {
+  position: sticky;
+  top: 0;
+  z-index: 101;
+  background: #f5f7fa;
+}
+
+:deep(.el-table__body) td {
+  white-space: nowrap;
+}
+
+:deep(.el-table__body .cell) {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.action-buttons {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+  white-space: nowrap;
+}
+
+/* 滚动条样式 */
+:deep(.table-container::-webkit-scrollbar) {
+  height: 8px;
+  width: 8px;
+}
+
+:deep(.table-container::-webkit-scrollbar-track) {
+  background: #f1f1f1;
+  border-radius: 4px;
+}
+
+:deep(.table-container::-webkit-scrollbar-thumb) {
+  background: #c1c1c1;
+  border-radius: 4px;
+}
+
+:deep(.table-container::-webkit-scrollbar-thumb:hover) {
+  background: #a8a8a8;
 }
 </style>

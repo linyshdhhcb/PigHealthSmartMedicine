@@ -8,21 +8,21 @@
       <div class="w-full">
         <!-- 文件名和文件类型在同一行 -->
         <el-row :gutter="10" class="w-full" v-if="showSearchRow">
-          <el-col :span="5">
+          <el-col :span="6">
             <el-form :model="searchForm" inline label-position="left">
               <el-form-item label="文件名">
                 <el-input v-model="searchForm.fileName" placeholder="请输入文件名" />
               </el-form-item>
             </el-form>
           </el-col>
-          <el-col :span="5">
+          <el-col :span="6">
             <el-form :model="searchForm" inline label-position="left">
               <el-form-item label="文件类型">
                 <el-input v-model="searchForm.contentType" placeholder="请输入文件类型" />
               </el-form-item>
             </el-form>
           </el-col>
-          <el-col :span="14">
+          <el-col :span="12">
             <el-form :model="searchForm" inline label-position="left">
               <el-form-item label="文件大小">
                 <el-input-number v-model="searchForm.fileSizeMin" :precision="0" :step="4" placeholder="最小文件大小" />
@@ -69,69 +69,57 @@
 
         <el-divider v-if="showSearchRow" class="mt-2" />
 
-
-
-        
-        
         <!-- 数据展示区 -->
-        <el-row class="w-full flex-1 mt-3 overflow-y-auto table-container">
+        <el-row class="w-full flex-1 mt-3 overflow-y-auto">
           <div class="table-container">
-          <el-table
-              style="width: 100%; 
-                    min-width: 1200px; /* 关键1：设置最小宽度 */
-                    height: calc(100vh - 350px);"
+            <el-table
+              style="width: 100%; min-width: 1200px; height: calc(100vh - 350px);"
               border
-              :data="datatable.records" 
+              :data="datatable.records"
               :loading="datatable.loading"
               :header-cell-style="{ background: '#f5f7fa', fontWeight: '600' }"
             >
-            <el-table-column fixed prop="fileName" label="文件名" align="center" min-width="200" />
-            <el-table-column prop="contentType" label="文件类型" align="center" min-width="150" />
-            <el-table-column prop="fileSize" label="文件大小" align="center" min-width="150">
-              <template #default="scope">
-                {{ formatFileSize(scope.row.fileSize) }}
-              </template>
-            </el-table-column>
-            <el-table-column prop="url" label="文件URL" align="center" min-width="50">
-              <template #default="scope">
-                <el-link :href="scope.row.url" target="_blank">查看文件</el-link>
-              </template>
-            </el-table-column>
-            <el-table-column 
-                    label="操作" 
-                    align="center" 
-                    width="280"
-                    fixed="right" 
-                    class-name="fixed-column"
-                  >
-              <template #default="scope">
-                <div class="acticon-button">
-                  <el-space>
-                  <!-- 查看详情 -->
-                  <el-button type="info" @click="detailBtnClick(scope.row.id)">
-                    <el-icon><View /></el-icon>
-                    详情
-                  </el-button>
-                  <!-- 修改 -->
-                  <el-button type="primary" @click="updateBtnClick(scope.row.id)">
-                    <el-icon><Edit /></el-icon>
-                    修改
-                  </el-button>
-                  <!-- 删除 -->
-                  <el-popconfirm title="确认要删除吗?" @confirm="deleteBtnOkClick(scope.row.id)">
-                    <template #reference>
-                      <el-button type="danger">
-                        <el-icon><Delete /></el-icon>
-                        删除
+              <el-table-column fixed prop="fileName" label="文件名" align="center" min-width="200" />
+              <el-table-column prop="contentType" label="文件类型" align="center" min-width="150" />
+              <el-table-column prop="fileSize" label="文件大小" align="center" min-width="150">
+                <template #default="scope">
+                  {{ formatFileSize(scope.row.fileSize) }}
+                </template>
+              </el-table-column>
+              <el-table-column prop="url" label="文件URL" align="center" min-width="50">
+                <template #default="scope">
+                  <el-link :href="scope.row.url" target="_blank">查看文件</el-link>
+                </template>
+              </el-table-column>
+              <el-table-column label="操作" align="center" width="280" fixed="right" class-name="fixed-column">
+                <template #default="scope">
+                  <div class="acticon-button">
+                    <el-space>
+                      <!-- 查看详情 -->
+                      <el-button type="info" @click="detailBtnClick(scope.row.id)">
+                        <el-icon><View /></el-icon>
+                        详情
                       </el-button>
-                    </template>
-                  </el-popconfirm>
-                </el-space>
-                </div>
-              </template>
-            </el-table-column>
-          </el-table>
-        </div>
+                      <!-- 修改 -->
+                      <el-button type="primary" @click="updateBtnClick(scope.row.id)">
+                        <el-icon><Edit /></el-icon>
+                        修改
+                      </el-button>
+                      <!-- 删除 -->
+                      <el-popconfirm title="确认要删除吗?" @confirm="deleteBtnOkClick(scope.row.id)">
+                        <template #reference>
+                          <el-button type="danger">
+                            <el-icon><Delete /></el-icon>
+                            删除
+                          </el-button>
+                        </template>
+                      </el-popconfirm>
+                    </el-space>
+                  </div>
+                </template>
+              </el-table-column>
+            </el-table>
+          </div>
         </el-row>
 
         <!-- 分页 -->
@@ -220,11 +208,11 @@ const getPageList = (isReset = false) => {
 const handlePageChange = (pageNum) => {
   searchForm.pageNum = pageNum;
   getPageList();
-}
+};
 const handleSizeChange = (pageSize) => {
   searchForm.pageSize = pageSize;
   getPageList();
-}
+};
 
 // 公共模态框
 const modal = reactive({
@@ -325,6 +313,7 @@ getPageList();
   overflow: hidden;
   text-overflow: ellipsis;
 }
+
 /* 新增固定列样式 */
 :deep(.fixed-column) {
   position: sticky !important;
@@ -378,8 +367,6 @@ getPageList();
   overflow: hidden;
   text-overflow: ellipsis;
 }
-
-
 
 /* 新增关键样式 */
 .table-container {
@@ -465,8 +452,7 @@ getPageList();
   box-shadow: -2px 0 8px rgba(0, 0, 0, 0.1);
 }
 
-
-table-container{
+table-container {
   overflow-x: auto;
 }
 </style>

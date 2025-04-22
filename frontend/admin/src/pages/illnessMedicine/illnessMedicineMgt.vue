@@ -9,14 +9,14 @@
         <!-- 查询条件在同一行 -->
         <el-row :gutter="10" class="w-full">
           <el-col :span="5">
-            <el-form :model="searchForm" inline label-position="left" >
+            <el-form :model="searchForm" inline label-position="left">
               <el-form-item label="疾病ID">
                 <el-input v-model="searchForm.illnessId" placeholder="请输入疾病ID" />
               </el-form-item>
             </el-form>
           </el-col>
           <el-col :span="5">
-            <el-form :model="searchForm" inline label-position="left" >
+            <el-form :model="searchForm" inline label-position="left">
               <el-form-item label="药品ID">
                 <el-input v-model="searchForm.medicineId" placeholder="请输入药品ID" />
               </el-form-item>
@@ -62,60 +62,61 @@
 
         <!-- 数据展示区 -->
         <el-row class="w-full flex-1 mt-3 overflow-y-auto">
-          <el-table
-            class="w-full"
-            :data="datatable.records"
-            :loading="datatable.loading"
-            style="width: 100%; table-layout: fixed; height: calc(100vh - 350px);"
-            
-            :fit="true"
-            :header-cell-style="{ background: '#f5f7fa', color: '#606266' }"
-            
-          >
-            <el-table-column prop="illnessId" label="疾病ID" align="center" min-width="150" />
-            <el-table-column prop="medicineId" label="药品ID" align="center" min-width="150" />
-            <el-table-column prop="illnessName" label="疾病名称" align="center" min-width="200" />
-            <el-table-column prop="medicineName" label="药品名称" align="center" min-width="200" />
-            <el-table-column label="操作" align="center" min-width="200" fixed="right">
-              <template #default="scope">
-                <el-space>
-                  <!-- 查看详情 -->
-                  <el-button type="info"  @click="detailBtnClick(scope.row.id)">
-                    <el-icon><View /></el-icon>
-                    详情
-                  </el-button>
-                  <!-- 修改 -->
-                  <el-button type="primary"  @click="updateBtnClick(scope.row.id)">
-                    <el-icon><Edit /></el-icon>
-                    修改
-                  </el-button>
-                  <!-- 删除 -->
-                  <el-popconfirm title="确认要删除吗?" @confirm="deleteBtnOkClick(scope.row.id)">
-                    <template #reference>
-                      <el-button type="danger" >
-                        <el-icon><Delete /></el-icon>
-                        删除
+          <div class="table-container">
+            <el-table
+              style="width: 100%; min-width: 1200px; height: calc(100vh - 350px);"
+              border
+              :data="datatable.records"
+              :loading="datatable.loading"
+              :header-cell-style="{ background: '#f5f7fa', fontWeight: '600' }"
+            >
+              <el-table-column prop="illnessId" label="疾病ID" align="center" min-width="150" />
+              <el-table-column prop="medicineId" label="药品ID" align="center" min-width="150" />
+              <el-table-column prop="illnessName" label="疾病名称" align="center" min-width="300" />
+              <el-table-column prop="medicineName" label="药品名称" align="center" min-width="300" />
+              <el-table-column label="操作" align="center" min-width="300" fixed="right" class-name="fixed-column">
+                <template #default="scope">
+                  <div class="acticon-button">
+                    <el-space>
+                      <!-- 查看详情 -->
+                      <el-button type="info" @click="detailBtnClick(scope.row.id)">
+                        <el-icon><View /></el-icon>
+                        详情
                       </el-button>
-                    </template>
-                  </el-popconfirm>
-                </el-space>
-              </template>
-            </el-table-column>
-          </el-table>
+                      <!-- 修改 -->
+                      <el-button type="primary" @click="updateBtnClick(scope.row.id)">
+                        <el-icon><Edit /></el-icon>
+                        修改
+                      </el-button>
+                      <!-- 删除 -->
+                      <el-popconfirm title="确认要删除吗?" @confirm="deleteBtnOkClick(scope.row.id)">
+                        <template #reference>
+                          <el-button type="danger">
+                            <el-icon><Delete /></el-icon>
+                            删除
+                          </el-button>
+                        </template>
+                      </el-popconfirm>
+                    </el-space>
+                  </div>
+                </template>
+              </el-table-column>
+            </el-table>
+          </div>
+        </el-row>
 
-          <!-- 分页 -->
-          <el-row class="w-full flex justify-end mt-2" style="margin: 10px auto;">
-            <el-pagination
-              v-if="datatable.total > 0"
-              v-model:current-page="searchForm.pageNum"
-              v-model:page-size="searchForm.pageSize"
-              :total="datatable.total"
-              :page-sizes="[10, 20, 50, 100, 200]"
-              layout="total, sizes, prev, pager, next, jumper"
-              @current-change="handlePageChange"
-              @size-change="handleSizeChange"
-            />
-          </el-row>
+        <!-- 分页 -->
+        <el-row class="w-full flex justify-end mt-2" style="margin: 10px auto;">
+          <el-pagination
+            v-if="datatable.total > 0"
+            v-model:current-page="searchForm.pageNum"
+            v-model:page-size="searchForm.pageSize"
+            :total="datatable.total"
+            :page-sizes="[10, 20, 50, 100, 200]"
+            layout="total, sizes, prev, pager, next, jumper"
+            @current-change="handlePageChange"
+            @size-change="handleSizeChange"
+          />
         </el-row>
       </div>
     </el-row>
@@ -148,8 +149,6 @@ const showSearchRow = ref(true);
 const searchForm = reactive({
   pageNum: 1,
   pageSize: 10,
-  sortField: "",
-  sortOrder: "",
   illnessId: null,
   medicineId: null,
 });
@@ -222,12 +221,12 @@ const getPageList = (isReset = false) => {
     });
 };
 
-const handlePageChange = (page) => {
-  searchForm.pageNum = page;
+const handlePageChange = (pageNum) => {
+  searchForm.pageNum = pageNum;
   getPageList();
 };
-const handleSizeChange = (size) => {
-  searchForm.pageSize = size;
+const handleSizeChange = (pageSize) => {
+  searchForm.pageSize = pageSize;
   getPageList();
 };
 
@@ -251,7 +250,7 @@ const detailModal = reactive({
 const addBtnClick = () => {
   modal.visible = true;
   modal.title = '添加疾病-药品';
-  modal.params = { operationType: 'add' }; // 传递 operationType
+  modal.params = { operationType: 'add' };
   modal.component = shallowRef(illnessMedicineEdit);
 };
 
@@ -259,7 +258,7 @@ const addBtnClick = () => {
 const updateBtnClick = (id) => {
   modal.visible = true;
   modal.title = '修改疾病-药品';
-  modal.params = { operationType: 'update', id }; // 传递 id 和 operationType
+  modal.params = { operationType: 'update', id };
   modal.component = shallowRef(illnessMedicineEdit);
 };
 
@@ -267,8 +266,7 @@ const updateBtnClick = (id) => {
 const deleteBtnOkClick = (id) => {
   illnessMedicineDelete(id)
     .then(response => {
-      console.log('删除响应:', response); // 打印响应
-      if (response.data) { // 假设响应包含 data 属性
+      if (response.data) {
         ElMessage.success('删除成功');
         getPageList();
       } else {
@@ -292,7 +290,6 @@ const detailBtnClick = (id) => {
 // 模态框确认回调
 const onOk = () => {
   modal.visible = false;
-  // 刷新列表
   getPageList();
 };
 
@@ -308,20 +305,136 @@ const detailOnCancel = () => {
 
 // 初始查询数据列表
 getPageList();
-
-// 获取疾病-药品种类列表
-onMounted(() => {
-  // 如果需要疾病-药品种类列表，可以在这里获取
-});
 </script>
 
 <style scoped>
-/* 根据需要添加样式 */
+/* 表格内容溢出时显示省略号 */
 .ellipsis {
   display: inline-block;
   width: 100%;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+}
+
+/* 表格容器样式 */
+.table-container {
+  overflow-x: auto;  /* 关键3：容器开启横向滚动 */
+  position: relative;
+}
+
+/* 操作按钮容器 */
+.action-buttons {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+  white-space: nowrap;
+}
+
+/* 保持表头固定 */
+:deep(.el-table__header-wrapper) {
+  position: sticky;
+  top: 0;
+  z-index: 3;
+}
+
+/* 横向滚动条样式 */
+:deep(.el-table__body-wrapper)::-webkit-scrollbar {
+  height: 8px;
+}
+
+:deep(.el-table__body-wrapper)::-webkit-scrollbar-track {
+  background: #f1f1f1;
+}
+
+:deep(.el-table__body-wrapper)::-webkit-scrollbar-thumb {
+  background: #c1c1c1;
+  border-radius: 4px;
+}
+
+/* 优化列宽设置 */
+:deep(.el-table__body) td {
+  white-space: nowrap;
+}
+
+:deep(.el-table__body) .cell {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* 新增关键样式 */
+.table-container {
+  overflow-x: auto;  /* 关键3：容器开启横向滚动 */
+  position: relative;
+}
+
+/* 优化固定列样式 */
+:deep(.fixed-column) {
+  position: sticky !important;
+  right: 0;
+  z-index: 100;
+  background: #fff;
+  box-shadow: -2px 0 8px rgba(0, 0, 0, 0.08);
+  transition: box-shadow 0.3s;
+}
+
+/* 保证表头固定 */
+:deep(.el-table__header-wrapper) {
+  position: sticky;
+  top: 0;
+  z-index: 101;
+  background: #fff;
+}
+
+/* 优化滚动条样式 */
+.table-container::-webkit-scrollbar {
+  height: 8px;
+  width: 8px;
+}
+
+.table-container::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 4px;
+}
+
+.table-container::-webkit-scrollbar-thumb {
+  background: #c1c1c1;
+  border-radius: 4px;
+  transition: background 0.3s;
+}
+
+.table-container::-webkit-scrollbar-thumb:hover {
+  background: #a8a8a8;
+}
+
+/* 强制表格列不换行 */
+:deep(.el-table__body) td .cell {
+  white-space: nowrap;
+}
+
+/* 修复表头对齐问题 */
+:deep(.el-table__header) {
+  width: auto !important;
+}
+
+/* 移动端适配 */
+@media (max-width: 768px) {
+  .table-container {
+    min-width: 100%;
+    overflow-x: scroll;
+  }
+  
+  :deep(.fixed-column) {
+    position: static !important;
+    box-shadow: none;
+  }
+}
+
+:deep(.el-table__fixed-right) {
+  position: sticky !important;
+  right: 0;
+  z-index: 2;
+  background: #fff;
+  box-shadow: -2px 0 8px rgba(0, 0, 0, 0.1);
 }
 </style>

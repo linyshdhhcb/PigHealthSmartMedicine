@@ -116,6 +116,7 @@
       </div>
     </van-dialog>
   </div>
+  <buttom2 />
 </template>
 
 <script setup>
@@ -123,6 +124,7 @@ import { ref } from 'vue';
 import nav2 from '@/components/nav2.vue';
 import { medicinePage, getmedicineInfo } from '@/api/admin/medicine.js';
 import { ElMessage } from 'element-plus';
+import buttom2 from '@/components/buttom2.vue';
 
 const currentPage = ref(1);
 const pageSize = ref(9);
