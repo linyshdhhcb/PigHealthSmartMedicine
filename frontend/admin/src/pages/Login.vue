@@ -14,8 +14,8 @@
 
       <!-- 登录表单 -->
       <div class="login-form">
-        <h2 class="login-title">欢迎登录 SmartAdmin V3</h2>
-        <p class="login-subtitle">「高质量代码、简洁、高效、安全」的开发平台</p>
+        <h2 class="login-title">欢迎登录 生猪智慧医药系统</h2>
+        <p class="login-subtitle">专为生猪养殖行业设计的综合性医药管理平台</p>
 
         <form @submit.prevent="handleLogin">
           <div class="form-group">
