@@ -122,12 +122,22 @@ public class ConversationController {
         return Result.success(conversationService.getHistoryNum(num));
     }
 
+    /**
+     * 通过ollama调用大模型
+     * @param prompt
+     * @return
+     */
     @Operation(summary = "通过ollama调用大模型")
     @GetMapping("/getOllama")
     public Result<Conversation> getOllama(@RequestParam String prompt) {
        return Result.success(conversationService.getOllama(prompt));
     }
 
+    /**
+     * 通过API调用大模型
+     * @param prompt
+     * @return
+     */
     @Operation(summary = "调用大模型API")
     @GetMapping("/getApiLLM")
     public Result<Conversation> getApiLLM(@RequestParam String prompt) {

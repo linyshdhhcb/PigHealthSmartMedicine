@@ -152,7 +152,7 @@ public class ConversationServiceImpl extends ServiceImpl<ConversationMapper, Con
                 .userInput(msg)
                 .aiResponse(result)
                 .modelName(defaultChatOptionsModel)
-                .responseTime(new BigDecimal(formattedTimeTaken))
+                .responseTime(new BigDecimal(formattedTimeTaken.toString()))
                 .build();
         conversationMapper.insert(conversation);
         return conversation;
