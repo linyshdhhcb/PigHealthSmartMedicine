@@ -42,6 +42,13 @@ public class Conversation implements Serializable {
     private Long id;
 
     /**
+     * 会话ID
+     */
+    @TableField("session_id")
+    @Schema(name = "sessionId",description = "会话ID",type = "bigint")
+    private Long sessionId;
+
+    /**
      * 用户ID
      */
     @TableField("user_id")

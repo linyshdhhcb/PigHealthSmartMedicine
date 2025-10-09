@@ -39,6 +39,13 @@ public class ConversationUpdateVo implements Serializable {
     private Integer userId;
 
     /**
+     * 会话ID
+     */
+    @TableField("session_id")
+    @Schema(name = "sessionId",description = "会话ID",type = "bigint")
+    private Long sessionId;
+
+    /**
      * 用户输入
      */
     @TableField("user_input")

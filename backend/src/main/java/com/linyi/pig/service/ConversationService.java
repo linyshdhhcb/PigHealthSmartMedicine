@@ -10,12 +10,12 @@ import com.linyi.pig.entity.vo.conversation.ConversationUpdateVo;
 import java.util.List;
 
 /**
-* @Author: linyi
-* @Date: 2025-02-26 13:27:06
-* @ClassName: ConversationService
-* @Version: 1.0
-* @Description: 对话 服务层
-*/
+ * @Author: linyi
+ * @Date: 2025-02-26 13:27:06
+ * @ClassName: ConversationService
+ * @Version: 1.0
+ * @Description: 对话 服务层
+ */
 public interface ConversationService extends IService<Conversation> {
     /**
      * 分页查询
@@ -43,12 +43,17 @@ public interface ConversationService extends IService<Conversation> {
 
     /**
      * 根据几次历史对话记录
+     * 
      * @param num 次数
      * @return
      */
     List<Conversation> getHistoryNum(Integer num);
 
+    List<Conversation> listBySessionId(Long sessionId);
+
     Conversation getOllama(String prompt);
+
+    Conversation getOllama(String prompt, Long sessionId);
 
     Conversation getApiLLM(String prompt);
 }

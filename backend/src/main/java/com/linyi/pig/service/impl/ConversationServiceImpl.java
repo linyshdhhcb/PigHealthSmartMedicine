@@ -33,17 +33,17 @@ import java.util.Optional;
 import java.util.List;
 
 /**
-* @Author: linyi
-* @Date: 2025-02-26 13:27:06
-* @ClassName: ConversationServiceImpl
-* @Version: 1.0
-* @Description: 对话 服务实现层
-*/
+ * @Author: linyi
+ * @Date: 2025-02-26 13:27:06
+ * @ClassName: ConversationServiceImpl
+ * @Version: 1.0
+ * @Description: 对话 服务实现层
+ */
 @Slf4j
 @Service
 @Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
-@SuppressWarnings({"unchecked", "rawtypes"})
-public class ConversationServiceImpl extends ServiceImpl<ConversationMapper, Conversation> implements ConversationService {
+public class ConversationServiceImpl extends ServiceImpl<ConversationMapper, Conversation>
+        implements ConversationService {
 
     @Autowired
     private ConversationMapper conversationMapper;
@@ -57,54 +57,64 @@ public class ConversationServiceImpl extends ServiceImpl<ConversationMapper, Con
     @Override
     public PageResult<Conversation> conversationPage(ConversationQueryVo conversationQueryVo) {
         LambdaQueryWrapper<Conversation> queryWrapper = new LambdaQueryWrapper<>();
-        queryWrapper.eq(Optional.ofNullable(conversationQueryVo.getId()).isPresent(), Conversation::getId, conversationQueryVo.getId());
-        queryWrapper.eq(Optional.ofNullable(conversationQueryVo.getUserId()).isPresent(), Conversation::getUserId, conversationQueryVo.getUserId());
-        queryWrapper.eq(StringUtils.isNotBlank(conversationQueryVo.getUserInput()), Conversation::getUserInput, conversationQueryVo.getUserInput());
-        queryWrapper.eq(StringUtils.isNotBlank(conversationQueryVo.getAiResponse()), Conversation::getAiResponse, conversationQueryVo.getAiResponse());
-        queryWrapper.eq(Optional.ofNullable(conversationQueryVo.getAiResponse()).isPresent(), Conversation::getAiResponse, conversationQueryVo.getAiResponse());
-        queryWrapper.gt(Optional.ofNullable(conversationQueryVo.getStartConversationTime()).isPresent(), Conversation::getConversationTime, conversationQueryVo.getStartConversationTime());
-        queryWrapper.lt(Optional.ofNullable(conversationQueryVo.getEndConversationTime()).isPresent(), Conversation::getConversationTime, conversationQueryVo.getEndConversationTime());
-        queryWrapper.eq(StringUtils.isNotBlank(conversationQueryVo.getModelName()), Conversation::getModelName, conversationQueryVo.getModelName());
-        queryWrapper.ge(Optional.ofNullable(conversationQueryVo.getResponseTime()).isPresent(), Conversation::getResponseTime, conversationQueryVo.getResponseTime());
+        queryWrapper.eq(Optional.ofNullable(conversationQueryVo.getId()).isPresent(), Conversation::getId,
+                conversationQueryVo.getId());
+        queryWrapper.eq(Optional.ofNullable(conversationQueryVo.getUserId()).isPresent(), Conversation::getUserId,
+                conversationQueryVo.getUserId());
+        queryWrapper.eq(StringUtils.isNotBlank(conversationQueryVo.getUserInput()), Conversation::getUserInput,
+                conversationQueryVo.getUserInput());
+        queryWrapper.eq(StringUtils.isNotBlank(conversationQueryVo.getAiResponse()), Conversation::getAiResponse,
+                conversationQueryVo.getAiResponse());
+        queryWrapper.eq(Optional.ofNullable(conversationQueryVo.getAiResponse()).isPresent(),
+                Conversation::getAiResponse, conversationQueryVo.getAiResponse());
+        queryWrapper.gt(Optional.ofNullable(conversationQueryVo.getStartConversationTime()).isPresent(),
+                Conversation::getConversationTime, conversationQueryVo.getStartConversationTime());
+        queryWrapper.lt(Optional.ofNullable(conversationQueryVo.getEndConversationTime()).isPresent(),
+                Conversation::getConversationTime, conversationQueryVo.getEndConversationTime());
+        queryWrapper.eq(StringUtils.isNotBlank(conversationQueryVo.getModelName()), Conversation::getModelName,
+                conversationQueryVo.getModelName());
+        queryWrapper.ge(Optional.ofNullable(conversationQueryVo.getResponseTime()).isPresent(),
+                Conversation::getResponseTime, conversationQueryVo.getResponseTime());
 
-        //分页数据
-        Page<Conversation> page = new Page<>(conversationQueryVo.getPageNum(),conversationQueryVo.getPageSize());
-        //查询数据
+        // 分页数据
+        Page<Conversation> page = new Page<>(conversationQueryVo.getPageNum(), conversationQueryVo.getPageSize());
+        // 查询数据
         Page<Conversation> pageNew = conversationMapper.selectPage(page, queryWrapper);
-        //返回分页数据
-        return new PageResult<>(pageNew.getRecords(), pageNew.getTotal(), pageNew.getPages(), conversationQueryVo.getPageNum(), conversationQueryVo.getPageSize());
+        // 返回分页数据
+        return new PageResult<>(pageNew.getRecords(), pageNew.getTotal(), pageNew.getPages(),
+                conversationQueryVo.getPageNum(), conversationQueryVo.getPageSize());
     }
 
     @Override
-    public Boolean conversationAdd(ConversationAddVo conversationAddVo){
-        //创建实体对象
+    public Boolean conversationAdd(ConversationAddVo conversationAddVo) {
+        // 创建实体对象
         Conversation conversation = new Conversation();
-        //复制属性
+        // 复制属性
         BeanUtils.copyProperties(conversationAddVo, conversation);
-        //插入数据
+        // 插入数据
         return conversationMapper.insert(conversation) > 0 ? true : false;
     }
 
     @Override
-    public Boolean conversationUpdate(ConversationUpdateVo conversationUpdateVo){
-        //根据ID查询数据
-        Conversation byId=this.getById(conversationUpdateVo.getId());
-        //判断数据是否存在
-        if(Optional.ofNullable(byId).isEmpty()){
+    public Boolean conversationUpdate(ConversationUpdateVo conversationUpdateVo) {
+        // 根据ID查询数据
+        Conversation byId = this.getById(conversationUpdateVo.getId());
+        // 判断数据是否存在
+        if (Optional.ofNullable(byId).isEmpty()) {
             log.error("数据不存在");
             return false;
         }
-        //复制属性
+        // 复制属性
         BeanUtils.copyProperties(conversationUpdateVo, byId);
-        //修改数据
+        // 修改数据
         return conversationMapper.updateById(byId) > 0 ? true : false;
     }
 
     @Override
     public List<Conversation> getHistoryNum(Integer num) {
-        //查询数据
+        // 查询数据
         LambdaQueryWrapper<Conversation> queryWrapper = new LambdaQueryWrapper<>();
-        //根据用户ID查询历史记录
+        // 根据用户ID查询历史记录
         queryWrapper.eq(Conversation::getUserId, StpUtil.getLoginId())
                 .orderByDesc(Conversation::getConversationTime).last("limit " + num);
         return conversationMapper.selectList(queryWrapper);
@@ -112,6 +122,20 @@ public class ConversationServiceImpl extends ServiceImpl<ConversationMapper, Con
 
     @Override
     public Conversation getOllama(String msg) {
+        return getOllama(msg, null);
+    }
+
+    @Override
+    public List<Conversation> listBySessionId(Long sessionId) {
+        LambdaQueryWrapper<Conversation> qw = new LambdaQueryWrapper<>();
+        qw.eq(Conversation::getUserId, StpUtil.getLoginId())
+                .eq(Conversation::getSessionId, sessionId)
+                .orderByAsc(Conversation::getId);
+        return conversationMapper.selectList(qw);
+    }
+
+    @Override
+    public Conversation getOllama(String msg, Long sessionId) {
         // 记录接收到的问题消息
         log.info("问题是:{}", msg);
         // 初始化结果字符串
@@ -129,8 +153,7 @@ public class ConversationServiceImpl extends ServiceImpl<ConversationMapper, Con
                 OllamaOptions.builder()
                         .withModel(defaultChatOptionsModel)
                         .withTemperature(0.4)
-                        .build()
-        );
+                        .build());
         // 记录开始时间
         long startTime = System.nanoTime();
         // 调用聊天模型并获取响应
@@ -149,6 +172,7 @@ public class ConversationServiceImpl extends ServiceImpl<ConversationMapper, Con
         // 返回成功结果，包含聊天机器人的回复
         Conversation conversation = Conversation.builder()
                 .userId(Integer.valueOf(StpUtil.getLoginId().toString()))
+                .sessionId(sessionId)
                 .userInput(msg)
                 .aiResponse(result)
                 .modelName(defaultChatOptionsModel)
