@@ -23,22 +23,21 @@ import java.util.concurrent.TimeUnit;
 
 import static com.linyi.pig.constant.MedicalConstants.USER_REGISTER_CODE;
 
-
 /**
-* @Author: linyi
-* @Date: 2025-02-25 17:38:38
-* @ClassName: UserController
-* @Version: 1.0
-* @Description: 用户 控制层
-*/
+ * @Author: linyi
+ * @Date: 2025-02-25 17:38:38
+ * @ClassName: UserController
+ * @Version: 1.0
+ * @Description: 用户 控制层
+ */
 
 @Tag(name = "用户管理模块")
 @Slf4j
 @Validated
 @RestController
 @RequestMapping("/user")
-@SuppressWarnings({"unchecked", "rawtypes"})
-public class UserController{
+@SuppressWarnings({ "unchecked", "rawtypes" })
+public class UserController {
 
     @Autowired
     private UserService userService;
@@ -86,16 +85,16 @@ public class UserController{
     }
 
     /**
-    * 根据主键ID批量删除用户
-    *
-    * @param ids 主键id集合
-    * @return Result<Boolean> 返回结果(true/false)
-    */
+     * 根据主键ID批量删除用户
+     *
+     * @param ids 主键id集合
+     * @return Result<Boolean> 返回结果(true/false)
+     */
     @Operation(summary = "根据主键ID批量删除用户")
     @DeleteMapping("userListDelete")
     public Result<Boolean> userListDelete(@RequestParam List<Serializable> ids) {
         return Result.success(userService.removeByIds(ids));
-        }
+    }
 
     /**
      * 根据主键ID修改用户
@@ -123,6 +122,7 @@ public class UserController{
 
     /**
      * 登录校验
+     * 
      * @return Result<Boolean> 返回结果(true/false)
      */
     @Operation(summary = "登录校验")
@@ -133,6 +133,7 @@ public class UserController{
 
     /**
      * 注册
+     * 
      * @param registerVo 注册实体
      * @return Result<User> 返回用户
      */
@@ -145,30 +146,40 @@ public class UserController{
 
     /**
      * 账号密码登录
+     * 
      * @param userAccount 账号
-     * @param password 密码
-     * @return Result<Boolean> 返回结果(true/false)
+     * @param password    密码
+     * @return Result<LoginResponse> 返回登录结果
      */
     @Operation(summary = "账号密码登录")
     @PostMapping("/login")
-    public Result<Boolean> login(@RequestParam String userAccount,@RequestParam String password) {
-        return Result.success(userService.login(userAccount, password));
+    public Result<Map<String, Object>> login(@RequestParam String userAccount, @RequestParam String password) {
+        Boolean loginResult = userService.login(userAccount, password);
+        if (loginResult) {
+            Map<String, Object> response = new HashMap<>();
+            response.put("loginId", StpUtil.getLoginId());
+            response.put("tokenValue", StpUtil.getTokenValue());
+            return Result.success(response);
+        }
+        return Result.error("登录失败");
     }
 
     /**
      * 邮箱密码登录
-     * @param email 邮箱
+     * 
+     * @param email    邮箱
      * @param password 密码
      * @return
      */
     @Operation(summary = "邮箱密码登录")
     @PostMapping("/emailLogin")
-    public Result<Boolean> emailLogin(@RequestParam String email,@RequestParam String password) {
+    public Result<Boolean> emailLogin(@RequestParam String email, @RequestParam String password) {
         return Result.success(userService.emailLogin(email, password));
     }
 
     /**
      * 退出登录
+     * 
      * @return Result<Boolean> 返回结果(true/false)
      */
     @Operation(summary = "退出登录")
@@ -180,6 +191,7 @@ public class UserController{
 
     /**
      * 发送邮箱验证码
+     * 
      * @param email
      * @return Result<CodeVo> 返回codevo
      */
@@ -199,6 +211,7 @@ public class UserController{
 
     /**
      * 修改个人信息
+     * 
      * @param meUpdateVo
      * @return
      */
@@ -210,16 +223,15 @@ public class UserController{
 
     /**
      * 修改密码
+     * 
      * @param oldPass 旧密码
      * @param newPass 新密码
      * @return Result<Boolean> 返回结果(true/false)
      */
     @Operation(summary = "修改密码")
     @PostMapping("/savePassword")
-    public Result<Boolean> savePassword(@RequestParam String oldPass,@RequestParam String newPass) {
+    public Result<Boolean> savePassword(@RequestParam String oldPass, @RequestParam String newPass) {
         return Result.success(userService.savePassword(oldPass, newPass));
     }
-
-
 
 }
