@@ -11,7 +11,7 @@
  Target Server Version : 80043 (8.0.43)
  File Encoding         : 65001
 
- Date: 09/10/2025 23:39:07
+ Date: 10/10/2025 15:48:56
 */
 
 SET NAMES utf8mb4;
@@ -113,13 +113,15 @@ CREATE TABLE `conversation`  (
   `model_name` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL COMMENT 'AI模型名称',
   `response_time` decimal(10, 2) NULL DEFAULT NULL COMMENT 'AI响应时间（秒）',
   PRIMARY KEY (`id`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 14 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = '对话' ROW_FORMAT = DYNAMIC;
+) ENGINE = InnoDB AUTO_INCREMENT = 16 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = '对话' ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Records of conversation
 -- ----------------------------
 INSERT INTO `conversation` VALUES (12, 1, 9, '你好', '你好！有什么问题或需要帮助的吗？', '2025-10-09 15:35:34', 'qwen2.5:latest', 1.25);
 INSERT INTO `conversation` VALUES (13, 1, 9, '我的狗狗最近食欲不振', '听到您的狗狗食欲不振，这确实会让宠物主人感到担心。以下是一些可能导致狗狗食欲下降的原因以及一些建议：\n\n1. **健康问题**：首先需要考虑的是是否有健康方面的问题导致的食欲下降，比如消化系统疾病、感染（如口腔炎）、寄生虫等。如果您的狗狗除了食欲不振外还有其他异常表现，建议尽快带它去看兽医。\n\n2. **环境变化**：搬家、换新主人或家庭成员变动等因素也可能影响宠物的情绪和饮食习惯。尽量保持稳定的日常作息和生活环境有助于缓解这种情况。\n\n3. **食物问题**：有时候狗狗可能对当前的食物不再感兴趣。可以尝试更换一种新的狗粮，或者调整喂食时间，看看是否能刺激其食欲。\n\n4. **压力或焦虑**：如果您的狗狗最近经历了某些让它感到压力或焦虑的事情（如噪音、分离等），这也可能是原因之一。提供足够的关爱和陪伴，帮助它缓解情绪。\n\n5. **牙齿问题**：口腔健康对宠物来说非常重要。如果有牙龈炎或其他口腔疾病，也会影响到它们的食欲。定期给狗狗刷牙，并注意观察其口腔是否有异常。\n\n总之，在采取任何措施之前，请先咨询兽医的意见以确保没有潜在的健康风险。希望这些建议能够帮助到您和您的爱宠！', '2025-10-09 15:36:09', 'qwen2.5:latest', 14.26);
+INSERT INTO `conversation` VALUES (14, 3, 2, '你是什么模型', '我是Qwen，由阿里云开发的预训练语言模型。我能够生成各种文本内容，如文章、故事、诗歌等，并能根据不同的场景和需求进行变换和扩展。如果您有任何问题或需要帮助，请随时告诉我！', '2025-10-10 04:09:45', 'qwen2.5:latest', 28.29);
+INSERT INTO `conversation` VALUES (15, 1, 9, '猪瘟（Classical Swine Fever）', '### 关于猪瘟（Classical Swine Fever）\n\n#### 症状：\n- 高热（40–42℃）\n- 精神沉郁\n- 食欲废绝\n- 皮肤出血点\n- 初期便秘，后期腹泻\n- 神经症状（疾病后期出现）\n\n#### 防治措施：\n1. **预防为主**：由于目前尚无特效治疗药物，主要依赖于疫苗接种和严格的生物安全管理。\n2. **紧急接种**：对于未发病猪群，应立即进行猪瘟兔化弱毒疫苗的紧急接种。\n3. **扑杀与消毒**：一旦确诊猪瘟，需要立即对病猪进行扑杀，并严格实施环境消毒。未经处理的场所不得重新引入健康猪只。\n4. **禁止使用抗生素治疗病毒性疾病**：猪瘟属于病毒感染，不建议使用抗生素来治疗。\n\n#### 注意事项：\n- 严格按照生物安全措施操作，避免疾病传播。\n- 加强饲养管理，提高猪群整体抵抗力。\n- 定期监测和免疫接种以预防疾病发生。\n\n### 来源依据\n- **本地知识**：直接引用了提供的关于猪瘟的详细描述。\n- **综合自身知识**：补充说明了目前没有特效治疗药物，并强调了“防重于治”的原则，这是基于当前兽医科学的一般共识。\n\n以上信息提供了清晰、权威且可执行的答案。希望这些措施能帮助有效预防和控制猪瘟的发生与传播。', '2025-10-10 07:00:24', 'qwen2.5:latest', 39.22);
 
 -- ----------------------------
 -- Table structure for conversation_session
@@ -135,13 +137,14 @@ CREATE TABLE `conversation_session`  (
   `update_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
   PRIMARY KEY (`id`) USING BTREE,
   INDEX `idx_user_id`(`user_id` ASC) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 3 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = '会话主表' ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB AUTO_INCREMENT = 4 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = '会话主表' ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Records of conversation_session
 -- ----------------------------
 INSERT INTO `conversation_session` VALUES (1, 9, '新对话', 1, NULL, '2025-10-09 23:35:28', '2025-10-09 23:35:28');
 INSERT INTO `conversation_session` VALUES (2, 9, '新对话', 1, NULL, '2025-10-09 23:35:28', '2025-10-09 23:35:28');
+INSERT INTO `conversation_session` VALUES (3, 2, '新对话', 1, NULL, '2025-10-10 12:08:55', '2025-10-10 12:08:55');
 
 -- ----------------------------
 -- Table structure for feedback
@@ -361,6 +364,29 @@ INSERT INTO `illness_medicine` VALUES (20, 121213, 8, '2022-05-03 16:12:05', '20
 INSERT INTO `illness_medicine` VALUES (22, 121226, 44, '2025-04-19 14:59:42', '2025-04-19 14:59:42');
 
 -- ----------------------------
+-- Table structure for knowledge_file
+-- ----------------------------
+DROP TABLE IF EXISTS `knowledge_file`;
+CREATE TABLE `knowledge_file`  (
+  `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT COMMENT 'ID',
+  `file_name` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT '原始文件名（含后缀）',
+  `file_path` varchar(500) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT '相对路径：相对于 resources/knowledge/',
+  `file_size` bigint NOT NULL COMMENT '单位：字节',
+  `file_md5` char(32) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT '文件内容 MD5',
+  `file_type` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'MIME-Type，如 application/pdf',
+  `create_by` int NULL DEFAULT NULL COMMENT '上传人',
+  `create_time` datetime NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+  `update_time` datetime NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '修改时间',
+  `remark` varchar(1000) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT NULL COMMENT '备注',
+  PRIMARY KEY (`id`) USING BTREE,
+  INDEX `idx_md5`(`file_md5` ASC) USING BTREE
+) ENGINE = InnoDB AUTO_INCREMENT = 4 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci COMMENT = 'RAG 知识库文件表' ROW_FORMAT = Dynamic;
+
+-- ----------------------------
+-- Records of knowledge_file
+-- ----------------------------
+
+-- ----------------------------
 -- Table structure for medicine
 -- ----------------------------
 DROP TABLE IF EXISTS `medicine`;
@@ -468,7 +494,7 @@ CREATE TABLE `pageview`  (
 -- ----------------------------
 -- Records of pageview
 -- ----------------------------
-INSERT INTO `pageview` VALUES (5, 35, 121213);
+INSERT INTO `pageview` VALUES (5, 36, 121213);
 INSERT INTO `pageview` VALUES (6, 15, 121214);
 INSERT INTO `pageview` VALUES (7, 2, 121215);
 INSERT INTO `pageview` VALUES (8, 5, 121216);
