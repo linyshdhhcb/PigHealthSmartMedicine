@@ -1,8 +1,6 @@
 package com.linyi.pig.config;
 
 import io.minio.MinioClient;
-import lombok.Data;
-import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -14,23 +12,27 @@ import org.springframework.context.annotation.Configuration;
  * @Description: Minio配置类
  */
 @Configuration
-@ConfigurationProperties(prefix = "spring.minio")
-@Data
 public class MinioConfiguration {
-    private String accessKey;
 
-    private String secretKey;
+    private final MinioProperties properties;
 
-    private String url;
-
-    private String bucketName;
+    public MinioConfiguration(MinioProperties properties) {
+        this.properties = properties;
+    }
 
     @Bean
     public MinioClient minioClient() {
         return MinioClient.builder()
-                .endpoint(url)
-                .credentials(accessKey, secretKey)
+                .endpoint(properties.getUrl())
+                .credentials(properties.getAccessKey(), properties.getSecretKey())
                 .build();
     }
-}
 
+    public String getBucketName() {
+        return properties.getBucketName();
+    }
+
+    public String getUrl() {
+        return properties.getUrl();
+    }
+}
