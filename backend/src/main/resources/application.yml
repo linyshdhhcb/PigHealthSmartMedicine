@@ -128,3 +128,6 @@ ai:
     chat:
       options:
         model: deepseek-r1:14b # 模型名称 本地ollama 下载的模型名称（需要根据你自己的更换）
+    embedding:
+      options:
+        model: nomic-embed-text # 模型名称 本地ollama 下载的模型名称（需要根据你自己的更换）
