@@ -11,8 +11,10 @@
     </parent>
 
     <groupId>com.linyi.pig</groupId>
-    <artifactId>PigHealthSmartMedicine</artifactId>
+    <artifactId>backend</artifactId>
     <version>1.0.0</version>
+
+    <name>PigHealthSmartMedicine</name>
 
     <properties>
         <maven.compiler.source>21</maven.compiler.source>
@@ -38,10 +40,22 @@
             <groupId>org.springframework.ai</groupId>
             <artifactId>spring-ai-ollama-spring-boot-starter</artifactId>
         </dependency>
+        <!-- Vector store (in-memory) and core APIs are in spring-ai -->
         <dependency>
             <groupId>org.springframework.ai</groupId>
             <artifactId>spring-ai-ollama</artifactId>
             <version>1.0.0-M3</version>
+        </dependency>
+        <!-- PDF 与 Word 文档解析 -->
+        <dependency>
+            <groupId>org.apache.pdfbox</groupId>
+            <artifactId>pdfbox</artifactId>
+            <version>2.0.30</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.poi</groupId>
+            <artifactId>poi-ooxml</artifactId>
+            <version>5.2.5</version>
         </dependency>
         <!-- minio-->
         <dependency>

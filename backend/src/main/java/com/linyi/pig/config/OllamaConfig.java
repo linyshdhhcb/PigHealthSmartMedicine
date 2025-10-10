@@ -1,6 +1,7 @@
 package com.linyi.pig.config;
 
-import org.springframework.ai.ollama.OllamaChatModel;
+import org.springframework.ai.embedding.EmbeddingModel;
+import org.springframework.ai.ollama.OllamaEmbeddingModel;
 import org.springframework.ai.ollama.api.OllamaApi;
 import org.springframework.ai.ollama.api.OllamaOptions;
 import org.springframework.beans.factory.annotation.Value;
@@ -20,6 +21,8 @@ public class OllamaConfig {
     @Value("${ai.ollama.url}")
     private String url;
 
+    @Value("${ai.ollama.embedding.options.model:nomic-embed-text}")
+    private String embeddingModelName;
 
     /**
      * 创建并配置OllamaApi实例
@@ -30,7 +33,13 @@ public class OllamaConfig {
      * @return OllamaApi实例，该实例用于与Ollama服务进行通信
      */
     @Bean
-    public OllamaChatModel getOllamaChatModel() {
-        return new OllamaChatModel(new OllamaApi(url));
+    public OllamaApi ollamaApi() {
+        return new OllamaApi(url);
+    }
+
+    @Bean
+    public EmbeddingModel embeddingModel() {
+        return new OllamaEmbeddingModel(ollamaApi(),
+                OllamaOptions.builder().withModel(embeddingModelName).build());
     }
 }
