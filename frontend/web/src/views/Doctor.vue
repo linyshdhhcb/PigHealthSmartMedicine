@@ -142,8 +142,12 @@ const renderMarkdown = (md = '') => {
   })
   // 行内代码 `...`
   html = html.replace(/`([^`]+)`/g, (m, p1) => `<code>${escapeHtml(p1)}</code>`)
-  // 标题
-  html = html.replace(/^###\s+(.*)$/gm, '<h3>$1</h3>')
+  // 标题（支持 H1-H6，先匹配更深级别以避免被更浅级别吞掉）
+  html = html
+    .replace(/^######\s+(.*)$/gm, '<h6>$1</h6>')
+    .replace(/^#####\s+(.*)$/gm, '<h5>$1</h5>')
+    .replace(/^####\s+(.*)$/gm, '<h4>$1</h4>')
+    .replace(/^###\s+(.*)$/gm, '<h3>$1</h3>')
     .replace(/^##\s+(.*)$/gm, '<h2>$1</h2>')
     .replace(/^#\s+(.*)$/gm, '<h1>$1</h1>')
   // 粗体与斜体
@@ -155,6 +159,16 @@ const renderMarkdown = (md = '') => {
   html = html.replace(/^(?:\s*[-*]\s+.*(?:\n|$))+?/gm, (block) => {
     const items = block.trim().split(/\n/).map(line => line.replace(/^\s*[-*]\s+/, ''))
     return `<ul>${items.map(it => `<li>${it}</li>`).join('')}</ul>`
+  })
+  // 有序列表 1. 2. 3.
+  html = html.replace(/^(?:\s*\d+\.\s+.*(?:\n|$))+?/gm, (block) => {
+    const items = block.trim().split(/\n/).map(line => line.replace(/^\s*\d+\.\s+/, ''))
+    return `<ol>${items.map(it => `<li>${it}</li>`).join('')}</ol>`
+  })
+  // 引用块 >
+  html = html.replace(/^(?:>\s?.*(?:\n|$))+?/gm, (block) => {
+    const lines = block.trim().split(/\n/).map(line => line.replace(/^>\s?/, ''))
+    return `<blockquote>${lines.join('<br>')}</blockquote>`
   })
   // 段落换行
   html = html.replace(/\n/g, '<br>')
