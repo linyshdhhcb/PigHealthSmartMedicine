@@ -1,15 +1,20 @@
-import {defineStore} from 'pinia'
+import { defineStore } from "pinia";
 
-export const useUserStore = defineStore('user',{
-  state:() => ({
-    userInfo:null,
+export const useUserStore = defineStore("user", {
+  state: () => ({
+    userInfo: null,
   }),
-  actions:{
-    setUserInfo(userInfo){
+  actions: {
+    setUserInfo(userInfo) {
       this.userInfo = userInfo;
     },
-    clearUserInfo(){
+    clearUserInfo() {
       this.userInfo = null;
-    }
-  }
-})
+    },
+  },
+  getters: {
+    isLoggedIn: (state) => {
+      return state.userInfo && state.userInfo.id;
+    },
+  },
+});

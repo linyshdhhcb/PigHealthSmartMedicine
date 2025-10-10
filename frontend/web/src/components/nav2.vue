@@ -1,25 +1,28 @@
 <template>
-  <div ref="navBarRef" :class="['main-nav', { 'visible': isNavVisible }]" style="width: 100%; height: 80px; background: rgb(255, 255, 255); display: flex; align-items: center; border-bottom: 1px solid #e8e8e8; transition: all 0.3s ease;">
+  <div ref="navBarRef" :class="['main-nav', { 'visible': isNavVisible }]"
+    style="width: 100%; height: 80px; background: rgb(255, 255, 255); display: flex; align-items: center; border-bottom: 1px solid #e8e8e8; transition: all 0.3s ease;">
     <div style="padding-left: 10px; width: 220px; height: 50px; align-items: center;">
       <i class="fas fa-piggy-bank fa-2x" style="color: #12b48b;"></i> <!-- 使用 Font Awesome 图标 -->
       <span style="margin-left: 10px; font-size: 20px; color: #12b48b;">Smart Pig</span>
     </div>
     <div style="flex: 1; display: flex; justify-content: center; align-items: center;">
       <ul style="list-style: none; margin: 0; padding: 0; display: flex;">
-        <li v-for="(item, index) in navItems" :key="index" :class="{'active': activeIndex === index}">
+        <li v-for="(item, index) in navItems" :key="index" :class="{ 'active': activeIndex === index }">
           <router-link :to="navRoutes[index]" @click="handleNavClick(index)">
             {{ item }}
           </router-link>
         </li>
       </ul>
     </div>
-    <div v-if="userStore.userInfo" style="display: flex; align-items: center;">
+    <div v-if="userStore.isLoggedIn" style="display: flex; align-items: center;">
       <!-- 用户头像 -->
       <el-dropdown trigger="click" @command="handleCommand">
         <span class="el-dropdown-link">
-          <!-- <span>欢迎你：{{ userStore.userInfo.userName }}</span> -->
-          <img :src="userStore.userInfo.imgPath" alt="User Avatar" style="width: 30px; height: 30px; border-radius: 50%; margin-right: 10px;">
-          
+          <span style="margin-right: 10px;">欢迎你：{{ userStore.userInfo.userName || userStore.userInfo.userAccount
+          }}</span>
+          <img v-if="userStore.userInfo.imgPath" :src="userStore.userInfo.imgPath" alt="User Avatar"
+            style="width: 30px; height: 30px; border-radius: 50%; margin-right: 10px;">
+          <i v-else class="fas fa-user-circle" style="font-size: 30px; color: #12b48b; margin-right: 10px;"></i>
         </span>
         <template #dropdown>
           <el-dropdown-menu>
@@ -51,8 +54,8 @@ const route = useRoute();
 const userStore = useUserStore();
 
 // 导航菜单
-const navItems = ['首页','新闻资讯','猪病百科', '猪猪药品', '智能兽医', '猪猪文章','搜索'];
-const navRoutes = ['/home','/news','/findIllness', '/findMedicines', '/doctor', '/article','/serachBottom'];
+const navItems = ['首页', '新闻资讯', '猪病百科', '猪猪药品', '智能兽医', '猪猪文章', '搜索'];
+const navRoutes = ['/home', '/news', '/findIllness', '/findMedicines', '/doctor', '/article', '/serachBottom'];
 const activeIndex = ref(0);
 const navBarRef = ref(null);
 const isNavVisible = ref(true);
@@ -138,9 +141,9 @@ const changePassword = () => {
             ElMessage.error('密码修改失败，请重试');
           });
         })
-        .catch(() => {});
+        .catch(() => { });
     })
-    .catch(() => {});
+    .catch(() => { });
 };
 
 // 确认退出登录
@@ -162,7 +165,7 @@ const confirmLogout = () => {
         ElMessage.error('退出登录失败，请重试');
       });
     })
-    .catch(() => {});
+    .catch(() => { });
 };
 
 // 登录按钮点击事件
@@ -190,7 +193,8 @@ const handleScroll = () => {
 
 .active {
   color: black;
-  border-bottom: 2px solid #12b48b; /* 主题色下划线 */
+  border-bottom: 2px solid #12b48b;
+  /* 主题色下划线 */
 }
 
 li {
