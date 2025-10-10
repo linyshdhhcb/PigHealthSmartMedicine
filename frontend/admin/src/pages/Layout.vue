@@ -7,56 +7,88 @@
       </div>
       <el-menu :default-active="activeMenu" class="el-menu-vertical-demo" @select="handleSelect">
         <el-menu-item index="/UserMgt">
-          <el-icon><User /></el-icon>
+          <el-icon>
+            <User />
+          </el-icon>
           <span>用户管理</span>
         </el-menu-item>
         <el-menu-item index="/newsArticlesMgt">
-          <el-icon><Document /></el-icon>
+          <el-icon>
+            <Document />
+          </el-icon>
           <span>新闻信息管理</span>
         </el-menu-item>
         <el-menu-item index="/articleTypeMgt">
-          <el-icon><Folder /></el-icon>
+          <el-icon>
+            <Folder />
+          </el-icon>
           <span>文章类型管理</span>
         </el-menu-item>
         <el-menu-item index="/ArticleMgt">
-          <el-icon><Edit /></el-icon>
+          <el-icon>
+            <Edit />
+          </el-icon>
           <span>文章管理</span>
         </el-menu-item>
         <el-menu-item index="/filesMgt">
-          <el-icon><FolderOpened /></el-icon>
+          <el-icon>
+            <FolderOpened />
+          </el-icon>
           <span>文件信息管理</span>
         </el-menu-item>
         <el-menu-item index="/pageviewMgt">
-          <el-icon><View /></el-icon>
+          <el-icon>
+            <View />
+          </el-icon>
           <span>浏览量管理</span>
         </el-menu-item>
         <el-menu-item index="/illnessKindMgt">
-          <el-icon><FirstAidKit /></el-icon>
+          <el-icon>
+            <FirstAidKit />
+          </el-icon>
           <span>疾病分类管理</span>
         </el-menu-item>
         <el-menu-item index="/illnessMgt">
-          <el-icon><Memo /></el-icon>
+          <el-icon>
+            <Memo />
+          </el-icon>
           <span>疾病管理</span>
         </el-menu-item>
         <el-menu-item index="/illnessMedicineMgt">
-          <el-icon><Document /></el-icon>
+          <el-icon>
+            <Document />
+          </el-icon>
           <span>疾病药品管理</span>
         </el-menu-item>
         <el-menu-item index="/medicineMgt">
-          <el-icon><Document /></el-icon>
+          <el-icon>
+            <Document />
+          </el-icon>
           <span>药品管理</span>
         </el-menu-item>
         <el-menu-item index="/FeedbackMgt">
-          <el-icon><Message /></el-icon>
+          <el-icon>
+            <Message />
+          </el-icon>
           <span>反馈管理</span>
         </el-menu-item>
         <el-menu-item index="/CoverSationMgt">
-          <el-icon><ChatDotSquare /></el-icon>
+          <el-icon>
+            <ChatDotSquare />
+          </el-icon>
           <span>对话管理</span>
         </el-menu-item>
         <el-menu-item index="/HistoryMgt">
-          <el-icon><Clock /></el-icon>
+          <el-icon>
+            <Clock />
+          </el-icon>
           <span>搜索日志</span>
+        </el-menu-item>
+        <el-menu-item index="/KnowledgeMgt">
+          <el-icon>
+            <Document />
+          </el-icon>
+          <span>RAG 知识库</span>
         </el-menu-item>
       </el-menu>
     </el-aside>
@@ -109,7 +141,8 @@ const menuItems = [
   { path: '/medicineMgt', label: '药品管理' },
   { path: '/FeedbackMgt', label: '反馈管理' },
   { path: '/CoverSationMgt', label: '对话管理' },
-  { path: '/HistoryMgt', label: '搜索日志' }
+  { path: '/HistoryMgt', label: '搜索日志' },
+  { path: '/KnowledgeMgt', label: 'RAG 知识库' }
 ];
 
 watch(
