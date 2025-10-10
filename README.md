@@ -121,8 +121,8 @@ java -jar target/pig-health-smart-medicine.jar
 ```
 ## 测试账号
 ```
-管理员：username: admin | password: 123123
-普通用户：username: linyi | password: 123123
+管理员：username: admin | password: 123456
+普通用户：username: linyi | password: 123456
 ```
 
 ## 数据库设计
