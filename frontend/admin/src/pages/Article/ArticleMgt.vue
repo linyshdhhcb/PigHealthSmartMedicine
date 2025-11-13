@@ -3,11 +3,11 @@
     <h1>文章管理模块</h1>
 
     <!-- 数据列表 -->
-    <el-row class="w-full h-full flex flex-col overflow-x-auto overflow-y-hidden">
+    <el-row class="el-row  w-full h-full flex flex-col overflow-x-auto overflow-y-hidden">
       <!-- 查询条件 -->
-      <div class="w-full">
+      <div class="el-table">
         <!-- 查询条件在同一行 -->
-        <el-row :gutter="10" class="w-full" v-if="showSearchRow">
+        <el-row :gutter="10" class="box2" v-if="showSearchRow">
           <el-col :span="6">
             <el-form :model="searchForm" inline label-position="left">
               <el-form-item label="文章标题">
@@ -25,9 +25,9 @@
         </el-row>
 
         <!-- 查询、重置、添加、刷新、收缩/展开在同一行 -->
-        <el-row :gutter="10" class="w-full mt-3">
+        <el-row :gutter="10" class="w-full mt-3 box3">
           <el-col :span="12">
-            <el-button type="primary" @click="getPageList(false)">
+            <el-button type="primary" @click="handleSearch">
               <el-icon><Search /></el-icon>
               查询
             </el-button>
@@ -61,10 +61,10 @@
         <el-divider v-if="showSearchRow" class="mt-2" />
 
         <!-- 数据展示区 -->
-        <el-row class="w-full flex-1 mt-3 overflow-y-auto">
-          <div class="table-container">
+        <el-row class="w-full flex-1 mt-3 overflow-y-auto"   style="width: 100%;  ">
+          <div class="table-container"   style="width: 100%; ">
             <el-table
-              style="width: 100%; min-width: 1000px; height: calc(100vh - 350px);"
+             style="width: 100%;  height: calc(100vh - 350px);"
               border
               :data="datatable.records"
               :loading="datatable.loading"
@@ -158,6 +158,35 @@ import ArticleDetail from '@/pages/Article/ArticleDetail.vue';
 import { ElMessage } from 'element-plus';
 import { Search, Refresh, Plus, ArrowUp, ArrowDown, Edit, Delete, View } from '@element-plus/icons-vue';
 
+
+const allArticles = ref([]);
+
+
+// --- 模糊搜索处理 ---
+const handleSearch = () => {
+  const title = searchForm.title?.trim().toLowerCase() || '';
+  const author = searchForm.author?.trim().toLowerCase() || '';
+
+  if (!title && !author) {
+    ElMessage.info('请输入搜索关键词');
+    return;
+  }
+
+  // 模糊匹配逻辑
+  datatable.records = allArticles.value.filter(article => {
+    const matchTitle = title
+      ? article.title && article.title.toLowerCase().includes(title)
+      : true;
+    const matchAuthor = author
+      ? article.author && article.author.toLowerCase().includes(author)
+      : true;
+
+    return matchTitle && matchAuthor;
+  });
+};
+
+
+
 // 工具方法
 const stripHtml = (html) => {
   if (!html) return '';
@@ -223,14 +252,17 @@ const getPageList = (isReset = false) => {
   datatable.loading = true;
 
   articlesPage(searchForm)
-    .then((res) => {
-      if (res.code === 200) {
-        datatable.records = res.data.data;
-        datatable.total = res.data.total;
-      } else {
-        ElMessage.error(res.message || '获取文章列表失败');
-      }
-    })
+  .then((res) => {
+    if (res.code === 200) {
+      const data = res.data.data || [];
+      datatable.records = data;
+      allArticles.value = data; // ✅ 保存一份原始完整数据
+      datatable.total = res.data.total;
+    } else {
+      ElMessage.error(res.message || '获取文章列表失败');
+    }
+  })
+
     .finally(() => {
       datatable.loading = false;
     });
@@ -299,7 +331,7 @@ const deleteBtnOkClick = (id) => {
 // 表格行"详情"按钮点击事件
 const detailBtnClick = (id) => {
   detailModal.visible = true;
-  detailModal.title = '文章详情';
+  detailModal.title = '';
   detailModal.params = { id };
   detailModal.component = shallowRef(ArticleDetail);
 };
@@ -457,5 +489,14 @@ onMounted(() => {
   z-index: 2;
   background: #fff;
   box-shadow: -2px 0 8px rgba(0, 0, 0, 0.1);
+}
+.el-row{
+  width: 100%;
+}
+
+
+.el-table{
+  width: 100%;
+ 
 }
 </style>
