@@ -1,7 +1,3 @@
-import service from "@/axios.js"; // 确保路径正确
-// import { getCookie } from "@/utils/cookieUtils.js"; // 导入获取 Cookie 的工具函数
-import { getCookie } from "@/utils/cookieUtile";
-
 import axios from "@/axios";
 
 /** 

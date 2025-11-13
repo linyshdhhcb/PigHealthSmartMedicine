@@ -88,3 +88,21 @@ export function pageviewPage(params) {
 export function pageviewUpdate(params) {
   return axios.put(`/pageview/pageviewUpdate`, params);
 }
+
+
+/** 
+ * 分页查询文章
+ * @param {object} params 文章查询实体
+ * @param {number} params.pageNum 
+ * @param {number} params.pageSize 
+ * @param {string} params.sortField 
+ * @param {string} params.sortOrder 
+ * @param {string} params.title 文章标题
+ * @param {string} params.content 文章内容
+ * @param {string} params.author 作者
+ * @param {number} params.typeId 文章类型ID，外键关联article_types表
+ * @returns
+ */
+export function articlesPage(params) {
+  return axios.post(`/articles/articlesPage`, params);
+}
