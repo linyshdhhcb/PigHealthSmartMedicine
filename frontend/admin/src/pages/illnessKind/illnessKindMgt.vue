@@ -61,8 +61,8 @@
         <el-divider v-if="showSearchRow" class="mt-2" />
 
         <!-- 数据展示区 -->
-        <el-row class="w-full flex-1 mt-3 overflow-y-auto">
-          <div class="table-container">
+        <el-row class="w-full flex-1 mt-3 overflow-y-auto" style="width: 100%;">
+          <div class="table-container"   style="width: 100%;">
             <el-table
               style="width: 100%; min-width: 800px; height: calc(100vh - 350px);"
               border
@@ -407,5 +407,8 @@ getPageList();
   z-index: 2;
   background: #fff;
   box-shadow: -2px 0 8px rgba(0, 0, 0, 0.1);
+}
+.w-full{
+  width: 100%;
 }
 </style>

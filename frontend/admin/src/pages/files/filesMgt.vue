@@ -25,9 +25,9 @@
           <el-col :span="12">
             <el-form :model="searchForm" inline label-position="left">
               <el-form-item label="文件大小">
-                <el-input-number v-model="searchForm.fileSizeMin" :precision="0" :step="4" placeholder="最小文件大小" />
+                <el-input-number v-model="searchForm.fileSizeMin" :precision="0" :step="4" placeholder="最小文件" />
                 <span class="mx-2">-</span>
-                <el-input-number v-model="searchForm.fileSizeMax" :precision="0" :step="5" placeholder="最大文件大小" />
+                <el-input-number v-model="searchForm.fileSizeMax" :precision="0" :step="5" placeholder="最大文件" />
               </el-form-item>
             </el-form>
           </el-col>
@@ -70,10 +70,10 @@
         <el-divider v-if="showSearchRow" class="mt-2" />
 
         <!-- 数据展示区 -->
-        <el-row class="w-full flex-1 mt-3 overflow-y-auto">
-          <div class="table-container">
+        <el-row class="w-full flex-1 mt-3 overflow-y-auto" style="width: 100%; ">
+          <div class="table-container"   style="width: 100%; ">
             <el-table
-              style="width: 100%; min-width: 1200px; height: calc(100vh - 350px);"
+              style="width: 100%; height: calc(100vh - 350px);"
               border
               :data="datatable.records"
               :loading="datatable.loading"
@@ -186,24 +186,51 @@ const getPageList = (isReset = false) => {
     searchForm.fileSizeMin = null;
     searchForm.fileSizeMax = null;
     searchForm.pageNum = 1;
-    searchForm.pageSize = 100;
+    searchForm.pageSize = 10;
   }
+
   datatable.loading = true;
 
-  // 调用分页接口
-  filesPage(searchForm)
+  filesPage({
+    pageNum: searchForm.pageNum,
+    pageSize: searchForm.pageSize,
+    fileName: searchForm.fileName,
+    contentType: searchForm.contentType
+  })
     .then(res => {
       if (res.code === 200) {
-        datatable.records = res.data.data;
-        datatable.total = res.data.total;
+        let records = res.data.data || [];
+
+        // ✅ 文件大小过滤逻辑（单位：KB）
+        if (searchForm.fileSizeMin != null || searchForm.fileSizeMax != null) {
+          const minBytes = searchForm.fileSizeMin ? searchForm.fileSizeMin * 1024 : 0;
+          const maxBytes = searchForm.fileSizeMax ? searchForm.fileSizeMax * 1024 : Infinity;
+
+          records = records.filter(item => {
+            return item.fileSize >= minBytes && item.fileSize <= maxBytes;
+          });
+        }
+
+        // ✅ 前端分页（防止筛选后数量变化）
+        const startIndex = (searchForm.pageNum - 1) * searchForm.pageSize;
+        const endIndex = startIndex + searchForm.pageSize;
+        const pagedRecords = records.slice(startIndex, endIndex);
+
+        datatable.records = pagedRecords;
+        datatable.total = records.length;
       } else {
         ElMessage.error(res.message || '获取文件列表失败');
       }
+    })
+    .catch(error => {
+      console.error('获取文件列表失败', error);
+      ElMessage.error('获取文件列表失败');
     })
     .finally(() => {
       datatable.loading = false;
     });
 };
+
 
 const handlePageChange = (pageNum) => {
   searchForm.pageNum = pageNum;
@@ -372,6 +399,9 @@ getPageList();
 .table-container {
   overflow-x: auto;  /* 关键3：容器开启横向滚动 */
   position: relative;
+}
+.w-full{
+  width: 100%;
 }
 
 /* 优化固定列样式 */

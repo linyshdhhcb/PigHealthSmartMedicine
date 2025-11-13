@@ -86,7 +86,7 @@
         <el-divider v-if="showSearchRow" class="mt-2" />
 
         <!-- 数据展示区 -->
-        <el-row class="w-full flex-1 mt-3 overflow-y-auto table-container">
+        <el-row class="w-full flex-1 mt-3 overflow-y-auto table-container"   style="width: 100%;">
           <el-table
             class="w-full"
             :data="datatable.records"
@@ -459,4 +459,10 @@ getPageList();
   background: #fff;
   box-shadow: -2px 0 8px rgba(0, 0, 0, 0.1);
 }
+
+
+.w-full{
+  width: 100%;
+}
+
 </style>

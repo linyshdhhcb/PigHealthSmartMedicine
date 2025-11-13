@@ -74,6 +74,7 @@ const editorOptions = reactive({
   toolbar: 'undo redo | blocks | bold italic underline strikethrough | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | link image media table | code fullscreen preview | forecolor backcolor | help',
   content_style: 'body { font-family:Helvetica,Arial,sans-serif; font-size:14px }',
   height: 500,
+  width: '80%',
   images_upload_handler: (blobInfo, progress) => new Promise((resolve, reject) => {
     // 这里可以添加图片上传逻辑
     reject('需要配置图片上传服务');

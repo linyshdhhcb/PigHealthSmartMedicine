@@ -358,4 +358,8 @@ getPageList();
 :deep(.table-container::-webkit-scrollbar-thumb:hover) {
   background: #a8a8a8;
 }
+
+.w-full{
+  width: 100%;
+}
 </style>

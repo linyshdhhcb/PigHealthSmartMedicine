@@ -1,74 +1,46 @@
 <!-- src/pages/articleType/articleTypeDetail.vue -->
 <template>
-  <el-card class="p-0" :body-style="{ height: 'calc(100vh - 125px)' }">
-    <h1>文章类型详情</h1>
-
-    <el-skeleton class="w-full" :size="35" :loading="spinLoading" tip="正在加载文章类型详情...">
-      <el-row class="w-full h-full flex flex-col overflow-x-auto overflow-y-hidden">
-        <el-row class="w-full">
-          <el-descriptions title="文章类型详情" :column="1" border>
-            <el-descriptions-item label="文章类型名称">
-              {{ form.typeName }}
-            </el-descriptions-item>
-          </el-descriptions>
-        </el-row>
-      </el-row>
+  <el-card class="p-6 rounded-2xl shadow-md bg-gradient-to-br from-white to-gray-50">
+    <h2 class="text-xl font-semibold mb-4 text-gray-700">文章类型详情</h2>
+    <el-skeleton :loading="loading" animated>
+      <el-descriptions :column="1" border>
+        <el-descriptions-item label="类型 ID">{{ form.typeId }}</el-descriptions-item>
+        <el-descriptions-item label="类型名称">{{ form.typeName }}</el-descriptions-item>
+      </el-descriptions>
     </el-skeleton>
   </el-card>
 </template>
 
 <script setup>
-import { ref, reactive, getCurrentInstance, watch } from 'vue';
+import { ref, reactive, watch } from 'vue';
 import { getarticleTypesInfo } from '@/api/articleType.js';
+import { ElMessage } from 'element-plus';
 
-// 获取全局实例
-const { proxy } = getCurrentInstance();
+const props = defineProps({ params: Object });
+const loading = ref(false);
+const form = reactive({ id: '', typeName: '' });
 
-// 加载状态
-const spinLoading = ref(false);
-
-// 接收父组件参数（例如：传入 articleTypeId）
-const props = defineProps({
-  params: {
-    type: Object,
-    default: () => ({}),
+const loadInfo = async (id) => {
+  loading.value = true;
+  try {
+    const res = await getarticleTypesInfo(id);
+    if (res.code === 200 && res.data) Object.assign(form, res.data);
+    else ElMessage.error('获取详情失败');
+  } finally {
+    loading.value = false;
   }
-});
-
-// 表单数据（根据接口返回数据字段，可自行调整字段名称）
-const form = reactive({
-  id: null,
-  typeName: ''
-});
-
-// 加载文章类型详细信息
-const loadArticleTypeInfo = (id) => {
-  spinLoading.value = true;
-  getarticleTypesInfo(id)
-    .then(res => {
-      if (res) {
-        // 将返回数据赋值到 form 中
-        for (let key in res) {
-          if (form.hasOwnProperty(key)) {
-            form[key] = res[key];
-          }
-        }
-        console.log('res', res);
-      }
-    })
-    .finally(() => {
-      spinLoading.value = false;
-    });
 };
 
-// 监听父组件传入参数变化
-watch(() => props.params, (newVal) => {
-  if (newVal && newVal.articleTypeId) {
-    loadArticleTypeInfo(newVal.articleTypeId);
-  }
-}, { immediate: true, deep: true });
+watch(() => props.params, (val) => {
+  if (val?.id) loadInfo(val.id);
+}, { immediate: true });
 </script>
 
 <style scoped>
-/* 根据需要添加样式 */
+.el-card {
+  transition: all 0.3s ease;
+}
+.el-card:hover {
+  box-shadow: 0 6px 20px rgba(0,0,0,0.1);
+}
 </style>

@@ -188,6 +188,7 @@ const datatable = reactive({
 });
 
 // 查询数据列表
+// 查询数据列表（带模糊查询）
 const getPageList = (isReset = false) => {
   if (isReset) {
     searchForm.userId = null;
@@ -197,15 +198,38 @@ const getPageList = (isReset = false) => {
     searchForm.pageNum = 1;
     searchForm.pageSize = 100;
   }
+
   datatable.loading = true;
 
   // 调用分页接口
   conversationPage(searchForm)
     .then(res => {
-      // 假设响应数据结构为 { code, message, data }
       if (res.code === 200) {
-        datatable.records = res.data.data; // 将对话列表赋值给 datatable.records
-        datatable.total = res.data.total; // 设置总记录数
+        let dataList = res.data.data || [];
+
+        // 模糊查询过滤逻辑
+        const keywordUserId = searchForm.userId?.toString().trim().toLowerCase() || '';
+        const keywordUserInput = searchForm.userInput?.trim().toLowerCase() || '';
+        const keywordAI = searchForm.aiResponse?.trim().toLowerCase() || '';
+        const keywordModel = searchForm.modelName?.trim().toLowerCase() || '';
+
+        // 执行前端模糊过滤
+        if (keywordUserId || keywordUserInput || keywordAI || keywordModel) {
+          dataList = dataList.filter(item => {
+            const userIdMatch =
+              !keywordUserId || item.userId?.toString().toLowerCase().includes(keywordUserId);
+            const inputMatch =
+              !keywordUserInput || item.userInput?.toLowerCase().includes(keywordUserInput);
+            const aiMatch =
+              !keywordAI || item.aiResponse?.toLowerCase().includes(keywordAI);
+            const modelMatch =
+              !keywordModel || item.modelName?.toLowerCase().includes(keywordModel);
+            return userIdMatch && inputMatch && aiMatch && modelMatch;
+          });
+        }
+
+        datatable.records = dataList;
+        datatable.total = dataList.length; // 更新总数
       } else {
         ElMessage.error(res.message || '获取对话列表失败');
       }
@@ -214,6 +238,7 @@ const getPageList = (isReset = false) => {
       datatable.loading = false;
     });
 };
+
 
 // 公共模态框
 const modal = reactive({
@@ -297,9 +322,25 @@ getPageList();
 onMounted(() => {
   // 如果需要对话种类列表，可以在这里获取
 });
+
+
+
+const handlePageChange = (pageNum) => {
+  searchForm.pageNum = pageNum;
+  getPageList();
+};
+
+const handleSizeChange = (pageSize) => {
+  searchForm.pageSize = pageSize;
+  getPageList();
+};
+
 </script>
 
 <style scoped>
+.el-row{
+  width: 1500px;
+}
 /* 根据需要添加样式 */
 .ellipsis {
   display: inline-block;
@@ -307,5 +348,9 @@ onMounted(() => {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+}
+
+.w-full{
+  width: 100%;
 }
 </style>

@@ -3,13 +3,13 @@
     <h1>文章类型管理模块</h1>
 
     <!-- 数据列表 -->
-    <el-row class="w-full h-full flex flex-col overflow-x-auto overflow-y-hidden">
+    <el-row class="el-row">
       <!-- 查询条件 -->
-      <div class="w-full">
+      <div class="w-full-box">
         <!-- 查询条件在同一行 -->
-        <el-row :gutter="10" class="w-full" v-if="showSearchRow">
+        <el-row :gutter="10" class="search" v-if="showSearchRow">
           <el-col :span="6">
-            <el-form :model="searchForm" inline label-position="left">
+            <el-form class="search-bar" :model="searchForm" inline label-position="left">
               <el-form-item label="文章类型名称">
                 <el-input v-model="searchForm.typeName" placeholder="请输入文章类型名称" />
               </el-form-item>
@@ -20,14 +20,15 @@
         <!-- 查询、重置、添加、刷新、收缩/展开在同一行 -->
         <el-row :gutter="10" class="w-full mt-3">
           <el-col :span="12">
-            <el-button type="primary" @click="getPageList(false)">
+            <el-button type="primary" @click="handleSearch">
               <el-icon><Search /></el-icon>
               查询
             </el-button>
-            <el-button @click="getPageList(true)">
+            <el-button @click="resetSearch">
               <el-icon><Refresh /></el-icon>
               重置
             </el-button>
+
           </el-col>
           <el-col :span="12" style="text-align: right; display: flex; justify-content: flex-end;">
             <!-- 添加 -->
@@ -64,7 +65,7 @@
               :header-cell-style="{ background: '#f5f7fa', color: '#606266' }"
             >
               <el-table-column prop="typeName" label="文章类型名称" align="center" min-width="800" />
-              <el-table-column label="操作" align="center" min-width="280" fixed="right" class-name="fixed-column">
+              <el-table-column label="操作" align="center" min-width="380" fixed="right" class-name="fixed-column">
                 <template #default="scope">
                   <div class="acticon-button">
                     <el-space>
@@ -112,13 +113,31 @@
     </el-row>
 
     <!-- 添加/修改 模态框 -->
-    <el-dialog v-model="modal.visible" fullscreen :close-on-click-modal="true" :close-on-press-escape="true" draggable>
+    <el-dialog 
+      v-model="modal.visible" 
+      :title="modal.title"
+      width="600px" 
+      draggable
+      :close-on-click-modal="false"
+    >
       <template #header>{{ modal.title }}</template>
-      <component :is="modal.component" :params="modal.params" @ok="onOk" @cancel="onCancel" v-if="modal.visible" />
+      <component 
+      :is="modal.component" 
+      :params="modal.params" 
+      @ok="onOk"
+       @cancel="onCancel" 
+       v-if="modal.visible" />
     </el-dialog>
 
     <!-- 详情 模态框 -->
-    <el-dialog v-model="detailModal.visible" fullscreen :close-on-click-modal="true" :close-on-press-escape="true" draggable>
+    <!-- 详情对话框 -->
+        <el-dialog 
+          v-model="detailModal.visible" 
+          :title="detailModal.title"
+          width="600px" 
+          draggable
+        >
+
       <template #header>{{ detailModal.title }}</template>
       <component :is="detailModal.component" :params="detailModal.params" @cancel="detailOnCancel" v-if="detailModal.visible" />
     </el-dialog>
@@ -132,6 +151,32 @@ import articleTypeEdit from '@/pages/articleType/articleTypeEdit.vue';
 import articleTypeDetail from '@/pages/articleType/articleTypeDetail.vue';
 import { ElMessage } from 'element-plus';
 import { Search, Refresh, Plus, ArrowUp, ArrowDown, Edit, Delete, View } from '@element-plus/icons-vue';
+
+const allData = ref([]); // 保存所有类型数据
+
+// --- 模糊查询 ---
+const handleSearch = () => {
+  const q = searchForm.typeName?.trim().toLowerCase();
+  if (!q) {
+    ElMessage.info('请输入搜索关键词');
+    return;
+  }
+
+  // 本地模糊过滤
+  datatable.records = allData.value.filter(item =>
+    item.typeName && item.typeName.toLowerCase().includes(q)
+  );
+
+  datatable.total = datatable.records.length;
+};
+
+const resetSearch = () => {
+  searchForm.typeName = null;
+  datatable.records = allData.value; // 恢复完整数据
+  datatable.total = allData.value.length;
+};
+
+
 
 // 是否展示搜索区域
 const showSearchRow = ref(true);
@@ -148,7 +193,7 @@ const datatable = reactive({
   total: 0
 });
 
-// 查询数据列表
+// 查询数据列表,相当于刷新
 const getPageList = (isReset = false) => {
   if (isReset) {
     searchForm.typeName = null;
@@ -162,6 +207,7 @@ const getPageList = (isReset = false) => {
     .then(res => {
       if (res.code === 200) {
         datatable.records = res.data.data;
+        allData.value = res.data.data; // ✅ 备份完整数据
         datatable.total = res.data.total;
       } else {
         ElMessage.error(res.message || '获取文章类型列表失败');
@@ -263,134 +309,25 @@ onMounted(() => {
 </script>
 
 <style scoped>
-/* 表格内容溢出时显示省略号 */
-.ellipsis {
-  display: inline-block;
-  width: 100%;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
 
-/* 表格容器样式 */
-.table-container {
-  overflow-x: auto;  /* 关键3：容器开启横向滚动 */
-  position: relative;
-}
-
-/* 操作按钮容器 */
-.action-buttons {
+.el-row{
   display: flex;
-  gap: 8px;
+  align-items: center;
   justify-content: center;
-  white-space: nowrap;
+  width: 100%;
+}
+.w-full-box{
+  width: 100%;
+ 
 }
 
-/* 保持表头固定 */
-:deep(.el-table__header-wrapper) {
-  position: sticky;
-  top: 0;
-  background: #fff;
-  z-index: 3;
+.search{
+  display: flex;
+   /* background: skyblue; */
+}
+.search-bar{
+  /* background: gray; */
+  margin-left: -150%;
 }
 
-/* 横向滚动条样式 */
-:deep(.el-table__body-wrapper)::-webkit-scrollbar {
-  height: 8px;
-}
-
-:deep(.el-table__body-wrapper)::-webkit-scrollbar-track {
-  background: #f1f1f1;
-}
-
-:deep(.el-table__body-wrapper)::-webkit-scrollbar-thumb {
-  background: #c1c1c1;
-  border-radius: 4px;
-}
-
-/* 优化列宽设置 */
-:deep(.el-table__body) td {
-  white-space: nowrap;
-}
-
-:deep(.el-table__body) .cell {
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-/* 新增关键样式 */
-.table-container {
-  overflow-x: auto;  /* 关键3：容器开启横向滚动 */
-  position: relative;
-}
-
-/* 优化固定列样式 */
-:deep(.fixed-column) {
-  position: sticky !important;
-  right: 0;
-  z-index: 100;
-  background: #fff;
-  box-shadow: -2px 0 8px rgba(0, 0, 0, 0.08);
-  transition: box-shadow 0.3s;
-}
-
-/* 保证表头固定 */
-:deep(.el-table__header-wrapper) {
-  position: sticky;
-  top: 0;
-  z-index: 101;
-  background: #fff;
-}
-
-/* 优化滚动条样式 */
-.table-container::-webkit-scrollbar {
-  height: 8px;
-  width: 8px;
-}
-
-.table-container::-webkit-scrollbar-track {
-  background: #f1f1f1;
-  border-radius: 4px;
-}
-
-.table-container::-webkit-scrollbar-thumb {
-  background: #c1c1c1;
-  border-radius: 4px;
-  transition: background 0.3s;
-}
-
-.table-container::-webkit-scrollbar-thumb:hover {
-  background: #a8a8a8;
-}
-
-/* 强制表格列不换行 */
-:deep(.el-table__body) td .cell {
-  white-space: nowrap;
-}
-
-/* 修复表头对齐问题 */
-:deep(.el-table__header) {
-  width: auto !important;
-}
-
-/* 移动端适配 */
-@media (max-width: 768px) {
-  .table-container {
-    min-width: 100%;
-    overflow-x: scroll;
-  }
-  
-  :deep(.fixed-column) {
-    position: static !important;
-    box-shadow: none;
-  }
-}
-
-:deep(.el-table__fixed-right) {
-  position: sticky !important;
-  right: 0;
-  z-index: 2;
-  background: #fff;
-  box-shadow: -2px 0 8px rgba(0, 0, 0, 0.1);
-}
 </style>

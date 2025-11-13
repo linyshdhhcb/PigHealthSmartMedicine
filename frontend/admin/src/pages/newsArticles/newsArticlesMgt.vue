@@ -423,4 +423,9 @@ onMounted(() => {
     max-width: 48% !important;
   }
 }
+
+
+.w-full{
+  width: 100%;
+}
 </style>

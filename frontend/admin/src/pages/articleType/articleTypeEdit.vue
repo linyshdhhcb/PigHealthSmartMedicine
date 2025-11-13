@@ -1,90 +1,73 @@
 <!-- src/pages/articleType/articleTypeEdit.vue -->
 <template>
-  <el-form :model="form" label-width="120px">
-    <el-form-item label="文章类型名称">
-      <el-input v-model="form.typeName" />
-    </el-form-item>
-    <el-form-item>
-      <el-button type="primary" @click="onSubmit">保存</el-button>
-      <el-button @click="onCancel">取消</el-button>
-    </el-form-item>
-  </el-form>
+  <el-card class="p-4 rounded-2xl shadow-md bg-gradient-to-br from-white to-gray-50">
+    <el-form :model="form" label-width="100px" :rules="rules" ref="formRef">
+      <el-form-item label="文章类型名称" prop="typeName">
+        <el-input v-model="form.typeName" placeholder="请输入文章类型名称" clearable />
+      </el-form-item>
+      <el-form-item class="flex justify-end">
+        <el-button type="primary" @click="onSubmit">保存</el-button>
+        <el-button @click="onCancel">取消</el-button>
+      </el-form-item>
+    </el-form>
+  </el-card>
 </template>
 
 <script setup>
 import { ref, reactive, watch } from 'vue';
-import { articleTypesUpdate, getarticleTypesInfo } from '@/api/articleType.js';
+import { articleTypesAdd, articleTypesUpdate, getarticleTypesInfo } from '@/api/articleType.js';
 import { ElMessage } from 'element-plus';
 
-const props = defineProps({
-  params: {
-    type: Object,
-    required: true
-  }
-});
-
+const props = defineProps({ params: Object });
 const emit = defineEmits(['ok', 'cancel']);
+const formRef = ref(null);
 
-const form = reactive({
-  id: null,
-  typeName: ''
-});
-
-// 定义 getArticleTypeInfo 函数
-const getArticleTypeInfo = (id) => {
-  getarticleTypesInfo(id)
-    .then(response => {
-      if (response.data) {
-        form.typeName = response.data.typeName;
-      } else {
-        ElMessage.error('获取文章类型信息失败');
-      }
-    })
-    .catch(error => {
-      console.error('获取文章类型信息失败', error);
-      ElMessage.error('获取文章类型信息失败');
-    });
+const form = reactive({ id: null, typeName: '' });
+const rules = {
+  typeName: [{ required: true, message: '请输入文章类型名称', trigger: 'blur' }]
 };
 
-// 监听 params 变化
-watch(
-  () => props.params,
-  (newParams) => {
-    if (newParams.operationType === 'update') {
-      console.log('newParams.id111', newParams.id);
-      form.id = newParams.id;
-      // 调用 getArticleTypeInfo 函数
-      getArticleTypeInfo(newParams.id);
-    } else {
-      form.id = null;
-      form.typeName = '';
-    }
-  },
-  { immediate: true }
-);
+// 加载数据
+const loadInfo = async (id) => {
+  const res = await getarticleTypesInfo(id);
+  if (res.code === 200 && res.data) form.typeName = res.data.typeName;
+  else ElMessage.error('获取文章类型信息失败');
+};
 
+watch(() => props.params, async (val) => {
+  if (!val) return;
+  if (val.operationType === 'update' && val.id) {
+    form.id = val.id;
+    await loadInfo(val.id);
+  } else {
+    form.id = null;
+    form.typeName = '';
+  }
+}, { immediate: true });
+
+// 保存
 const onSubmit = () => {
-  articleTypesUpdate(form)
-    .then(response => {
-      console.log('修改响应:', response); // 打印响应
-      if (response.data) { // 假设响应包含 data 属性
-        ElMessage.success('修改成功');
-        emit('ok');
-      } else {
-        ElMessage.error(response.message || '修改失败');
-      }
-    })
-    .catch(error => {
-      console.error('修改操作失败', error);
-      ElMessage.error('修改操作失败');
-    });
+  formRef.value.validate(async (valid) => {
+    if (!valid) return;
+    const api = props.params.operationType === 'add' ? articleTypesAdd : articleTypesUpdate;
+    const res = await api(form);
+    if (res.code === 200) {
+      ElMessage.success(props.params.operationType === 'add' ? '添加成功' : '修改成功');
+      emit('ok');
+    } else {
+      ElMessage.error(res.message || '操作失败');
+    }
+  });
 };
 
-const onCancel = () => {
-  emit('cancel');
-};
+const onCancel = () => emit('cancel');
 </script>
 
 <style scoped>
-/* 根据需要添加样式 */
+.el-card {
+  transition: all 0.3s ease;
+}
+.el-card:hover {
+  box-shadow: 0 6px 20px rgba(0,0,0,0.1);
+}
 </style>

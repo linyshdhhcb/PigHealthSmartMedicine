@@ -3,7 +3,8 @@
     <h1>浏览量管理模块</h1>
 
     <!-- 数据列表 -->
-    <el-row class="w-full h-full flex flex-col overflow-x-auto overflow-y-hidden">
+    <el-row class="w-full h-full flex flex-col overflow-x-auto overflow-y-auto">
+
       <!-- 查询条件 -->
       <div class="w-full" v-if="showSearchRow">
         <!-- 查询条件在同一行 -->
@@ -63,10 +64,10 @@
         <el-divider v-if="showSearchRow" class="mt-2" />
 
         <!-- 数据展示区 -->
-        <el-row class="w-full flex-1 mt-3 overflow-y-auto">
-          <div class="table-container">
+        <el-row class="w-full flex-1 mt-3 overflow-y-auto" style="width: 100%;">
+          <div class="table-container"  style="width: 100%;">
             <el-table
-              style="width: 100%; min-width: 800px; height: calc(100vh - 350px);"
+              style="width: 100%; min-width: 800px; height: calc(100vh - 400px);"
               border
               :data="datatable.records"
               :loading="datatable.loading"
@@ -141,15 +142,13 @@
 
 <script setup>
 import { ref, reactive, shallowRef, onMounted } from 'vue';
-import { pageviewAdd, pageviewPage, pageviewDelete } from '@/api/pageview.js';
+import { pageviewAdd, pageviewPage, pageviewDelete, illnessPage } from '@/api/pageview.js';
 import pageviewEdit from '@/pages/pageview/pageviewEdit.vue';
 import pageviewDetail from '@/pages/pageview/pageviewDetail.vue';
 import { ElMessage } from 'element-plus';
 import { Search, Refresh, Plus, ArrowUp, ArrowDown, Edit, Delete, View } from '@element-plus/icons-vue';
 
-// 是否展示搜索区域
 const showSearchRow = ref(true);
-// 查询参数表单
 const searchForm = reactive({
   pageNum: 1,
   pageSize: 10,
@@ -157,60 +156,79 @@ const searchForm = reactive({
   pageviewsMax: null,
   illnessId: null,
 });
-// 数据列表配置
+
 const datatable = reactive({
   records: [],
   loading: false,
   total: 0
 });
-// 疾病映射对象
+
+// 疾病映射：id -> 名称
 const illnessMap = ref({});
 
-// 获取疾病列表并建立映射
-const getIllnessMap = () => {
-  // 假设这里有一个获取疾病列表的 API，示例如下：
-  const illnessList = [
-    { id: 1, illnessName: '疾病1' },
-    { id: 2, illnessName: '疾病2' },
-    // 更多疾病数据...
-  ];
-  illnessList.forEach(item => {
-    illnessMap.value[item.id] = item.illnessName;
-  });
+// 获取疾病分页列表并建立映射
+const getIllnessMap = async () => {
+  try {
+    const res = await illnessPage({ pageNum: 1, pageSize: 999 });
+    if (res.code === 200) {
+      illnessMap.value = {};
+      res.data.data.forEach(item => {
+        illnessMap.value[item.id] = item.illnessName;
+      });
+    }
+  } catch (error) {
+    console.error('获取疾病映射失败', error);
+  }
 };
 
-// 查询数据列表
-const getPageList = (isReset = false) => {
+// 获取分页列表（浏览量 + 疾病名称合并）
+const getPageList = async (isReset = false) => {
   if (isReset) {
+    searchForm.pageNum = 1;
     searchForm.pageviewsMin = null;
     searchForm.pageviewsMax = null;
     searchForm.illnessId = null;
-    searchForm.pageNum = 1;
-    searchForm.pageSize = 10;
   }
- datatable.loading = true;
+  datatable.loading = true;
 
-  // 调用分页接口
-  pageviewPage(searchForm)
-    .then(res => {
-      if (res.code === 200) {
-        datatable.records = res.data.data;
-        datatable.total = res.data.total;
-      } else {
-        ElMessage.error(res.message || '获取浏览量列表失败');
-      }
-    })
-    .finally(() => {
-      datatable.loading = false;
-    });
+  try {
+    const [pageRes, illnessRes] = await Promise.all([
+      pageviewPage(searchForm),
+      illnessPage({ pageNum: 1, pageSize: 999 })
+    ]);
+
+    if (pageRes.code === 200 && illnessRes.code === 200) {
+      const illnessArr = illnessRes.data.data;
+      // 构建映射
+      const map = {};
+      illnessArr.forEach(item => {
+        map[item.id] = item.illnessName;
+      });
+      illnessMap.value = map;
+
+      // 合并疾病名称
+      datatable.records = pageRes.data.data.map(row => ({
+        ...row,
+        illnessName: map[row.illnessId] || '未知疾病'
+      }));
+
+      datatable.total = pageRes.data.total;
+    } else {
+      ElMessage.error('获取数据失败');
+    }
+  } catch (error) {
+    console.error(error);
+    ElMessage.error('请求出错');
+  } finally {
+    datatable.loading = false;
+  }
 };
 
-// 处理页码变化
+// 分页操作
 const handlePageChange = (pageNum) => {
   searchForm.pageNum = pageNum;
   getPageList();
 };
-// 处理每页显示条数变化
 const handleSizeChange = (pageSize) => {
   searchForm.pageSize = pageSize;
   getPageList();
@@ -219,7 +237,7 @@ const handleSizeChange = (pageSize) => {
 // 公共模态框
 const modal = reactive({
   visible: false,
-  title: '浏览量管理',
+  title: '',
   params: {},
   component: null
 });
@@ -227,12 +245,12 @@ const modal = reactive({
 // 详情模态框
 const detailModal = reactive({
   visible: false,
-  title: '浏览量详情',
+  title: '',
   params: {},
   component: null
 });
 
-// 添加按钮点击事件
+// 添加按钮
 const addBtnClick = () => {
   modal.visible = true;
   modal.title = '添加浏览量';
@@ -240,7 +258,7 @@ const addBtnClick = () => {
   modal.component = shallowRef(pageviewEdit);
 };
 
-// 表格行"修改"按钮点击事件
+// 修改按钮
 const updateBtnClick = (id) => {
   modal.visible = true;
   modal.title = '修改浏览量';
@@ -248,24 +266,23 @@ const updateBtnClick = (id) => {
   modal.component = shallowRef(pageviewEdit);
 };
 
-// 表格行"删除"按钮点击事件
+// 删除按钮
 const deleteBtnOkClick = (id) => {
   pageviewDelete(id)
-    .then(response => {
-      if (response.data) {
+    .then(res => {
+      if (res.code === 200) {
         ElMessage.success('删除成功');
         getPageList();
       } else {
-        ElMessage.error(response.message || '删除失败');
+        ElMessage.error(res.message || '删除失败');
       }
     })
-    .catch(error => {
-      console.error('删除操作失败', error);
+    .catch(() => {
       ElMessage.error('删除操作失败');
     });
 };
 
-// 表格行"详情"按钮点击事件
+// 详情按钮
 const detailBtnClick = (id) => {
   detailModal.visible = true;
   detailModal.title = '浏览量详情';
@@ -273,28 +290,19 @@ const detailBtnClick = (id) => {
   detailModal.component = shallowRef(pageviewDetail);
 };
 
-// 模态框确认回调
+// 模态框确认
 const onOk = () => {
   modal.visible = false;
   getPageList();
 };
+const onCancel = () => { modal.visible = false; };
+const detailOnCancel = () => { detailModal.visible = false; };
 
-// 模态框取消回调
-const onCancel = () => {
-  modal.visible = false;
-};
-
-// 详情模态框取消回调
-const detailOnCancel = () => {
-  detailModal.visible = false;
-};
-
-// 初始查询数据列表
 onMounted(() => {
-  getIllnessMap(); // 获取疾病映射
   getPageList();
 });
 </script>
+
 
 <style scoped>
 /* 表格内容溢出时显示省略号 */
@@ -426,5 +434,8 @@ onMounted(() => {
   z-index: 2;
   background: #fff;
   box-shadow: -2px 0 8px rgba(0, 0, 0, 0.1);
+}
+.w-full{
+  width: 100%;
 }
 </style>

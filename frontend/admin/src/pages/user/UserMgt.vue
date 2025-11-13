@@ -18,7 +18,7 @@
           <el-col :span="6">
             <el-form :model="searchForm" inline label-position="left">
               <el-form-item label="真实姓名">
-                <el-input v-model="searchForm.userName" placeholder="请输入真实姓名" />
+                <el-input v-model="searchForm.userName" placeholder="请输入完整姓名" />
               </el-form-item>
             </el-form>
           </el-col>
@@ -212,7 +212,7 @@
 </template>
 
 <script setup>
-import { ref, reactive, getCurrentInstance, shallowRef } from 'vue';
+import { ref, reactive, getCurrentInstance, shallowRef,onMounted } from 'vue';
 import { userPage, userDelete } from '@/api/user.js';
 import UserEdit from './UserEdit.vue';
 import UserDetail from './UserDetail.vue';
@@ -325,7 +325,10 @@ const detailOnCancel = () => {
   detailModal.visible = false;
 };
 
-getPageList();
+// 初始化
+onMounted(() => {
+  getPageList();
+});
 </script>
 
 <style scoped>
@@ -346,5 +349,9 @@ getPageList();
 :deep(.el-table__body td) {
   padding: 12px 8px;
   vertical-align: middle;
+}
+
+.w-full{
+  width: 100%;
 }
 </style>
