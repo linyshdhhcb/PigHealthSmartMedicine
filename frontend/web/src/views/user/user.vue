@@ -9,7 +9,7 @@
       <div class="left-sidebar">
         <div class="user-info">
           <div class="user-avatar">
-            <img :src="userStore.userInfo?.imgPath || '@/assets/images/icons/avatar.jpg'" alt="用户头像">
+            <img :src="   userStore.userInfo?.imgPath " alt="用户头像">
           </div>
           <div class="user-name">{{ userStore.userInfo?.userName || '用户名' }}</div>
         </div>
@@ -66,23 +66,64 @@
             </div> -->
 
             <div class="user-profile">
+
+
+
               <div class="profile-section">
                 <h3>个人信息</h3>
                 <div class="profile-content">
+
+                  <!-- 用户头像上传 -->
+                  <div class="avatar-upload">
+                    <div class="avatar-preview">
+                      <img :src=" userStore.userInfo?.imgPath " alt="用户头像">
+                    </div>
+                    <label class="upload-btn">
+                      选择头像
+                      <input type="file" accept="image/*" @change="handleAvatarUpload" />
+                    </label>
+                  </div>
+
+                  <!-- 用户基本信息 -->
                   <div class="form-group">
                     <label>用户名</label>
-                    <input type="text" :value="userStore.userInfo?.userName || '用户名'" disabled>
+                    <input type="text" v-model="profileForm.userName" placeholder="请输入用户名" />
                   </div>
                   <div class="form-group">
                     <label>邮箱</label>
-                    <input type="email" :value="userStore.userInfo?.userEmail || 'user@example.com'" disabled>
+                    <input type="email" v-model="profileForm.userEmail" placeholder="请输入邮箱" />
                   </div>
                   <div class="form-group">
                     <label>手机号</label>
-                    <input type="tel" :value="userStore.userInfo?.userTel || '13800138000'" disabled>
+                    <input type="tel" v-model="profileForm.userTel" placeholder="请输入手机号" />
                   </div>
+
+                  <div class="form-group">
+                    <label>性别</label>
+                    <select v-model="profileForm.userSex">
+                      <option value="未知">未知</option>
+                      <option value="男">男</option>
+                      <option value="女">女</option>
+                    </select>
+                  </div>
+
+                  <div class="form-group age-group">
+                    <label>年龄</label>
+                    <div class="age-control">
+                      <button class="age-btn" @click="decreaseAge">−</button>
+                      <input type="number" v-model="profileForm.userAge" min="0" />
+                      <button class="age-btn" @click="increaseAge">＋</button>
+                    </div>
+                  </div>
+
+                  <button class="save-button" @click="handleSaveProfile">保存修改</button>
                 </div>
               </div>
+
+
+
+
+
 
               <div class="profile-section">
                 <h3>账户设置</h3>
@@ -115,20 +156,33 @@
             <h3>修改密码</h3>
             <div class="password-form">
               <div class="form-group">
+                <label >账号</label>
+                <input type="text" v-model="passwordForm.account" 
+                placeholder="请输入您的账号">
                 <label>当前密码</label>
-                <input type="password" v-model="passwordForm.oldPass">
+                <input type="password" v-model="passwordForm.oldPass"  placeholder="请输入您的原密码">
               </div>
               <div class="form-group">
                 <label>新密码</label>
-                <input type="password" v-model="passwordForm.newPass">
+                <input type="password" v-model="passwordForm.newPass"  placeholder="请输入您的新密码">
               </div>
               <div class="form-group">
                 <label>确认新密码</label>
-                <input type="password" v-model="passwordForm.confirmPass">
+                <input type="password" v-model="passwordForm.confirmPass"  placeholder="请再次输入您的新密码">
               </div>
               <button class="update-button" @click="handlePasswordUpdate">更新密码</button>
             </div>
           </div>
+          <!-- 确认更改密码对话框 -->
+           <el-dialog v-model="showPasswordConfirmDialog" title="确认更改密码？" width="30%">
+            <p>您确认要更改密码吗？</p>
+            <template #footer>
+              <div class="dialog-footer">
+                <el-button @click="showPasswordConfirmDialog = false">取消</el-button>
+                <el-button type="primary" @click="handlePasswordUpdate">确认</el-button>
+              </div>
+            </template>
+           </el-dialog>
 
           <!-- 反馈管理内容 -->
           <div v-if="activeMenu === '3'">
@@ -145,7 +199,7 @@
                 <div class="feedback-content">{{ feedback.content }}</div>
                 <div class="feedback-footer">
                   <span class="feedback-date">{{ formatDate(feedback.createTime) }}</span>
-                  <el-button type="text" size="small">查看详情</el-button>
+                  <!-- <el-button type="text" size="small">查看详情</el-button> -->
                 </div>
               </div>
               <div v-if="feedbacks.length === 0" class="no-feedbacks">
@@ -205,8 +259,121 @@ import { useRouter } from 'vue-router';
 import { ElMessage } from 'element-plus';
 import { User, Lock, ChatDotRound, SwitchButton } from '@element-plus/icons-vue';
 import nav2 from '@/components/nav2.vue';
-import { logout, feedbackAdd, feedbackPage, savePassword } from '@/api/admin/user.js';
+import { logout, feedbackAdd, feedbackPage, savePassword,uploadFile } from '@/api/admin/user.js';
 import { useUserStore } from '@/stores/user';
+
+import { saveProfile } from '@/api/admin/user.js';
+import defaultAvatar from '@/assets/images/icons/avatar.jpg'; // 默认头像
+
+// 表单数据
+const profileForm = reactive({
+  id: 9,
+  userName: '',
+  userAge: 0,
+  userSex: '未知',
+  userEmail: '',
+  userTel: '',
+  imgPath: ''
+});
+
+
+// 初始化时加载用户信息
+onMounted(() => {
+  if (userStore.userInfo) {
+    Object.assign(profileForm, {
+      id: 9,
+      userName: userStore.userInfo.userName || '',
+      userAge: userStore.userInfo.userAge || 0,
+      userSex: userStore.userInfo.userSex || '未知',
+      userEmail: userStore.userInfo.userEmail || '',
+      userTel: userStore.userInfo.userTel || '',
+      imgPath: userStore.userInfo.imgPath || ''
+    });
+  }
+});
+
+// 年龄加减
+const increaseAge = () => {
+  profileForm.userAge++;
+};
+const decreaseAge = () => {
+  if (profileForm.userAge > 0) profileForm.userAge--;
+};
+
+
+// 头像上传处理
+// const handleAvatarUpload = async (event) => {
+//   const file = event.target.files[0];
+//   if (!file) return;
+
+//   try {
+//     // 调用上传接口
+//     const res = await uploadFile(file);
+//     if (res.code === 200 && res.data?.url) {
+//       // 设置用户头像路径为后端返回的 url
+//       profileForm.imgPath = res.data.url;
+//        userStore.setUserInfo(profileForm.imgPath);
+
+//       // 预览头像
+//       const imgElement = document.querySelector('.avatar-preview img');
+//       if (imgElement) imgElement.src = res.data.url;
+
+//       ElMessage.success('头像上传成功！');
+//     } else {
+//       ElMessage.error(res.message || '头像上传失败');
+//     }
+//   } catch (error) {
+//     console.error('头像上传出错:', error);
+//     ElMessage.error('上传失败，请稍后再试');
+//   }
+// };
+
+// 头像上传处理
+const handleAvatarUpload = async (event) => {
+  const file = event.target.files[0]
+  if(!file) return;
+  try {
+    //调用上传图片接口
+    const res = await uploadFile(file)
+    if(res.code === 200 && res.data?.url){
+      profileForm.imgPath = res.data.url;
+      userStore.setUserInfo(profileForm)
+
+      //预览头像
+      const imgElement = document.querySelector('.avatar-preview img')
+      if(imgElement) imgElement.src = res.data.url
+      userStore.setUserInfo(profileForm)
+      ElMessage.success('上传成功')
+    } else {
+      ElMessage.error( res.message ||'上传失败')
+    }
+  } catch(error){
+    console.error('头像上传出错',error)
+    ElMessage.error('上传失败,请稍后再试')
+  }
+}
+
+
+// 提交修改
+const handleSaveProfile = async () => {
+  try {
+    const res = await saveProfile(profileForm);
+    if (res.code === 200) {
+      ElMessage.success('个人信息修改成功！');
+      // 同步更新本地 store
+      userStore.setUserInfo(profileForm);
+    } else {
+      ElMessage.error(res.message || '修改失败，请稍后重试');
+    }
+  } catch (err) {
+    console.error(err);
+    ElMessage.error('网络错误，请稍后再试');
+  }
+};
+
+
+
+
 
 const router = useRouter();
 const userStore = useUserStore();
@@ -214,11 +381,50 @@ const emailNotification = ref(true);
 const siteNotification = ref(true);
 const activeMenu = ref('1');
 const showFeedbackDialog = ref(false);
+
+//添加对话框
+const showPasswordConfirmDialog = ref(false)
 const passwordForm = reactive({
+  account:'',
   oldPass: '',
   newPass: '',
   confirmPass: ''
 });
+
+//添加确认密码更新方法
+const confirmPasswordUpdate = () => {
+  if(!passwordForm.account || !passwordForm.oldPass || !passwordForm.newPass || !passwordForm.confirmPass ){
+    ElMessage.error('请填写完整的密码信息')
+    return
+  }
+  if(passwordForm.newPass !== passwordForm.confirmPass){
+    ElMessage.error('请填写相同的密码')
+    return
+  }
+
+  showPasswordConfirmDialog.value = true
+};
+
+
+const handlePasswordUpdate = async () => {
+  showPasswordConfirmDialog.value = false //关闭确认框
+  try{
+    //注意：接口只用传递新旧密码，账号仅仅用于验证用户身份
+    const response = await savePassword(passwordForm.oldPass,passwordForm.newPass)
+    if(response.code === 200){
+      ElMessage.success('密码更新成功！');
+      //1s后跳转到登录页面
+      setTimeout(() => {
+        router.push({name:'Login'})
+      },1000)
+    } else{
+      ElMessage.error('密码更新失败，请重试' || response.message);
+    }
+  } catch(error){
+    console.error('密码更新失败:',error);
+    ElMessage.error('密码更新失败，请重试');
+  }
+}
 const feedbackForm = reactive({
   title: '',
   content: ''
@@ -286,31 +492,7 @@ const handleLogout = async () => {
   }
 };
 
-// 处理密码更新
-const handlePasswordUpdate = async () => {
-  if (!passwordForm.oldPass || !passwordForm.newPass || !passwordForm.confirmPass) {
-    ElMessage.error('请填写完整的密码信息');
-    return;
-  }
-  if (passwordForm.newPass !== passwordForm.confirmPass) {
-    ElMessage.error('新密码和确认密码不一致');
-    return;
-  }
-  try {
-    const response = await savePassword(passwordForm.oldPass, passwordForm.newPass);
-    if (response.code === 200) {
-      ElMessage.success('密码更新成功');
-      passwordForm.oldPass = '';
-      passwordForm.newPass = '';
-      passwordForm.confirmPass = '';
-    } else {
-      ElMessage.error(response.message || '密码更新失败');
-    }
-  } catch (error) {
-    console.error('密码更新失败:', error);
-    ElMessage.error('密码更新失败，请重试');
-  }
-};
+
 
 // 添加反馈
 const addFeedback = async () => {
@@ -347,6 +529,7 @@ const addFeedback = async () => {
 .user-center-container {
   height: 100vh;
   background-color: #f5f7fa;
+  margin-top: 70px;
 }
 
 /* 主要内容区域 */
@@ -649,4 +832,93 @@ const addFeedback = async () => {
   width: 12px !important;
   height: 12px !important;
 }
+
+
+.avatar-upload {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  margin-bottom: 20px;
+}
+
+.avatar-preview {
+  width: 90px;
+  height: 90px;
+  border-radius: 50%;
+  overflow: hidden;
+  box-shadow: 0 0 8px rgba(0, 0, 0, 0.1);
+  transition: transform 0.3s;
+}
+
+.avatar-preview:hover {
+  transform: scale(1.05);
+}
+
+.avatar-preview img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.upload-btn {
+  background-color: #0288d1;
+  color: white;
+  padding: 8px 16px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+  font-size: 14px;
+}
+
+.upload-btn:hover {
+  background-color: #0277bd;
+}
+
+.upload-btn input {
+  display: none;
+}
+
+.age-group {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.age-control {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.age-btn {
+  background-color: #f1f1f1;
+  border: none;
+  border-radius: 6px;
+  padding: 6px 12px;
+  font-size: 18px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.age-btn:hover {
+  background-color: #e0e0e0;
+}
+
+.save-button {
+  margin-top: 15px;
+  padding: 10px 20px;
+  background: linear-gradient(135deg, #4CAF50, #2E7D32);
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  font-size: 15px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.save-button:hover {
+  background: linear-gradient(135deg, #66bb6a, #388e3c);
+  transform: scale(1.03);
+}
+
 </style>
