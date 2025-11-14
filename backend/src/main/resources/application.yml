@@ -1,5 +1,5 @@
 server:
-  port: 9999
+  port: 19999
 spring:
   application:
     name: "PigHealthSmartMedicine"
@@ -11,22 +11,21 @@ spring:
     username: your_username               #数据库用户名
     password: your_password               #数据库密码
     type: com.alibaba.druid.pool.DruidDataSource
-    initialSize: 5                        # 初始化时创建的连接数
-    minIdle: 5                            # 最小空闲连接数
-    maxActive: 20                         # 最大活跃连接数
-    testWhileIdle: true                   # 是否在空闲时测试连接的有效性
-    validationQuery: SELECT 1 FROM DUAL   # 验证连接的查询语句
-    timeBetweenEvictionRunsMillis: 60000  # 检查连接是否空闲的时间间隔
-    minEvictableIdleTimeMillis: 300000    # 连接在池中最小生存时间
-
+    initialSize: 5 # 初始化时创建的连接数
+    minIdle: 5 # 最小空闲连接数
+    maxActive: 20 # 最大活跃连接数
+    testWhileIdle: true # 是否在空闲时测试连接的有效性
+    validationQuery: SELECT 1 FROM DUAL # 验证连接的查询语句
+    timeBetweenEvictionRunsMillis: 60000 # 检查连接是否空闲的时间间隔
+    minEvictableIdleTimeMillis: 300000 # 连接在池中最小生存时间
 
   jackson:
     date-format: yyyy-MM-dd HH:mm:ss
     time-zone: GMT+8
   # 邮件配置
   mail:
-    username: your_email@xxx.com # qq邮箱
-    password: your_email_password # qq邮箱授权码
+    username: your_qq_email # qq邮箱
+    password: your_qq_email_password # qq邮箱授权码
     host: smtp.qq.com
     port: 465
     properties:
@@ -45,11 +44,11 @@ spring:
     template: "您的动态验证码为：<strong style='color: red'>%s</strong>，%d分钟内有效，若非本人操作，请勿泄露。"
   data:
     redis:
-      host: your_redis_host
+      host: 127.0.0.1
       port: 6379
-      password: your_redis_password
+      password: redis_password
       timeout: 1800
-      database: 0
+      database: 2
       pool:
         max-active: 200
         max-idle: 10
@@ -58,20 +57,26 @@ spring:
 
   servlet:
     multipart:
-      max-file-size: 10MB
-      max-request-size: 10MB
+      max-file-size: 50MB
+      max-request-size: 50MB
   #minio配置
   minio:
     access-key: your_minio_access_key
     secret-key: your_minio_secret_key
     url: your_url
     bucket-name: pig-health
+
+knowledge:
+  storage:
+  # 可选：配置知识库存储根目录（绝对路径或相对运行目录）
+  # 不配置时默认使用项目路径 backend/src/main/resources/knowledge
+  # root: C:/Intellij_IDEA/Exploitation/DEV/PigHealthSmartMedicine/backend/src/main/resources/knowledge
+
 # mybatis-plus配置
 mybatis-plus:
   configuration:
     map-underscore-to-camel-case: true
     log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
-
 
   # sa-token配置
   sa-token:
@@ -102,8 +107,8 @@ springdoc:
   api-docs:
     path: /v3/api-docs
   group-configs:
-    - group: 'default'
-      paths-to-match: '/**'
+    - group: "default"
+      paths-to-match: "/**"
       packages-to-scan: com.linyi.pig.controller
 # knife4j的增强配置，不需要增强可以不配
 knife4j:
@@ -116,18 +121,18 @@ knife4j:
       name: linyi
       email: jingshuihuayue@qq.com
     license:
-      name: Apache 2.0
-      url: http://www.apache.org/licenses/LICENSE-2.0.html
+      name: MIT
+      url: https://github.com/linyshdhhcb/PigHealthSmartMedicine/blob/master/LICENSE
   setting:
     language: zh_cn
 
 # 配置ai
 ai:
   ollama:
-    url: http://localhost:11434 #这里是我本地部署的ollama默认地址（需要根据你自己的更换）
+    url: http://127.0.0.1:11434 #这里是我本地部署的ollama默认地址（需要根据你自己的更换）
     chat:
       options:
-        model: deepseek-r1:14b # 模型名称 本地ollama 下载的模型名称（需要根据你自己的更换）
+        model: qwen2.5:7b # 模型名称 本地ollama 下载的模型名称（需要根据你自己的更换）
     embedding:
       options:
         model: nomic-embed-text # 模型名称 本地ollama 下载的模型名称（需要根据你自己的更换）
