@@ -1,7 +1,7 @@
 import axios from "axios";
 const service = axios.create({
     // 基础URL
-    baseURL: 'http://117.72.101.170:19999',
+    baseURL: 'http://127.0.0.1:19999',
     // 请求超时5秒
     timeout: 60000,
     // 允许发送和接收 Cookie

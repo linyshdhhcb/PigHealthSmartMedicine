@@ -4,7 +4,7 @@
  Source Server         : 京东云
  Source Server Type    : MySQL
  Source Server Version : 80043 (8.0.43)
- Source Host           : 117.72.101.170:3306
+ Source Host           : 127.0.0.1:3306
  Source Schema         : pig_health_smart_medicine
 
  Target Server Type    : MySQL

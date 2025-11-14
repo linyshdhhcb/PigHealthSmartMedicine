@@ -1,5 +1,5 @@
 // request.js - 网络请求封装
-const baseURL = "http://117.72.101.170:19999";
+const baseURL = "http://127.0.0.1:19999";
 
 // 请求拦截器
 const httpRequest = (options) => {

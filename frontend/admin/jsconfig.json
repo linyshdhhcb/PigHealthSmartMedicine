@@ -1,6 +1,6 @@
 {
   "compilerOptions": {
-      "baseUrl": "http://117.72.101.170:19999",
+      "baseUrl": "http://127.0.0.1:19999",
       "paths": {
           "@/*": ["src/*"] // 配置 @ 符号指向 src 目录及其子目录
       }
