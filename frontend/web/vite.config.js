@@ -14,7 +14,7 @@ export default defineConfig({
   server: {
     proxy: {
       '/api': {
-        target: 'http://127.0.0.1:19999',
+        target: 'http://127.0.0.1:9999',
         changeOrigin: true,
         rewrite: (path) => path.replace(/^\/api/, ''),
         secure: false, // 允许不安全的 SSL 证书
