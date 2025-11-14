@@ -287,6 +287,7 @@ onMounted(async () => {
   height: 100vh;
   background: linear-gradient(135deg, #f0f9ff 0%, #e6f4ff 100%);
   font-family: 'Segoe UI', system-ui, sans-serif;
+  margin-top: 70px;
 }
 
 .history-sidebar {

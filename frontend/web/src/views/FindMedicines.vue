@@ -1,400 +1,432 @@
+<!-- src/views/FineMedicine.vue -->
 <template>
-  <div class="medicine-list">
-    <nav2 />
-
-    <van-row gutter="20" class="medicine-container">
-      <van-col
-        span="8"
-        v-for="(medicine, index) in medicinePageData"
-        :key="index"
-        class="medicine-col"
-      >
-        <van-card
-          :title="medicine.medicineName"
-          :desc="medicine.medicineEffect"
-          :thumb="formatImagePath(medicine.imgPath)"
-          class="medicine-card"
-          @click="openMedicineDetail(medicine.id)"
-        >
-          <template #tags>
-            <div class="medicine-tags">
-              <span
-                :class="[
-                  medicine.medicineType === 2 ? 'neutral-tag' : '',
-                  medicine.medicineType === 0 ? 'western-tag' : '',
-                  medicine.medicineType === 1 ? 'chinese-medicine-tag' : '',
-                ]"
-                >{{ getMedicineTypeName(medicine.medicineType) }}</span
-              >
-              <span class="warning">是药三分毒，切忌不要乱吃药</span>
-            </div>
-            <div class="medicine-info">
-              <p>
-                <span style="color: black; font-weight: bold; font-size: 14px;">品牌:</span>
-                <span class="primary">{{ medicine.medicineBrand }}</span>
-              </p>
-              <p>
-                <span style="color: black; font-weight: bold; font-size: 14px;">用法:</span>
-                <span class="warning">{{ medicine.usAge }}</span>
-              </p>
-              <p>
-                <span style="color: black; font-weight: bold; font-size: 14px;">禁忌:</span>
-                <span class="danger">{{ medicine.taboo }}</span>
-              </p>
-              <p>
-                <span style="color: black; font-weight: bold; font-size: 14px;">相互作用:</span>
-                <span class="success">{{ medicine.interaction }}</span>
-              </p>
-              <p>
-                <span style="color: black; font-weight: bold; font-size: 14px;">价格:</span>
-                <span class="price">{{ medicine.medicinePrice }} 元</span>
-              </p>
-            </div>
-          </template>
-        </van-card>
-      </van-col>
-    </van-row>
-
-    <!-- 分页组件 -->
-    <div class="pagination-container">
-      <el-pagination
-        v-model:current-page="currentPage"
-        v-model:page-size="pageSize"
-        :total="total"
-        layout="total, sizes, prev, pager, next, jumper"
-        :page-sizes="[9, 18, 27, 36]"
-        @size-change="fetchMedicineData"
-        @current-change="fetchMedicineData"
-      >
-        <template #prev>
-          <span>上一页</span>
-        </template>
-        <template #next>
-          <span>下一页</span>
-        </template>
-        <template #pager="{ page, isActive }">
-          <span :class="{ active: isActive }">{{ page }}</span>
-        </template>
-      </el-pagination>
+  <div class="medicine-page">
+    <div class="nav2">
+      <nav2 />
     </div>
 
-    <!-- 药品详情模态框 -->
-    <van-dialog
-      v-model:show="showDetail"
-      width="60%"
-      class="detail-dialog"
-      :show-cancel-button="false"
-      :show-confirm-button="false"
-      close-on-click-overlay
-    >
-      <!-- 标题栏：药品名称 + 关闭 -->
-      <template #title>
-        <div class="dialog-title">
-          <span>{{ medicineDetail.medicineName }}</span>
-          <van-icon name="cross" class="dialog-close" @click="showDetail = false" />
+    <div class="container">
+      <!-- 左侧 tag 过滤 -->
+      <aside class="left-panel" :class="{ collapsed: collapsedTags }">
+        <div class="tags-header">
+          <h3>分类筛选</h3>
+          <button class="collapse-btn" @click="collapsedTags = !collapsedTags">
+            {{ collapsedTags ? '展开' : '收起' }}
+          </button>
         </div>
-      </template>
+        <div class="tag-list">
+          <button
+            class="tag"
+            :class="{ active: currentTag === '' }"
+            @click="selectTag('')"
+            tabindex="0"
+          >全部</button>
 
-      <!-- 内容：图片 + 详细字段，滚动显示 -->
-      <div class="detail-content">
-        <img
-          :src="formatImagePath(medicineDetail.imgPath)"
-          alt="封面"
-          class="detail-thumb"
-        />
-        <div class="info-block">
-          <p><strong>关键词：</strong>{{ medicineDetail.keyword }}</p>
-          <p><strong>功效：</strong>{{ medicineDetail.medicineEffect }}</p>
-          <p><strong>品牌：</strong>{{ medicineDetail.medicineBrand }}</p>
-          <p><strong>用法：</strong>{{ medicineDetail.usAge }}</p>
-          <p><strong>禁忌：</strong>{{ medicineDetail.taboo }}</p>
-          <p><strong>相互作用：</strong>{{ medicineDetail.interaction }}</p>
-          <p><strong>价格：</strong>¥{{ medicineDetail.medicinePrice.toFixed(2) }}</p>
-          <p><strong>创建时间：</strong>{{ medicineDetail.createTime }}</p>
-          <p><strong>更新时间：</strong>{{ medicineDetail.updateTime }}</p>
+          <button
+            v-for="t in allTags"
+            :key="t"
+            class="tag"
+            :class="{ active: currentTag === t }"
+            @click="selectTag(t)"
+            tabindex="0"
+          >{{ t }}</button>
         </div>
-      </div>
-    </van-dialog>
+      </aside>
+
+      <!-- 右侧 主区 -->
+      <main class="right-panel">
+        <!-- 搜索栏 -->
+        <div class="toolbar">
+          <el-input
+            v-model="searchText"
+            placeholder="搜索药品名 / 适应症 / 关键词"
+            clearable
+            @clear="onSearchClear"
+            @input="onSearchInput"
+            class="search-input"
+          >
+            <template #prefix>
+              <i class="iconfont icon-search" />
+            </template>
+          </el-input>
+        </div>
+
+        <!-- 列表区 -->
+        <section class="list-area">
+          <div v-if="loading" class="skeleton-wrap">
+            <!-- 简单骨架占位 -->
+            <div class="skeleton-card" v-for="n in 6" :key="n"></div>
+          </div>
+
+          <div v-else>
+            <div v-if="filteredList.length === 0" class="no-result">
+              没有找到符合条件的药品。试试清除筛选或更换关键词。
+            </div>
+
+            <div class="grid">
+              <article
+                v-for="medicine in pagedList"
+                :key="medicine.id"
+                class="card"
+                tabindex="0"
+                role="button"
+                @click="openDetail(medicine.id)"
+                @keydown.enter="openDetail(medicine.id)"
+              >
+                <div class="thumb-wrap">
+                  <!-- 懒加载并设置占位尺寸 -->
+                  <img
+                    :src="formatImagePath(medicine.imgPath)"
+                    alt="封面"
+                    class="thumb"
+                    loading="lazy"
+                    width="220"
+                    height="220"
+                  />
+                </div>
+
+                <div class="card-body">
+                  <header class="card-head">
+                    <h4 class="title">{{ medicine.medicineName }}</h4>
+                    <div class="price">¥{{ Number(medicine.medicinePrice).toFixed(2) }}</div>
+                  </header>
+
+                  <p class="desc">{{ medicine.medicineEffect }}</p>
+                  <span class="desc ">禁忌：<div class="taboo">{{ medicine.taboo }}</div></span>
+                  <span class="desc  ">药效：<div class="keyword">{{ medicine.keyword }}</div></span>
+                  <div class="meta">
+                    <div class="medicine-box">
+                      <span class="brand">品牌：{{ medicine.medicineBrand }}</span>
+                      
+                    </div>
+                    <span
+                        class="type"
+                        :class="getTypeClass(medicine.medicineType)"
+                      >{{ getMedicineTypeName(medicine.medicineType) }}
+                   </span>
+                  </div>
+
+                  <div class="card-footer">
+                    <span class="usage">用法：{{ shorten(medicine.usAge, 30) }}</span>
+                    <span class="tag-warning">⚠️ 切忌乱用</span>
+                  </div>
+                </div>
+              </article>
+            </div>
+          </div>
+        </section>
+
+        <!-- 分页 -->
+        <footer class="pagination-wrap">
+          <el-pagination
+            v-if="filteredList.length > 0"
+            v-model:current-page="currentPage"
+            v-model:page-size="pageSize"
+            :total="filteredList.length"
+            layout="total, sizes, prev, pager, next, jumper"
+            :page-sizes="[4, 8, 12, 16]"
+            @current-change="handlePageChange"
+            @size-change="handleSizeChange"
+          />
+        </footer>
+      </main>
+    </div>
   </div>
-  <buttom2 />
 </template>
 
 <script setup>
-import { ref } from 'vue';
-import nav2 from '@/components/nav2.vue';
-import { medicinePage, getmedicineInfo } from '@/api/admin/medicine.js';
-import { ElMessage } from 'element-plus';
-import buttom2 from '@/components/buttom2.vue';
+import { ref, computed, watch, onMounted, shallowRef } from 'vue'
+import { useRouter } from 'vue-router'
+import nav2 from '@/components/nav2.vue'
+import { medicinePage, getmedicineInfo } from '@/api/admin/medicine.js'
+import debounce from 'lodash/debounce' // 若项目未安装 lodash，可使用自写防抖
 
-const currentPage = ref(1);
-const pageSize = ref(9);
-const total = ref(0);
-const medicinePageData = ref([]);
-const showDetail = ref(false);
-const medicineDetail = ref({
-  medicineName: '',
-  keyword: '',
-  medicineEffect: '',
-  medicineBrand: '',
-  interaction: '',
-  taboo: '',
-  usAge: '',
-  medicinePrice: 0,
-  createTime: '',
-  updateTime: '',
+// 状态
+const router = useRouter()
+const collapsedTags = ref(false)
+const currentTag = ref('')
+const searchText = ref('')
+const loading = ref(true)
+const total = ref(0)
+const currentPage = ref(1)
+const pageSize = ref(4)
+// 使用 shallowRef 来减少深度响应开销
+const medicinePageData = shallowRef([]) // 当前页后端返回的数据
+const allItemsCache = shallowRef([]) // 可选：完整数据缓存（若后端支持一次性拉取）
+const medicines = ref([])
+
+// 获取列表（后端分页）
+const fetchData = async (page = currentPage.value, size = pageSize.value) => {
+  loading.value = true
+  try {
+    const res = await medicinePage({ pageNum: 1, pageSize: 999 })
+    // 你的后端接口可能包裹在 res.data 或直接 res，按实际调整
+    if (res && (res.code === 200 || res.data)) {
+      // 兼容多种返回：优先用 res.data.data
+      const data = res.data.data 
+      medicinePageData.value = data
+      total.value = res.data?.total ?? res.total ?? (data?.length || 0)
+      medicines.value = res.data.data
+      // 可选：维护全量缓存（用于客户端过滤/快速搜索，不适合大数据）
+      // allItemsCache.value = allItemsCache.value.concat(data)
+    } else {
+      // 错误处理
+      medicinePageData.value = []
+      total.value = 0
+    }
+  } catch (e) {
+    console.error('fetch medicine error', e)
+    medicinePageData.value = []
+  } finally {
+    loading.value = false
+  }
+}
+
+// 初始加载
+onMounted(() => {
+  fetchData()
+})
+
+// 搜索防抖：300ms
+const debouncedSearch = debounce((val) => {
+  // 优先做后端搜索（如果接口支持），否则在客户端过滤
+  // 假设后端支持传关键字：medicinePage({pageNum:1,pageSize,keyword:val})
+  currentPage.value = 1
+  fetchData(1, pageSize.value)
+}, 300)
+
+function onSearchInput() {
+  debouncedSearch(searchText.value)
+}
+function onSearchClear() {
+  searchText.value = ''
+  currentPage.value = 1
+  fetchData(1, pageSize.value)
+}
+
+// Tag 选择
+function selectTag(tag) {
+  currentTag.value = tag
+  currentPage.value = 1
+  fetchData(1, pageSize.value)
+}
+
+
+
+
+// 分页逻辑
+const displayedList = computed(() => {
+  const start = (currentPage.value - 1) * pageSize.value
+  const end = start + pageSize.value
+  return filteredList.value.slice(start, end)
+})
+
+
+// 切换页
+const handlePageChange = (page) => {
+  currentPage.value = page
+}
+
+// 切换分页大小
+const handleSizeChange = (size) => {
+  pageSize.value = size
+  currentPage.value = 1
+}
+
+// 跳详情页（路由）
+function openDetail(id) {
+  router.push({ name: 'MedicineDetail', params: { id } })
+}
+
+// 计算 allTags（若后端未提供 tags，可由当前页或全量缓存生成）
+const allTags = computed(() => {
+  const set = new Set()
+  // 优先用 full cache，否则用当前页数据提取
+  const source = allItemsCache.value.length ? allItemsCache.value : (medicinePageData.value || [])
+  source.forEach((it) => {
+    (it.keyword || '').split(',').forEach(k => {
+      const s = k.trim()
+      if (s) set.add(s)
+    })
+  })
+  return Array.from(set)
+})
+
+// filteredList 与分页：如果你使用后端分页并且后端已做过滤，则 medicinePageData 就是最终数据；
+// 否则在客户端做过滤（下面示例做客户端过滤 on current page items）
+const filteredList = computed(() => {
+  const list = medicinePageData.value || [];
+  const q = searchText.value.trim().toLowerCase();
+  return list.filter(item => {
+    const hitTag = !currentTag.value || (item.keyword || '').split(',').map(s => s.trim()).includes(currentTag.value);
+    const hitKeyword = !q ||
+      (item.medicineName || '').toLowerCase().includes(q) ||
+      (item.medicineEffect || '').toLowerCase().includes(q) ||
+      (item.keyword || '').toLowerCase().includes(q);
+    return hitTag && hitKeyword;
+  });
 });
 
-const fetchMedicineData = () => {
-  medicinePage({ pageNum: currentPage.value, pageSize: pageSize.value })
-    .then((res) => {
-      if (res.code === 200) {
-        medicinePageData.value = res.data.data;
-        total.value = res.data.total;
-      } else {
-        ElMessage.error(res.message || '请求失败，请稍后再试');
-      }
-    })
-    .catch((err) => {
-      console.error(err);
-      ElMessage.error('请求失败，请稍后再试');
-    });
-};
+// pagedList 显示当前页（filteredList 已基于 current backend page；如果需要 client pagination 再切分）
+const pagedList = computed(() => {
+  const start = (currentPage.value - 1) * pageSize.value;
+  const end = start + pageSize.value;
+  return filteredList.value.slice(start, end);
+});
 
-fetchMedicineData();
-
-// 根据medicineType获取药品类型名称
-const getMedicineTypeName = (medicineType) => {
-  switch (medicineType) {
-    case 0:
-      return '西药';
-    case 1:
-      return '中药';
-    case 2:
-      return '中成药';
-    default:
-      return '未知';
+// small utilities
+const getMedicineTypeName = (t) => {
+  switch (+t) {
+    case 0: return '西药'
+    case 1: return '中药'
+    case 2: return '中成药'
+    default: return '未知'
   }
-};
-
-// 格式化图片路径
-const formatImagePath = (imgPath) => {
-  return imgPath.replace(/[<>]/g, '');
-};
-
-// 打开药品详情
-const openMedicineDetail = (medicineId) => {
-  getmedicineInfo(medicineId)
-    .then((res) => {
-      if (res.code === 200) {
-        medicineDetail.value = res.data;
-        showDetail.value = true;
-      } else {
-        ElMessage.error(res.message || '获取药品详情失败');
-      }
-    })
-    .catch((err) => {
-      console.error(err);
-      ElMessage.error('获取药品详情失败');
-    });
-};
+}
+const getTypeClass = (t) => {
+  if (t === 0) return 'western'
+  if (t === 1) return 'chinese'
+  return 'neutral'
+}
+const formatImagePath = (p) => (p || '').replace(/[<>]/g, '')
+const shorten = (str = '', len = 40) => (str.length > len ? str.slice(0, len) + '…' : str)
 </script>
 
 <style scoped>
-.medicine-list {
-  margin: 20px;
-  background-color: #f5f7fa;
-}
-
-.medicine-container {
+/* 整体容器 */
+.container {
   display: flex;
-  flex-wrap: wrap;
-  margin: 10px 0px;
+  gap: 24px;
+  margin: 18px;
+}
+.nav2{
+  height: 70px;
 }
 
-.medicine-col {
-  padding: 0 10px;
-  margin-bottom: 20px;
-}
-
-.medicine-card {
-  width: 100%;
-  padding: 15px;
-  box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.1);
-  border-radius: 8px;
-  transition: all 0.3s;
-  cursor: pointer;
-}
-
-.medicine-card:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
-}
-
-.neutral-tag {
-  background-color: #e6a23c;
-  color: white;
-  padding: 2px 6px;
-  border-radius: 4px;
-  margin-right: 8px;
-  font-size: 12px;
-}
-
-.western-tag {
-  background-color: #409eff;
-  color: white;
-  padding: 2px 6px;
-  border-radius: 4px;
-  margin-right: 8px;
-  font-size: 12px;
-}
-
-.chinese-medicine-tag {
-  background-color: #67c23a;
-  color: white;
-  padding: 2px 6px;
-  border-radius: 4px;
-  margin-right: 8px;
-  font-size: 12px;
-}
-
-.medicine-tags {
-  margin-bottom: 10px;
-}
-
-.medicine-info {
-  margin-top: 10px;
-}
-
-.medicine-info p {
-  margin: 5px 0;
-  font-size: 14px;
-}
-
-.warning {
-  color: #f56c6c;
-}
-
-.primary {
-  color: #409eff;
-}
-
-.success {
-  color: #67c23a;
-}
-
-.danger {
-  color: #f56c6c;
-}
-
-.price {
-  color: #f56c6c;
-  font-weight: bold;
-}
-
-.pagination-container {
-  margin-top: 30px;
-  display: flex;
-  justify-content: center;
-}
-
-.el-pagination {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}
-
-.el-pagination ::v-deep(.el-pagination__total) {
-  margin-right: 10px;
-}
-
-.el-pagination ::v-deep(.el-pagination__sizes) {
-  margin: 0 10px;
-}
-
-.el-pagination ::v-deep(.el-pagination__jump) {
-  margin-left: 10px;
-}
-
-.el-pagination ::v-deep(.el-pager) {
-  display: flex;
-}
-
-.el-pagination ::v-deep(.el-pager li) {
-  margin: 0 5px;
-  width: 30px;
-  height: 30px;
-  line-height: 30px;
-  text-align: center;
-  border-radius: 4px;
-  background-color: #fff;
-  border: 1px solid #dcdfe6;
-  color: #606266;
-  cursor: pointer;
-  transition: all 0.3s;
-}
-
-.el-pagination ::v-deep(.el-pager li.active) {
-  background-color: #409eff;
-  color: #fff;
-  border-color: #409eff;
-}
-
-.el-pagination ::v-deep(.el-pager li:hover) {
-  color: #409eff;
-}
-
-/* 模态框样式 */
-.detail-dialog {
+/* 左侧 tag 面板 */
+.left-panel {
+  width: 220px;
+  min-width: 160px;
+  background: #fff;
   border-radius: 12px;
+  padding: 16px;
+  box-shadow: 0 6px 18px rgba(16, 24, 40, 0.06);
+}
+.left-panel.collapsed {
+  width: 56px;
   overflow: hidden;
-  padding: 0;
+  padding-left: 10px;
 }
-
-.dialog-title {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  font-size: 18px;
-  padding: 12px 20px;
-  border-bottom: 1px solid #ebeef5;
+.tags-header {
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  margin-bottom: 12px;
 }
-
-.dialog-close {
-  font-size: 20px;
+.tag-list {
+  display:flex;
+  flex-direction:column;
+  gap:8px;
+}
+.tag {
+  border: none;
+  background: #f0f6ff;
+  color: #2c6bbe;
+  padding: 8px 12px;
+  border-radius: 999px;
+  text-align: center;
   cursor: pointer;
-  color: #606266;
+  transition: transform .15s ease, background .15s;
 }
+.tag:focus { outline: none; box-shadow: 0 0 0 3px rgba(64,158,255,0.08); }
+.tag.active { background: #16a34a; color: #fff; transform: translateX(4px); }
 
-.detail-content {
-  display: flex;
-  padding: 20px;
-  max-height: 60vh;
-  overflow-y: auto;
-}
-
-.detail-thumb {
-  width: 40%;
-  border-radius: 4px;
-  object-fit: cover;
-}
-
-.info-block {
+/* 右侧内容区域 */
+.right-panel {
   flex: 1;
-  margin-left: 20px;
-  font-size: 14px;
-  color: #606266;
+  display:flex;
+  flex-direction:column;
+  gap:16px;
 }
 
-.info-block p {
-  margin: 8px 0;
+/* 工具条 */
+.toolbar {
+  display:flex;
+  align-items:center;
+  justify-content: center;
+}
+.search-input { 
+  max-width: 640px; 
+  width:100%; 
+  background:gray;
 }
 
-.info-block p strong {
-  color: #303133;
+.grid{
+  margin: 30px 30px;
+  width: 75vw;
+  justify-content: center;
+  border: 1px solid #eee;
+}
+.card {
+  display:flex;
+  gap: 100px;
+  background: #fff;
+  padding: 14px;
+  border-radius: 122px;
+  box-shadow: 0 6px 18px rgba(16,24,40,0.04);
+  cursor:pointer;
+  transition: transform .18s ease, box-shadow .18s;
+  border-bottom: 1px solid #eee;
+}
+.card:focus { outline: none; box-shadow: 0 10px 30px rgba(16,24,40,0.08); transform: translateY(-4px); }
+.card:hover { transform: translateY(-6px); box-shadow: 0 14px 32px rgba(16,24,40,0.06); }
+
+.thumb-wrap { width: 220px; height: 220px; flex-shrink:0; border-radius:8px; overflow:hidden; }
+.thumb { width: 100%; height:100%; object-fit: cover; display:block; }
+
+/* 卡片内容 */
+.card-body { flex:1; display:flex; flex-direction:column; gap:8px; }
+.card-head { display:flex; justify-content:space-between; align-items:center; }
+.title { font-size: 16px; font-weight: 700; color: #222; margin: 0; }
+.price { 
+  color: #f56c6c; 
+  font-weight: 700; 
+  font-size: 24px;
+  margin-right: 20px;
 }
 
-.price {
-  color: #f56c6c;
-  font-weight: bold;
+.desc {display: flex; color:#555; font-size:14px; margin:0; line-height:1.5; max-height:3em; overflow:hidden; text-overflow:ellipsis; }
+.keyword{
+  color: #16a34a;
 }
+.taboo{
+  color: rgb(146, 20, 20);
+}
+.meta { 
+  display:flex; 
+  gap:15px; 
+  align-items:center; 
+  font-size:14px;
+   color:#666;
+   }
+.medicine-box{
+  display: flex;
+}
+.type.western { color:#409eff; }
+.type.chinese { color:#67c23a; }
+.type.neutral { color:#e6a23c; }
+
+.card-footer { display:flex; justify-content:space-between; align-items:center; margin-top:auto; font-size:12px; color:#888; }
+.tag-warning { color: #f56c6c; font-weight:700; }
+
+/* pagination */
+.pagination-wrap { 
+  display:flex; 
+  justify-content:center; 
+  margin-top:18px;
+ }
+
+/* skeleton 占位 */
+.skeleton-wrap { display:grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap:18px; }
+.skeleton-card { height: 220px; background: linear-gradient(90deg,#f3f5f8,#eef1f4,#f3f5f8); border-radius:12px; }
 </style>
