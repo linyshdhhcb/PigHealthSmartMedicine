@@ -513,3 +513,7 @@ knowledge:
 > **作者**: linyi
 > **邮箱**: jingshuihuayue@qq.com  
 > **GitHub**: [PigHealthSmartMedicine](https://github.com/linyshdhhcb/PigHealthSmartMedicine.git)
+
+## 📈 Star History
+
+[![Star History Chart](https://api.star-history.com/svg?repos=linyshdhhcb/PigHealthSmartMedicine&type=Date)](https://star-history.com/#linyshdhhcb/PigHealthSmartMedicine&Date)
