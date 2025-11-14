@@ -159,7 +159,7 @@
 
 - **JDK 21+**
 - **MySQL 8+**
-- **Redis 6+**
+- **Redis**
 - **Docker**（可选，用于部署 AI 大模型）
 - **Maven 3.8+**
 - **Node.js 16+**
