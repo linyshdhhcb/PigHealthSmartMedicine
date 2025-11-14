@@ -36,7 +36,12 @@ const routes = [
   {
     path: '/findIllness',
     name: 'FindIllness',
-    component: ()=> import('@/views/FindIllness/FindIllness.vue')
+    component: ()=> import('@/views/FindIllness/FindIllness.vue'),
+  },
+  {
+    path: '/illnessDetail',
+    name: 'illnessDetail',
+    component: ()=> import('@/components/IllnessDetail.vue')
   },
   {
     path: '/Search',
@@ -47,6 +52,11 @@ const routes = [
     path: '/findMedicines',
     name: 'FindMedicines',
     component: ()=> import('@/views/FindMedicines.vue')
+  },
+  {
+    path: '/medicine/:id',
+    name: 'MedicineDetail',
+    component: ()=> import('@/views/MedicineDetail.vue')
   },
   {
     path:'/article',
@@ -67,6 +77,8 @@ const routes = [
     path:'/user',
     name:'user',
     component: () => import('@/views/user/user.vue')
+    
+    
   },
   
 ]

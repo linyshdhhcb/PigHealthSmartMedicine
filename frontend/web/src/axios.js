@@ -1,31 +1,42 @@
 import axios from "axios";
 const service = axios.create({
     // 基础URL
-    baseURL: 'http://127.0.0.1:19999',
+    baseURL: 'http://117.72.101.170:19999',
     // 请求超时5秒
     timeout: 60000,
     // 允许发送和接收 Cookie
     withCredentials: true
 });
 
-// 请求拦截器
-service.interceptors.request.use(function (config) {
-    // config.headers['Cookie'] =  'satoken=ec60e835-1002-4dbb-82b4-c6b62184eb37';
-    // console.log('请求配置:', config);
-    return config;
-}, function (err) {
-    // 请求错误
-    return Promise.reject(err);
-});
 
-// 响应拦截器
-service.interceptors.response.use(function (response) {
-    // 对响应数据做点什么
-    return response.data;
-}, function (res) {
-    // 响应错误
-    console.error('请求失败:', res.response.data || '请求失败');
-    return Promise.reject(res);
-});
+//请求拦截器
+service.interceptors.request.use(
+    config => {
+        // 对请求参数做点什么
+        const token = localStorage.getItem('token')  //拿到登录后存储的token
+        if(token){
+            //后端要求请求头里有个satoken
+            config.headers['satoken'] = token
+        }
+        return config;
+    },
+    err => Promise.reject(err)
+)
+
+//响应拦截器
+service.interceptors.response.use(
+    res => res.data,
+    err => {
+        console.error('请求失败:', err.response?.data || '请求失败');
+        if(err.response?.status === 401 || err.response?.data?.code === 500){
+            //token 失效
+            localStorage.clear()
+            location.replace('/login')
+        }
+        return Promise.reject(err)
+    }
+)
+
+
 
 export default service;

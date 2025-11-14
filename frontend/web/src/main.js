@@ -20,7 +20,6 @@ import * as ElementPlusIconsVue from "@element-plus/icons-vue";
 const pinia = createPinia();
 const app = createApp(App);
 
-app.use(createPinia());
 app.use(router);
 app.use(pinia);
 // 将 ElementPlus 插件注册到 Vue 应用中，并设置区域语言为中文简体
