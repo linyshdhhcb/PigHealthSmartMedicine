@@ -111,3 +111,15 @@ export function illnessMedicinePage(params) {
 export function medicinePage(params) {
   return axios.post(`/medicine/medicinePage`, params);
 }
+
+
+/** 
+ * 新增浏览量
+ * @param {object} params 浏览量新增实体
+ * @param {number} params.pageviews 浏览量
+ * @param {number} params.illnessId 病的id
+ * @returns
+ */
+export function pageviewAdd(params) {
+  return axios.post(`/pageview/pageviewAdd`, params);
+}

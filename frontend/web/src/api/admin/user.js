@@ -8,7 +8,7 @@ import axios from "@/axios";
   * @returns
  */
 export function savePassword(oldPass, newPass) {
-  return request.post(`/user/savePassword?oldPass=${oldPass}&newPass=${newPass}`);
+  return axios.post(`/user/savePassword?oldPass=${oldPass}&newPass=${newPass}`);
 }
 
 /** 
@@ -214,4 +214,17 @@ export function userPage(params) {
  */
 export function userUpdate(params) {
   return axios.put(`/user/userUpdate`, params);
+}
+
+
+/** 
+ * 上传文件
+ * @param {File} file - 要上传的文件对象
+ * @returns
+ */
+export function uploadFile(file){
+  const formData = new FormData();
+  formData.append('file',file);
+
+  return axios.post('/files/upload',formData,)
 }
