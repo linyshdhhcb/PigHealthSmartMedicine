@@ -65,8 +65,8 @@ import { login, getuserInfo } from '@/api/admin/user.js';
 import { ElMessage } from 'element-plus';
 import { useUserStore } from '@/stores/user';
 
-const userAccount = ref('');
-const password = ref('');
+const userAccount = ref('linyi');
+const password = ref('123456');
 const captchaInput = ref('');
 const captcha = ref('');
 
@@ -100,6 +100,7 @@ const handleLogin = async () => {
       ElMessage.success('登录成功');
       // 存储 token 到本地存储
       localStorage.setItem('token', response.data.tokenValue);
+      localStorage.setItem('userId', response.data.loginId);
       // 获取 loginId
       const loginId = response.data.loginId;
       // 调用 getuserInfo 接口获取用户信息

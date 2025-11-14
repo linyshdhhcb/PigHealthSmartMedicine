@@ -246,7 +246,7 @@ onMounted(async () => {
 .type-list li.active,
 .type-list li:hover {
   background: #e8f4ff;
-  color: #409eff;
+  color: rgb(22, 163, 74);
   transform: translateX(5px);
 }
 
@@ -261,6 +261,7 @@ onMounted(async () => {
   flex: 1;
   padding: 20px;
   max-width: calc(100% - 180px);
+  margin-top: 70px;
 }
 
 /* 文章网格 */
