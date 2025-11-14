@@ -14,6 +14,7 @@
     "axios": "^1.8.2",
     "dompurify": "^3.2.5",
     "element-plus": "^2.9.7",
+    "lodash": "^4.17.21",
     "pinia": "^3.0.1",
     "postcss": "^8.5.3",
     "tailwindcss": "^4.1.4",
@@ -23,7 +24,7 @@
   },
   "devDependencies": {
     "@vitejs/plugin-vue": "^5.2.3",
-    "sass-embedded": "^1.86.3",
+    "sass-embedded": "^1.93.3",
     "vite": "^6.2.1",
     "vite-plugin-vue-devtools": "^7.7.2"
   }
