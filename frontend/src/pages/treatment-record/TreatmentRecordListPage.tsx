@@ -1,0 +1,267 @@
+import React, { useEffect } from 'react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useTreatmentRecordStore } from '@/stores/treatmentRecordStore';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
+import { Plus, Eye, Trash2 } from 'lucide-react';
+
+export function TreatmentRecordListPage() {
+  const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const caseIdFromQuery = searchParams.get('caseId');
+  const pigIdFromQuery = searchParams.get('pigId');
+
+  const {
+    treatmentRecords,
+    total,
+    pageNum,
+    pageSize,
+    isLoading,
+    filters,
+    fetchTreatmentRecords,
+    setFilters,
+    setPageNum,
+    setPageSize,
+    deleteTreatmentRecord,
+  } = useTreatmentRecordStore();
+
+  const [deleteId, setDeleteId] = React.useState<number | null>(null);
+
+  useEffect(() => {
+    if (caseIdFromQuery) {
+      setFilters({ caseId: Number(caseIdFromQuery) });
+    }
+    if (pigIdFromQuery) {
+      setFilters({ pigId: Number(pigIdFromQuery) });
+    }
+    fetchTreatmentRecords();
+  }, [pageNum, pageSize, filters]);
+
+  const handleDelete = async () => {
+    if (deleteId) {
+      try {
+        await deleteTreatmentRecord(deleteId);
+        setDeleteId(null);
+      } catch (error) {
+        // 错误已在store中处理
+      }
+    }
+  };
+
+  const totalPages = Math.ceil(total / pageSize);
+
+  return (
+    <div className="container mx-auto py-6 space-y-6">
+      {/* 页面标题 */}
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-bold">治疗记录</h1>
+          <p className="text-muted-foreground mt-1">查看和管理治疗记录</p>
+        </div>
+        <Button onClick={() => navigate('/treatment-record/create')}>
+          <Plus className="mr-2 h-4 w-4" />
+          添加治疗记录
+        </Button>
+      </div>
+
+      {/* 筛选 */}
+      <Card>
+        <CardHeader>
+          <CardTitle>筛选条件</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div>
+              <label className="text-sm font-medium mb-2 block">病例ID</label>
+              <Input
+                type="number"
+                placeholder="输入病例ID"
+                value={filters.caseId || ''}
+                onChange={(e) =>
+                  setFilters({ caseId: e.target.value ? Number(e.target.value) : undefined })
+                }
+              />
+            </div>
+            <div>
+              <label className="text-sm font-medium mb-2 block">生猪ID</label>
+              <Input
+                type="number"
+                placeholder="输入生猪ID"
+                value={filters.pigId || ''}
+                onChange={(e) =>
+                  setFilters({ pigId: e.target.value ? Number(e.target.value) : undefined })
+                }
+              />
+            </div>
+            <div className="flex items-end">
+              <Button
+                variant="outline"
+                onClick={() => {
+                  setFilters({});
+                  fetchTreatmentRecords();
+                }}
+              >
+                重置筛选
+              </Button>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* 治疗记录列表 */}
+      <Card>
+        <CardHeader>
+          <CardTitle>治疗记录列表（共 {total} 条）</CardTitle>
+        </CardHeader>
+        <CardContent>
+          {isLoading ? (
+            <div className="flex items-center justify-center py-8">
+              <div className="text-muted-foreground">加载中...</div>
+            </div>
+          ) : treatmentRecords.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-8">
+              <p className="text-muted-foreground">暂无治疗记录</p>
+              <Button onClick={() => navigate('/treatment-record/create')} className="mt-4">
+                添加第一条治疗记录
+              </Button>
+            </div>
+          ) : (
+            <>
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>记录ID</TableHead>
+                    <TableHead>病例ID</TableHead>
+                    <TableHead>生猪耳标号</TableHead>
+                    <TableHead>治疗日期</TableHead>
+                    <TableHead>治疗方法</TableHead>
+                    <TableHead>治疗效果</TableHead>
+                    <TableHead>操作</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {treatmentRecords.map((record) => (
+                    <TableRow key={record.id}>
+                      <TableCell>{record.id}</TableCell>
+                      <TableCell>{record.caseId}</TableCell>
+                      <TableCell>{record.pigEarTagNumber || '-'}</TableCell>
+                      <TableCell>{record.treatmentDate}</TableCell>
+                      <TableCell className="max-w-xs truncate">
+                        {record.treatmentMethod || '-'}
+                      </TableCell>
+                      <TableCell className="max-w-xs truncate">
+                        {record.effect || '-'}
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex gap-2">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => navigate(`/case/${record.caseId}`)}
+                          >
+                            <Eye className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => setDeleteId(record.id)}
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+
+              {/* 分页 */}
+              <div className="flex items-center justify-between mt-4">
+                <div className="text-sm text-muted-foreground">
+                  显示第 {(pageNum - 1) * pageSize + 1} 到{' '}
+                  {Math.min(pageNum * pageSize, total)} 条，共 {total} 条
+                </div>
+                <div className="flex items-center gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setPageNum(pageNum - 1)}
+                    disabled={pageNum === 1}
+                  >
+                    上一页
+                  </Button>
+                  <div className="text-sm">
+                    第 {pageNum} / {totalPages} 页
+                  </div>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setPageNum(pageNum + 1)}
+                    disabled={pageNum >= totalPages}
+                  >
+                    下一页
+                  </Button>
+                  <Select
+                    value={String(pageSize)}
+                    onValueChange={(value) => setPageSize(Number(value))}
+                  >
+                    <SelectTrigger className="w-24">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="10">10条/页</SelectItem>
+                      <SelectItem value="20">20条/页</SelectItem>
+                      <SelectItem value="50">50条/页</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+            </>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* 删除确认对话框 */}
+      <AlertDialog open={!!deleteId} onOpenChange={() => setDeleteId(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>确认删除</AlertDialogTitle>
+            <AlertDialogDescription>
+              此操作将永久删除该治疗记录，是否继续？
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>取消</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDelete}>确认删除</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </div>
+  );
+}

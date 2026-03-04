@@ -1,0 +1,71 @@
+
+
+package com.nageoffer.ai.ragent.ingestion.dao.entity;
+
+import com.baomidou.mybatisplus.annotation.FieldFill;
+import com.baomidou.mybatisplus.annotation.IdType;
+import com.baomidou.mybatisplus.annotation.TableField;
+import com.baomidou.mybatisplus.annotation.TableId;
+import com.baomidou.mybatisplus.annotation.TableLogic;
+import com.baomidou.mybatisplus.annotation.TableName;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+import java.util.Date;
+
+/**
+ * 数据摄入管道实体
+ */
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
+@TableName("t_ingestion_pipeline")
+public class IngestionPipelineDO {
+
+    /**
+     * ID
+     */
+    @TableId(type = IdType.ASSIGN_ID)
+    private Long id;
+
+    /**
+     * 名称
+     */
+    private String name;
+
+    /**
+     * 描述
+     */
+    private String description;
+
+    /**
+     * 创建人
+     */
+    private String createdBy;
+
+    /**
+     * 更新人
+     */
+    private String updatedBy;
+
+    /**
+     * 创建时间
+     */
+    @TableField(fill = FieldFill.INSERT)
+    private Date createTime;
+
+    /**
+     * 更新时间
+     */
+    @TableField(fill = FieldFill.INSERT_UPDATE)
+    private Date updateTime;
+
+    /**
+     * 是否删除
+     */
+    @TableLogic
+    private Integer deleted;
+}
