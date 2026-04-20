@@ -1,0 +1,143 @@
+package com.linyi.phsm.bootstrap.aspect;
+
+import cn.hutool.core.util.IdUtil;
+import cn.hutool.core.util.StrUtil;
+import com.linyi.phsm.bootstrap.limiter.ChatQueueLimiter;
+import com.linyi.phsm.framework.context.UserContext;
+import com.linyi.phsm.framework.trace.RagTraceContext;
+import com.linyi.phsm.infrastructure.config.RagTraceProperties;
+import com.linyi.phsm.domain.rag.model.entity.RagTraceRunDO;
+import com.linyi.phsm.application.rag.service.RagTraceRecordService;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.aspectj.lang.ProceedingJoinPoint;
+import org.aspectj.lang.annotation.Around;
+import org.aspectj.lang.annotation.Aspect;
+import org.aspectj.lang.reflect.MethodSignature;
+import org.springframework.stereotype.Component;
+import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
+
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.util.Date;
+
+/**
+ * SSE 全局限流切面，避免业务代码侵入
+ */
+@Slf4j
+@Aspect
+@Component
+@RequiredArgsConstructor
+public class ChatRateLimitAspect {
+
+    private static final String STATUS_RUNNING = "RUNNING";
+    private static final String STATUS_SUCCESS = "SUCCESS";
+    private static final String STATUS_ERROR = "ERROR";
+
+    private final ChatQueueLimiter chatQueueLimiter;
+    private final RagTraceProperties ragTraceProperties;
+    private final RagTraceRecordService traceRecordService;
+
+    @Around("@annotation(com.linyi.phsm.application.rag.aop.ChatRateLimit)")
+    public Object limitStreamChat(ProceedingJoinPoint joinPoint) throws Throwable {
+        Object[] args = joinPoint.getArgs();
+        if (args == null || args.length < 4 || !(args[3] instanceof SseEmitter emitter)) {
+            return joinPoint.proceed();
+        }
+
+        String question = args[0] instanceof String q ? q : "";
+        String conversationId = args[1] instanceof String cid ? cid : null;
+        String actualConversationId = StrUtil.isBlank(conversationId) ? IdUtil.getSnowflakeNextIdStr() : conversationId;
+        args[1] = actualConversationId;
+        Object target = joinPoint.getTarget();
+        MethodSignature signature = (MethodSignature) joinPoint.getSignature();
+        Method method = signature.getMethod();
+
+        chatQueueLimiter.enqueue(question, actualConversationId, emitter, () -> {
+            invokeWithTrace(method, target, args, question, actualConversationId, emitter);
+        });
+        return null;
+    }
+
+    private void invokeWithTrace(Method method,
+                                 Object target,
+                                 Object[] args,
+                                 String question,
+                                 String conversationId,
+                                 SseEmitter emitter) {
+        if (!ragTraceProperties.isEnabled()) {
+            invokeTarget(method, target, args, emitter);
+            return;
+        }
+
+        String traceId = IdUtil.getSnowflakeNextIdStr();
+        String taskId = IdUtil.getSnowflakeNextIdStr();
+        long startMillis = System.currentTimeMillis();
+        traceRecordService.startRun(RagTraceRunDO.builder()
+                .traceId(traceId)
+                .traceName("rag-stream-chat")
+                .entryMethod(method.getDeclaringClass().getName() + "#" + method.getName())
+                .conversationId(conversationId)
+                .taskId(taskId)
+                .userId(UserContext.getUserId())
+                .status(STATUS_RUNNING)
+                .startTime(new Date())
+                .extraData(StrUtil.format("{\"questionLength\":{}}", StrUtil.length(question)))
+                .build());
+
+        RagTraceContext.setTraceId(traceId);
+        RagTraceContext.setTaskId(taskId);
+        try {
+            method.invoke(target, args);
+            traceRecordService.finishRun(
+                    traceId,
+                    STATUS_SUCCESS,
+                    null,
+                    new Date(),
+                    System.currentTimeMillis() - startMillis
+            );
+        } catch (Throwable ex) {
+            Throwable cause = unwrap(ex);
+            traceRecordService.finishRun(
+                    traceId,
+                    STATUS_ERROR,
+                    truncateError(cause),
+                    new Date(),
+                    System.currentTimeMillis() - startMillis
+            );
+            log.warn("执行流式对话失败", cause);
+            emitter.completeWithError(cause);
+        } finally {
+            RagTraceContext.clear();
+        }
+    }
+
+    private void invokeTarget(Method method, Object target, Object[] args, SseEmitter emitter) {
+        try {
+            method.invoke(target, args);
+        } catch (Throwable ex) {
+            Throwable cause = unwrap(ex);
+            log.warn("执行流式对话失败", cause);
+            emitter.completeWithError(cause);
+        }
+    }
+
+    private Throwable unwrap(Throwable throwable) {
+        if (throwable instanceof InvocationTargetException invocationTargetException
+                && invocationTargetException.getTargetException() != null) {
+            return invocationTargetException.getTargetException();
+        }
+        return throwable;
+    }
+
+    private String truncateError(Throwable throwable) {
+        if (throwable == null) {
+            return null;
+        }
+        String message = throwable.getClass().getSimpleName() + ": " + StrUtil.blankToDefault(throwable.getMessage(), "");
+        if (message.length() <= ragTraceProperties.getMaxErrorLength()) {
+            return message;
+        }
+        return message.substring(0, ragTraceProperties.getMaxErrorLength());
+    }
+}

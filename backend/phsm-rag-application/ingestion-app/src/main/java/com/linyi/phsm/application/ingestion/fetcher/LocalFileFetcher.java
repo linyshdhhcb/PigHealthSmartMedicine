@@ -1,0 +1,69 @@
+package com.linyi.phsm.application.ingestion.fetcher;
+
+import com.linyi.phsm.framework.exception.ServiceException;
+import com.linyi.phsm.domain.ingestion.model.context.DocumentSource;
+import com.linyi.phsm.domain.ingestion.model.enums.SourceType;
+import com.linyi.phsm.application.ingestion.util.MimeTypeDetector;
+import com.linyi.phsm.application.rag.service.FileStorageService;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Component;
+import org.springframework.util.StringUtils;
+
+import java.io.InputStream;
+import java.net.URI;
+import java.nio.file.Files;
+import java.nio.file.Path;
+
+/**
+ * 本地文件抓取器
+ * 负责从本地文件系统或对象存储（如 S3 协议）中读取文件内容
+ */
+@Component
+@RequiredArgsConstructor
+@Deprecated
+public class LocalFileFetcher implements DocumentFetcher {
+
+    private final FileStorageService fileStorageService;
+
+    @Override
+    public SourceType supportedType() {
+        return SourceType.FILE;
+    }
+
+    @Override
+    public FetchResult fetch(DocumentSource source) {
+        String location = source.getLocation();
+        if (!StringUtils.hasText(location)) {
+            throw new ServiceException("文件路径不能为空");
+        }
+        try {
+            byte[] bytes;
+            String fileName = source.getFileName();
+            if (location.startsWith("s3://")) {
+                try (InputStream is = fileStorageService.openStream(location)) {
+                    bytes = is.readAllBytes();
+                }
+                if (!StringUtils.hasText(fileName)) {
+                    fileName = extractFileName(location);
+                }
+            } else {
+                Path path = location.startsWith("file://")
+                        ? Path.of(URI.create(location))
+                        : Path.of(location);
+                bytes = Files.readAllBytes(path);
+                if (!StringUtils.hasText(fileName) && path.getFileName() != null) {
+                    fileName = path.getFileName().toString();
+                }
+            }
+            String mimeType = MimeTypeDetector.detect(bytes, fileName);
+            return new FetchResult(bytes, mimeType, fileName);
+        } catch (Exception e) {
+            throw new ServiceException("读取文件失败: " + e.getMessage());
+        }
+    }
+
+    private String extractFileName(String location) {
+        int idx = location.lastIndexOf('/');
+        return idx >= 0 ? location.substring(idx + 1) : location;
+    }
+}
