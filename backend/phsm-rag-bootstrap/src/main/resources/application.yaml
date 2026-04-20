@@ -1,209 +1,235 @@
+# ==================== 服务器配置 ====================
 server:
-  port: 9090
+  port: 9090  # 服务端口号
   servlet:
-    context-path: /api/ragent
+    context-path: /api/ragent  # API 上下文路径，所有接口前缀
 
+# ==================== Spring 基础配置 ====================
 spring:
   application:
-    name: ragent${unique-name:}-service
+    name: ragent${unique-name:}-service  # 应用名称，支持动态后缀
 
   servlet:
     multipart:
-      max-file-size: 50MB
-      max-request-size: 100MB
+      max-file-size: 50MB  # 单个文件上传大小限制
+      max-request-size: 100MB  # 整个请求大小限制
 
+  # ==================== 数据库配置（PostgreSQL）====================
   datasource:
-    driver-class-name: org.postgresql.Driver
-    type: com.zaxxer.hikari.HikariDataSource
-    username: ${DB_USERNAME:postgres}
-    password: ${DB_PASSWORD:postgres}
-    url: jdbc:postgresql://${DB_HOST:127.0.0.1}:${DB_PORT:5432}/${DB_NAME:ragent}?client_encoding=UTF8
+    driver-class-name: org.postgresql.Driver  # PostgreSQL 驱动类
+    type: com.zaxxer.hikari.HikariDataSource  # 连接池类型：HikariCP
+    username: ${DB_USERNAME:postgres}  # 数据库用户名，默认 postgres
+    password: ${DB_PASSWORD:postgres}  # 数据库密码，默认 postgres
+    url: jdbc:postgresql://${DB_HOST:127.0.0.1}:${DB_PORT:5432}/${DB_NAME:ragent}?client_encoding=UTF8  # 数据库连接 URL
     hikari:
-      connection-timeout: 10000
-      idle-timeout: 600000
-      max-lifetime: 1800000
-      maximum-pool-size: 20
-      minimum-idle: 5
-      pool-name: RagentHikariPool
-      leak-detection-threshold: 60000
-      connection-test-query: SELECT 1
+      connection-timeout: 10000  # 连接超时时间（毫秒）
+      idle-timeout: 600000  # 空闲连接超时时间（10分钟）
+      max-lifetime: 1800000  # 连接最大生命周期（30分钟）
+      maximum-pool-size: 20  # 连接池最大连接数
+      minimum-idle: 5  # 连接池最小空闲连接数
+      pool-name: RagentHikariPool  # 连接池名称
+      leak-detection-threshold: 60000  # 连接泄漏检测阈值（60秒）
+      connection-test-query: SELECT 1  # 连接测试查询语句
 
+  # ==================== Redis 配置 ====================
   data:
     redis:
-      host: ${REDIS_HOST:127.0.0.1}
-      port: ${REDIS_PORT:6379}
-      password: ${REDIS_PASSWORD:123456}
-      database: 10
-      timeout: 3000
+      host: ${REDIS_HOST:127.0.0.1}  # Redis 主机地址
+      port: ${REDIS_PORT:6379}  # Redis 端口
+      password: ${REDIS_PASSWORD:123456}  # Redis 密码
+      database: 10  # 使用的数据库索引
+      timeout: 3000  # 连接超时时间（毫秒）
 
-#rocketmq:
-#  name-server: ${ROCKETMQ_NAME_SERVER:127.0.0.1:9876}
-#  producer:
-#    group: ragent-producer${unique-name:}_pg
-#    send-message-timeout: 2000
+# ==================== RocketMQ 消息队列配置 ====================
 rocketmq:
-  name-server: ${ROCKETMQ_NAME_SERVER:127.0.0.1:9876}
+  name-server: ${ROCKETMQ_NAME_SERVER:127.0.0.1:9876}  # NameServer 地址
   producer:
-    group: ragent-producer-pg
-    send-message-timeout: 10000
-    retry-times-when-send-failed: 2
-    retry-times-when-send-async-failed: 2
+    group: ragent-producer-pg  # 生产者组名称
+    send-message-timeout: 10000  # 发送消息超时时间（毫秒）
+    retry-times-when-send-failed: 2  # 同步发送失败重试次数
+    retry-times-when-send-async-failed: 2  # 异步发送失败重试次数
 
-
+# ==================== Milvus 向量数据库配置 ====================
 milvus:
-  uri: ${MILVUS_URI:http://localhost:19530}
+  uri: ${MILVUS_URI:http://localhost:19530}  # Milvus 服务地址
 
+# ==================== RAG 核心配置 ====================
 rag:
+  # 向量存储类型配置
   vector:
-    type: pg  # 可选 milvus / pg
+    type: pg  # 可选值：milvus（Milvus向量库）/ pg（PostgreSQL向量扩展）
 
+  # 默认向量集合配置
   default:
-    collection-name: rag_default_store
-    dimension: 1536
-    metric-type: COSINE
+    collection-name: rag_default_store  # 默认集合名称
+    dimension: 1536  # 向量维度（需与 Embedding 模型输出维度一致）
+    metric-type: COSINE  # 相似度度量类型：COSINE（余弦相似度）
 
+  # 查询重写配置（用于多轮对话上下文理解）
   query-rewrite:
-    enabled: true
-    max-history-messages: 4
-    max-history-chars: 500
+    enabled: true  # 是否启用查询重写
+    max-history-messages: 4  # 最大历史消息数
+    max-history-chars: 500  # 历史消息最大字符数
 
+  # AI 对话限流配置（防止高并发压垮系统）
   rate-limit:
     global:
-      enabled: true
-      max-concurrent: 1
-      max-wait-seconds: 3
-      lease-seconds: 30
-      poll-interval-ms: 200
+      enabled: true  # 是否启用全局限流
+      max-concurrent: 1  # 最大并发对话数
+      max-wait-seconds: 3  # 请求最大等待时间（秒），超时则拒绝
+      lease-seconds: 30  # 许可租期（秒），超过此时间自动释放
+      poll-interval-ms: 200  # 排队轮询间隔（毫秒）
 
+  # 会话记忆配置
   memory:
-    history-keep-turns: 4
-    summary-start-turns: 5
-    summary-enabled: true
-    ttl-minutes: 60
-    summary-max-chars: 200
-    title-max-length: 30
+    history-keep-turns: 4  # 保留的历史对话轮数
+    summary-start-turns: 5  # 开始生成摘要的对话轮数阈值
+    summary-enabled: true  # 是否启用对话摘要功能
+    ttl-minutes: 60  # 会话数据过期时间（分钟）
+    summary-max-chars: 200  # 摘要最大字符数
+    title-max-length: 30  # 会话标题最大长度
 
+  # 信号量配置（用于资源并发控制）
   semaphore:
     document-upload:
-      name: rag:document:upload
-      max-concurrent: 10
-      max-wait-seconds: 5
-      lease-seconds: 300
+      name: rag:document:upload  # 信号量名称（Redis key）
+      max-concurrent: 10  # 最大并发上传数
+      max-wait-seconds: 5  # 最大等待时间（秒）
+      lease-seconds: 300  # 许可租期（秒，5分钟）
 
+  # 知识库处理调度配置
   knowledge:
     schedule:
-      scan-delay-ms: 10000
-      lock-seconds: 900
-      batch-size: 20
-      min-interval-seconds: 60
+      scan-delay-ms: 10000  # 扫描延迟（毫秒），启动后多久开始扫描
+      lock-seconds: 900  # 分布式锁持有时间（秒，15分钟）
+      batch-size: 20  # 每批处理的文档数量
+      min-interval-seconds: 60  # 两次扫描的最小间隔（秒）
 
+  # MCP（Model Context Protocol）服务器配置
   mcp:
     servers:
-      - name: default
-        url: ${MCP_SERVER_URL:http://localhost:9099}
+      - name: default  # MCP 服务器名称
+        url: ${MCP_SERVER_URL:http://localhost:9099}  # MCP 服务器地址
 
+  # 检索策略配置
   search:
     channels:
+      # 全局向量检索通道
       vector-global:
-        confidence-threshold: 0.6
-        top-k-multiplier: 3
+        confidence-threshold: 0.6  # 置信度阈值，低于此值的結果会被过滤
+        top-k-multiplier: 3  # Top-K 倍数，实际召回数量 = base_top_k * multiplier
+      # 意图定向检索通道
       intent-directed:
-        min-intent-score: 0.4
-        top-k-multiplier: 2
+        min-intent-score: 0.4  # 最小意图匹配分数
+        top-k-multiplier: 2  # Top-K 倍数
 
+  # RAG 链路追踪配置
   trace:
-    enabled: true
-    max-error-length: 1000
+    enabled: true  # 是否启用链路追踪
+    max-error-length: 1000  # 错误信息最大长度
 
+# ==================== AI 模型配置 ====================
 ai:
+  # AI 服务提供商配置
   providers:
+    # Ollama 本地模型服务
     ollama:
-      url: ${OLLAMA_URL:http://localhost:11434}
+      url: ${OLLAMA_URL:http://localhost:11434}  # Ollama 服务地址
       endpoints:
-        chat: /v1/chat/completions
-        embedding: /api/embeddings #/v1/embeddings
+        chat: /v1/chat/completions  # 聊天接口路径
+        embedding: /api/embeddings  # 向量化接口路径（也可用 /v1/embeddings）
+    # 阿里云百炼平台
     bailian:
-      url: https://dashscope.aliyuncs.com
-      api-key: ${BAILIAN_API_KEY:}
+      url: https://dashscope.aliyuncs.com  # 百炼 API 地址
+      api-key: ${BAILIAN_API_KEY:}  # API Key，从环境变量读取
       endpoints:
-        chat: /compatible-mode/v1/chat/completions
-        rerank: /api/v1/services/rerank/text-rerank/text-rerank
+        chat: /compatible-mode/v1/chat/completions  # 聊天接口路径
+        rerank: /api/v1/services/rerank/text-rerank/text-rerank  # 重排序接口路径
+    # SiliconFlow 硅基流动平台
     siliconflow:
-      url: https://api.siliconflow.cn
-      api-key: ${SILICONFLOW_API_KEY:}
+      url: https://api.siliconflow.cn  # SiliconFlow API 地址
+      api-key: ${SILICONFLOW_API_KEY:}  # API Key，从环境变量读取
       endpoints:
-        chat: /v1/chat/completions
-        embedding: /v1/embeddings
+        chat: /v1/chat/completions  # 聊天接口路径
+        embedding: /v1/embeddings  # 向量化接口路径
 
+  # 模型选择策略（熔断机制）
   selection:
-    failure-threshold: 2
-    open-duration-ms: 30000
+    failure-threshold: 2  # 失败阈值，连续失败多少次后触发熔断
+    open-duration-ms: 30000  # 熔断开启时长（毫秒，30秒）
 
+  # 流式响应配置
   stream:
-    message-chunk-size: 1
+    message-chunk-size: 1  # 每次推送的消息块大小（token 数）
 
+  # 聊天模型配置
   chat:
-    default-model: qwen3-max
-    deep-thinking-model: qwen3-max
-    candidates:
-      - id: qwen-plus
-        provider: bailian
-        model: qwen-plus-latest
-        priority: 1
+    default-model: qwen3-max  # 默认聊天模型 ID
+    deep-thinking-model: qwen3-max  # 深度思考模式使用的模型 ID
+    candidates:  # 候选模型列表（按优先级排序）
+      - id: qwen-plus  # 模型标识
+        provider: bailian  # 提供商：bailian（百炼）
+        model: qwen-plus-latest  # 实际模型名称
+        priority: 1  # 优先级（数字越大优先级越高）
       - id: qwen3-max
         provider: bailian
         model: qwen3-max
-        supports-thinking: true
-        priority: 3
+        supports-thinking: true  # 是否支持深度思考模式
+        priority: 3  # 最高优先级
       - id: glm-4.7
-        provider: siliconflow
+        provider: siliconflow  # 提供商：siliconflow（硅基流动）
         model: Pro/zai-org/GLM-4.7
         supports-thinking: true
         priority: 0
       - id: qwen3-local
-        provider: ollama
+        provider: ollama  # 提供商：ollama（本地部署）
         model: qwen3:8b-fp16
         priority: 2
 
+  # Embedding 向量化模型配置
   embedding:
-    default-model: qwen-emb-8b
-    candidates:
+    default-model: qwen-emb-8b  # 默认 Embedding 模型 ID
+    candidates:  # 候选 Embedding 模型列表
       - id: qwen-emb-8b
         provider: siliconflow
-        model: Qwen/Qwen3-Embedding-8B
-        dimension: ${rag.default.dimension}
-        priority: 1
+        model: Qwen/Qwen3-Embedding-8B  # 通义千问 8B Embedding 模型
+        dimension: ${rag.default.dimension}  # 向量维度（引用上方配置）
+        priority: 1  # 第一优先级
       - id: qwen-emb-local
         provider: ollama
-        model: qwen3-embedding:4b #qwen3-embedding:8b-fp16
+        model: qwen3-embedding:4b  # 本地部署的 4B Embedding 模型（备选：qwen3-embedding:8b-fp16）
         dimension: ${rag.default.dimension}
-        priority: 2
+        priority: 2  # 第二优先级（降级方案）
 
+  # Rerank 重排序模型配置（用于优化检索结果相关性）
   rerank:
-    default-model: qwen3-rerank
-    candidates:
+    default-model: qwen3-rerank  # 默认重排序模型 ID
+    candidates:  # 候选重排序模型列表
       - id: qwen3-rerank
         provider: bailian
-        model: qwen3-rerank
-        priority: 1
+        model: qwen3-rerank  # 通义千问重排序模型
+        priority: 1  # 第一优先级
       - id: rerank-noop
-        provider: noop
+        provider: noop  # 空操作提供商（不执行重排序，作为兜底方案）
         model: noop
-        priority: 100
+        priority: 100  # 最低优先级
 
+# ==================== RustFS 对象存储配置（兼容 S3 协议）====================
 rustfs:
-  url: ${RUSTFS_URL:http://localhost:9000}
-  access-key-id: ${RUSTFS_ACCESS_KEY_ID:rustfsadmin}
-  secret-access-key: ${RUSTFS_SECRET_ACCESS_KEY:rustfsadmin}
+  url: ${RUSTFS_URL:http://localhost:9000}  # RustFS 服务地址
+  access-key-id: ${RUSTFS_ACCESS_KEY_ID:rustfsadmin}  # 访问密钥 ID
+  secret-access-key: ${RUSTFS_SECRET_ACCESS_KEY:rustfsadmin}  # 秘密访问密钥
 
+# ==================== Sa-Token 认证框架配置 ====================
 sa-token:
-  token-name: Authorization
-  timeout: 2592000
-  is-concurrent: true
-  is-share: false
-  token-style: simple-uuid
-  is-log: false
-  is-print: false
+  token-name: Authorization  # Token 在请求头中的名称
+  timeout: 2592000  # Token 有效期（秒，30天）
+  is-concurrent: true  # 是否允许同一账号并发登录
+  is-share: false  # 是否共享 Token（false 表示每次登录生成新 Token）
+  token-style: simple-uuid  # Token 风格：简单 UUID
+  is-log: false  # 是否输出操作日志
+  is-print: false  # 是否打印 Banner
 
+# ==================== 应用业务配置 ====================
 app:
-  demo-mode: false
+  demo-mode: false  # 演示模式开关（true 时限制部分功能）
