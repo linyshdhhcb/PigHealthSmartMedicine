@@ -154,18 +154,23 @@ export function RagTracePage() {
               独立列表页聚焦运行检索，点击任意运行记录进入详情页分析慢节点与失败节点
             </p>
           </div>
-          <div className="admin-page-actions">
-            <Input
-              value={traceIdFilter}
-              onChange={(event) => setTraceIdFilter(event.target.value)}
-              placeholder="搜索 Trace Id"
-              className="w-[300px]"
-            />
-            <Button className="admin-primary-gradient" onClick={handleSearch}>
+          <div className="admin-page-actions flex flex-wrap items-center gap-3">
+            <div className="relative">
+              <Input
+                value={traceIdFilter}
+                onChange={(event) => setTraceIdFilter(event.target.value)}
+                placeholder="搜索 Trace Id"
+                className="w-[300px] pl-10 h-10 bg-white border-emerald-200 focus:border-emerald-400 focus:ring-emerald-400/20 rounded-xl transition-all duration-200"
+              />
+              <svg className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+              </svg>
+            </div>
+            <Button className="h-10 px-5 bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 text-white shadow-lg shadow-emerald-500/25 hover:shadow-emerald-600/30 rounded-xl transition-all duration-200 font-medium" onClick={handleSearch}>
               <Search className="h-4 w-4 mr-2" />
               查询
             </Button>
-            <Button variant="outline" onClick={handleRefresh}>
+            <Button variant="outline" onClick={handleRefresh} className="h-10 px-4 border-emerald-200 text-emerald-700 hover:bg-emerald-50 hover:border-emerald-300 rounded-xl transition-all duration-200">
               <RefreshCw className="h-4 w-4 mr-2" />
               刷新
             </Button>

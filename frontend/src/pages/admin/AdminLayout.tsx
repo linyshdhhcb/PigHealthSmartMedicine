@@ -1,35 +1,37 @@
 import { useEffect, useMemo, useRef, useState, type KeyboardEvent } from "react";
 import { Link, Outlet, useLocation, useNavigate } from "react-router-dom";
 import {
+  Activity,
+  BarChart2,
+  BookOpen,
   ChevronDown,
   ChevronRight,
   ChevronsLeft,
   ChevronsRight,
   ClipboardList,
   Database,
+  FileText,
+  FolderTree,
   GitBranch,
   Github,
+  History,
   Layers,
   LayoutDashboard,
   Lightbulb,
+  Link2,
   LogOut,
   Menu,
   MessageSquare,
   KeyRound,
+  Newspaper,
+  Pill,
   Search,
   Settings,
+  Stethoscope,
   Upload,
   Users,
   FolderKanban,
-  Workflow,
-  Stethoscope,
-  Home,
-  FileText,
-  BookOpen,
-  Pill,
-  Newspaper,
-  Building2,
-  Activity
+  Workflow
 } from "lucide-react";
 import { useAuthStore } from "@/stores/authStore";
 import { Button } from "@/components/ui/button";
@@ -76,7 +78,7 @@ type MenuGroup = {
 
 const menuGroups: MenuGroup[] = [
   {
-    title: "RAG系统",
+    title: "导航",
     items: [
       {
         path: "/admin/dashboard",
@@ -127,64 +129,37 @@ const menuGroups: MenuGroup[] = [
         ]
       },
       {
+        path: "/admin/mappings",
+        label: "关键词映射",
+        icon: KeyRound
+      },
+      {
         path: "/admin/traces",
         label: "链路追踪",
         icon: Workflow
       },
+      {
+        id: "phsm",
+        path: "/admin/article-types",
+        label: "医疗内容",
+        icon: Stethoscope,
+        children: [
+          { path: "/admin/article-types", label: "文章类型", icon: BookOpen },
+          { path: "/admin/articles", label: "文章", icon: FileText },
+          { path: "/admin/news-articles", label: "新闻资讯", icon: Newspaper },
+          { path: "/admin/illness-kinds", label: "疾病种类", icon: FolderTree },
+          { path: "/admin/illnesses", label: "疾病", icon: Activity },
+          { path: "/admin/medicines", label: "药品", icon: Pill },
+          { path: "/admin/illness-medicines", label: "疾病-药品", icon: Link2 },
+          { path: "/admin/feedbacks", label: "用户反馈", icon: MessageSquare },
+          { path: "/admin/histories", label: "操作记录", icon: History },
+          { path: "/admin/pageviews", label: "浏览统计", icon: BarChart2 }
+        ]
+      }
     ]
   },
   {
-    title: "生猪健康诊断系统",
-    items: [
-      {
-        path: "/pig",
-        label: "生猪管理",
-        icon: Home
-      },
-      {
-        path: "/case",
-        label: "病例管理",
-        icon: FileText
-      },
-      {
-        path: "/chat",
-        label: "智能诊断",
-        icon: Stethoscope
-      },
-      {
-        path: "/admin/knowledge",
-        label: "疾病知识库",
-        icon: BookOpen
-      },
-      {
-        path: "/drug",
-        label: "兽药信息",
-        icon: Pill
-      },
-      {
-        path: "/article",
-        label: "文章管理",
-        icon: Newspaper
-      },
-      {
-        path: "/farm",
-        label: "养殖场管理",
-        icon: Building2
-      },
-      {
-        path: "/treatment-record",
-        label: "治疗记录",
-        icon: ClipboardList
-      },
-      {
-        path: "/health-monitor",
-        label: "健康监测",
-        icon: Activity
-      },
-    ]
-  },
-  {
-    title: "系统设置",
+    title: "设置",
     items: [
       {
         path: "/admin/users",
@@ -213,8 +188,19 @@ const breadcrumbMap: Record<string, string> = {
   ingestion: "数据通道",
   traces: "链路追踪",
   "sample-questions": "示例问题",
+  mappings: "关键词映射",
   settings: "系统设置",
-  users: "用户管理"
+  users: "用户管理",
+  "article-types": "文章类型",
+  articles: "文章",
+  "news-articles": "新闻资讯",
+  "illness-kinds": "疾病种类",
+  illnesses: "疾病",
+  medicines: "药品",
+  "illness-medicines": "疾病-药品",
+  feedbacks: "用户反馈",
+  histories: "操作记录",
+  pageviews: "浏览统计"
 };
 
 export function AdminLayout() {
@@ -230,7 +216,11 @@ export function AdminLayout() {
     confirmPassword: ""
   });
   const [starCount, setStarCount] = useState<number | null>(null);
-  const [openGroups, setOpenGroups] = useState<Record<string, boolean>>({ ingestion: true, intent: true });
+  const [openGroups, setOpenGroups] = useState<Record<string, boolean>>({
+  ingestion: true,
+  intent: true,
+  phsm: true
+});
   const [kbQuery, setKbQuery] = useState("");
   const [kbOptions, setKbOptions] = useState<KnowledgeBase[]>([]);
   const [docOptions, setDocOptions] = useState<KnowledgeDocumentSearchItem[]>([]);
@@ -240,43 +230,6 @@ export function AdminLayout() {
   const searchInputRef = useRef<HTMLInputElement | null>(null);
   const isDashboardRoute = location.pathname.startsWith("/admin/dashboard");
 
-  // 根据用户角色过滤菜单
-  const filteredMenuGroups = useMemo(() => {
-    const userRole = user?.role;
-
-    if (userRole === 'ADMIN') {
-      // ADMIN 显示所有菜单
-      return menuGroups;
-    }
-
-    if (userRole === 'VETERINARIAN') {
-      // VETERINARIAN 只显示：文章管理、兽药信息
-      return menuGroups.map(group => {
-        if (group.title === '生猪健康诊断系统') {
-          return {
-            ...group,
-            items: group.items.filter(item =>
-              item.path === '/article' || item.path === '/drug'
-            )
-          };
-        }
-        // 隐藏 RAG 系统和系统设置
-        if (group.title === 'RAG系统' || group.title === '系统设置') {
-          return { ...group, items: [] };
-        }
-        return group;
-      }).filter(group => group.items.length > 0);
-    }
-
-    if (userRole === 'FARMER') {
-      // FARMER 只显示生猪健康诊断系统的所有菜单
-      return menuGroups.filter(group => group.title === '生猪健康诊断系统');
-    }
-
-    // 默认显示所有菜单
-    return menuGroups;
-  }, [user?.role]);
-
   const handleLogout = async () => {
     await logout();
     navigate("/login");
@@ -284,7 +237,7 @@ export function AdminLayout() {
 
   useEffect(() => {
     let active = true;
-    fetch("https://api.github.com/repos/nageoffer/ragent")
+    fetch("https://api.github.com/repos/linyshdhhcb/PigHealthSmartMedicine")
       .then((res) => (res.ok ? res.json() : null))
       .then((data) => {
         if (!active) return;
@@ -526,18 +479,22 @@ export function AdminLayout() {
       <aside className={cn("admin-sidebar", collapsed && "admin-sidebar--collapsed")}>
         <div className="admin-sidebar__brand">
           <div className={cn("flex items-center gap-3", collapsed && "justify-center")}>
-            <div className="admin-sidebar__logo">R</div>
+            <img
+              src="/piglogo.png"
+              alt="Logo"
+              className="admin-sidebar__logo h-10 w-10 object-contain"
+            />
             {!collapsed && (
               <div className="min-w-0">
-                <h1 className="admin-sidebar__title">PigHealth-RAG</h1>
-                <p className="admin-sidebar__subtitle">Knowledge Console</p>
+                <h1 className="admin-sidebar__title text-emerald-800">PHSM 管理后台</h1>
+                <p className="admin-sidebar__subtitle text-emerald-600">Knowledge Console</p>
               </div>
             )}
           </div>
         </div>
 
-        <nav className="flex-1 overflow-y-auto space-y-4 px-2 pb-4">
-          {filteredMenuGroups.map((group) => (
+        <nav className="min-h-0 flex-1 space-y-4 overflow-y-auto overflow-x-hidden overscroll-contain px-2 pb-4 [scrollbar-gutter:stable]">
+          {menuGroups.map((group) => (
             <div key={group.title} className="space-y-2">
               {!collapsed && (
                 <p className="admin-sidebar__group-title">{group.title}</p>
@@ -692,7 +649,7 @@ export function AdminLayout() {
                 <Menu className="h-5 w-5" />
               </Button>
               <div className="admin-topbar-search">
-                <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+                <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-emerald-400" />
                 <Input
                   ref={searchInputRef}
                   value={kbQuery}
@@ -708,7 +665,7 @@ export function AdminLayout() {
                   autoCapitalize="off"
                   spellCheck={false}
                   placeholder="筛选知识库..."
-                  className="pl-10 pr-16"
+                  className="pl-10 pr-16 border-emerald-200 bg-emerald-50 text-emerald-800 focus:border-emerald-400 focus:ring-2 focus:ring-emerald-100 transition-all duration-200"
                 />
                 <span className="admin-topbar-kbd">Ctrl K</span>
                 {showSuggest ? (
@@ -717,11 +674,11 @@ export function AdminLayout() {
                     onMouseDown={(event) => event.preventDefault()}
                   >
                     {searchLoading && kbOptions.length === 0 && docOptions.length === 0 ? (
-                      <div className="admin-topbar-suggest-item text-slate-400">搜索中...</div>
+                      <div className="admin-topbar-suggest-item text-emerald-500">搜索中...</div>
                     ) : null}
                     {kbOptions.length > 0 ? (
                       <div className="admin-topbar-suggest-section">
-                        <div className="admin-topbar-suggest-group">知识库</div>
+                        <div className="admin-topbar-suggest-group text-emerald-700">知识库</div>
                         {kbOptions.map((kb) => (
                           <button
                             key={kb.id}
@@ -730,10 +687,10 @@ export function AdminLayout() {
                               event.preventDefault();
                               handleSearchSelect(kb);
                             }}
-                            className="admin-topbar-suggest-item"
+                            className="admin-topbar-suggest-item hover:bg-emerald-50"
                           >
-                            <span className="font-medium text-slate-900">{kb.name}</span>
-                            <span className="text-xs text-slate-400">
+                            <span className="font-medium text-emerald-800">{kb.name}</span>
+                            <span className="text-xs text-emerald-600">
                               {kb.collectionName || "未设置 Collection"}
                             </span>
                           </button>
@@ -742,7 +699,7 @@ export function AdminLayout() {
                     ) : null}
                     {docOptions.length > 0 ? (
                       <div className="admin-topbar-suggest-section">
-                        <div className="admin-topbar-suggest-group">文档</div>
+                        <div className="admin-topbar-suggest-group text-emerald-700">文档</div>
                         {docOptions.map((doc) => (
                           <button
                             key={doc.id}
@@ -751,10 +708,10 @@ export function AdminLayout() {
                               event.preventDefault();
                               handleDocumentSelect(doc);
                             }}
-                            className="admin-topbar-suggest-item"
+                            className="admin-topbar-suggest-item hover:bg-emerald-50"
                           >
-                            <span className="font-medium text-slate-900">{doc.docName}</span>
-                            <span className="text-xs text-slate-400">
+                            <span className="font-medium text-emerald-800">{doc.docName}</span>
+                            <span className="text-xs text-emerald-600">
                               {doc.kbName || `知识库 ${doc.kbId}`}
                             </span>
                           </button>
@@ -762,7 +719,7 @@ export function AdminLayout() {
                       </div>
                     ) : null}
                     {!searchLoading && kbOptions.length === 0 && docOptions.length === 0 ? (
-                      <div className="admin-topbar-suggest-item text-slate-400">暂无匹配结果</div>
+                      <div className="admin-topbar-suggest-item text-gray-400">暂无匹配结果</div>
                     ) : null}
                   </div>
                 ) : null}
@@ -771,22 +728,22 @@ export function AdminLayout() {
             <div className="flex items-center gap-2">
               <Button
                 variant="outline"
-                className="hidden items-center gap-2 sm:inline-flex"
+                className="hidden items-center gap-2 sm:inline-flex border-emerald-200 text-emerald-700 hover:bg-emerald-50 hover:border-emerald-300 hover:text-emerald-800 transition-all duration-200"
                 onClick={() => navigate("/chat")}
               >
                 <MessageSquare className="h-4 w-4" />
                 返回聊天
               </Button>
               <a
-                href="https://github.com/nageoffer/ragent"
+                href="https://github.com/linyshdhhcb/PigHealthSmartMedicine"
                 target="_blank"
                 rel="noreferrer"
-                className="flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-1.5 text-sm text-slate-600 transition hover:bg-slate-100 hover:text-slate-900"
+                className="flex items-center gap-2 rounded-xl border border-emerald-200 bg-white px-3 py-1.5 text-sm text-emerald-700 transition-all duration-200 hover:bg-emerald-50 hover:border-emerald-300 hover:text-emerald-800"
                 aria-label="打开 GitHub 仓库"
               >
                 <Github className="h-4 w-4" />
                 <span className="font-medium">Star</span>
-                <span className="rounded-full bg-slate-100 px-2 py-0.5 text-xs text-slate-600">
+                <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-xs text-emerald-700">
                   {starLabel}
                 </span>
               </a>
@@ -794,28 +751,28 @@ export function AdminLayout() {
                 <DropdownMenuTrigger asChild>
                   <button
                     type="button"
-                    className="flex items-center gap-2 rounded-full border border-slate-200 bg-white px-2.5 py-1.5 text-sm text-slate-600 shadow-sm"
+                    className="flex items-center gap-2 rounded-full border border-emerald-200 bg-white px-2.5 py-1.5 text-sm text-emerald-700 shadow-sm hover:border-emerald-300 hover:bg-emerald-50 transition-all duration-200"
                     aria-label="用户菜单"
                   >
                     <Avatar
                       name={user?.username || "管理员"}
                       src={showAvatar ? avatarUrl : undefined}
-                      className="h-8 w-8 border-slate-200 bg-indigo-50 text-xs font-semibold text-indigo-600"
+                      className="h-8 w-8 border-emerald-200 bg-gradient-to-br from-emerald-500 to-teal-600 text-xs font-semibold text-white"
                     />
                     <span className="hidden sm:inline">{user?.username || "管理员"}</span>
-                    <ChevronDown className="h-4 w-4 text-slate-400" />
+                    <ChevronDown className="h-4 w-4 text-emerald-500" />
                   </button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" sideOffset={8} className="w-44">
-                  <div className="px-3 py-2 text-xs text-slate-500">
+                <DropdownMenuContent align="end" sideOffset={8} className="w-44 border-emerald-100 shadow-lg shadow-emerald-100/50">
+                  <div className="px-3 py-2 text-xs text-emerald-600">
                     {user?.username || "管理员"} · {roleLabel}
                   </div>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem onClick={() => setPasswordOpen(true)}>
+                  <DropdownMenuSeparator className="bg-emerald-100" />
+                  <DropdownMenuItem onClick={() => setPasswordOpen(true)} className="focus:bg-emerald-50 focus:text-emerald-700">
                     <KeyRound className="mr-2 h-4 w-4" />
                     修改密码
                   </DropdownMenuItem>
-                  <DropdownMenuItem onClick={handleLogout} className="text-rose-600 focus:text-rose-600">
+                  <DropdownMenuItem onClick={handleLogout} className="text-red-600 focus:bg-red-50 focus:text-red-700">
                     <LogOut className="mr-2 h-4 w-4" />
                     退出登录
                   </DropdownMenuItem>
@@ -832,11 +789,11 @@ export function AdminLayout() {
               return (
                 <span key={`${item.label}-${index}`} className="flex items-center gap-2">
                   {item.to && !isLast ? (
-                    <Link to={item.to}>{item.label}</Link>
+                    <Link to={item.to} className="text-emerald-600 hover:text-emerald-700 hover:underline transition-colors">{item.label}</Link>
                   ) : (
-                    <span className={isLast ? "text-slate-700" : undefined}>{item.label}</span>
+                    <span className={isLast ? "text-emerald-800 font-medium" : "text-emerald-600"}>{item.label}</span>
                   )}
-                  {!isLast && <span>/</span>}
+                  {!isLast && <span className="text-emerald-300">/</span>}
                 </span>
               );
             })}
@@ -861,7 +818,7 @@ export function AdminLayout() {
           </DialogHeader>
           <div className="space-y-3">
             <div className="space-y-2">
-              <label className="text-sm font-medium text-slate-700">当前密码</label>
+              <label className="text-sm font-medium text-emerald-700">当前密码</label>
               <Input
                 type="password"
                 value={passwordForm.currentPassword}
@@ -869,10 +826,11 @@ export function AdminLayout() {
                 placeholder="请输入当前密码"
                 name="current-password"
                 autoComplete="current-password"
+                className="border-emerald-200 focus:border-emerald-400 focus:ring-2 focus:ring-emerald-100"
               />
             </div>
             <div className="space-y-2">
-              <label className="text-sm font-medium text-slate-700">新密码</label>
+              <label className="text-sm font-medium text-emerald-700">新密码</label>
               <Input
                 type="password"
                 value={passwordForm.newPassword}
@@ -880,10 +838,11 @@ export function AdminLayout() {
                 placeholder="请输入新密码"
                 name="new-password"
                 autoComplete="new-password"
+                className="border-emerald-200 focus:border-emerald-400 focus:ring-2 focus:ring-emerald-100"
               />
             </div>
             <div className="space-y-2">
-              <label className="text-sm font-medium text-slate-700">确认新密码</label>
+              <label className="text-sm font-medium text-emerald-700">确认新密码</label>
               <Input
                 type="password"
                 value={passwordForm.confirmPassword}
@@ -891,14 +850,15 @@ export function AdminLayout() {
                 placeholder="再次输入新密码"
                 name="confirm-new-password"
                 autoComplete="new-password"
+                className="border-emerald-200 focus:border-emerald-400 focus:ring-2 focus:ring-emerald-100"
               />
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setPasswordOpen(false)}>
+            <Button variant="outline" onClick={() => setPasswordOpen(false)} className="border-emerald-200 text-emerald-700 hover:bg-emerald-50 hover:border-emerald-300">
               取消
             </Button>
-            <Button onClick={handlePasswordSubmit} disabled={passwordSubmitting}>
+            <Button onClick={handlePasswordSubmit} disabled={passwordSubmitting} className="bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white rounded-xl shadow-md transition-all">
               {passwordSubmitting ? "保存中..." : "保存"}
             </Button>
           </DialogFooter>

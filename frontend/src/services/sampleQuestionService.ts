@@ -23,8 +23,8 @@ export interface SampleQuestionPayload {
   question?: string | null;
 }
 
-export async function listSampleQuestions() {
-  return api.get<SampleQuestion[]>("/rag/sample-questions");
+export async function listSampleQuestions(): Promise<SampleQuestion[]> {
+  return api.get<SampleQuestion[], SampleQuestion[]>("/rag/sample-questions");
 }
 
 export async function getSampleQuestionsPage(

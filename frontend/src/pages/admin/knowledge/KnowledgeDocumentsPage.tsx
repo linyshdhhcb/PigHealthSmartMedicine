@@ -1,6 +1,6 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { Check, FileUp, FolderOpen, PlayCircle, RefreshCw, Trash2, Pencil, FileBarChart } from "lucide-react";
+import { Check, FileUp, FolderOpen, PlayCircle, RefreshCw, Trash2, Pencil, FileBarChart, X } from "lucide-react";
 import { toast } from "sonner";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
@@ -17,7 +17,7 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 
-import type { KnowledgeBase, KnowledgeDocument, KnowledgeDocumentUploadPayload, KnowledgeDocumentChunkLog, PageResult } from "@/services/knowledgeService";
+import type { KnowledgeBase, KnowledgeDocument, KnowledgeDocumentUploadPayload, KnowledgeDocumentChunkLog, PageResult, ChunkStrategyOption } from "@/services/knowledgeService";
 import {
   deleteDocument,
   enableDocument,
@@ -27,9 +27,11 @@ import {
   updateDocument,
   startDocumentChunk,
   uploadDocument,
+  getChunkStrategies,
   getChunkLogsPage
 } from "@/services/knowledgeService";
 import { getIngestionPipelines, type IngestionPipeline } from "@/services/ingestionService";
+import { getSystemSettings } from "@/services/settingsService";
 import { getErrorMessage } from "@/utils/error";
 
 const PAGE_SIZE = 10;
@@ -43,26 +45,15 @@ const STATUS_OPTIONS = [
 
 const SOURCE_OPTIONS = [
   { value: "file", label: "Local File" },
-  { value: "url", label: "URL" }
-];
-
-const CHUNK_STRATEGY_OPTIONS = [
-  { value: "fixed_size", label: "fixed_size" },
-  { value: "structure_aware", label: "structure_aware" }
+  { value: "url", label: "Remote URL" }
 ];
 
 const PROCESS_MODE_OPTIONS = [
-  { value: "chunk", label: "分块策略" },
+  { value: "chunk", label: "直接分块" },
   { value: "pipeline", label: "数据通道" }
 ];
 
-const INT_MAX = 2147483647;
-const DEFAULT_CHUNK_SIZE = 512;
-const DEFAULT_OVERLAP_SIZE = 128;
-const DEFAULT_TARGET_CHARS = 1400;
-const DEFAULT_MAX_CHARS = 1800;
-const DEFAULT_MIN_CHARS = 600;
-const DEFAULT_OVERLAP_CHARS = 0;
+const NO_CHUNK_VALUE = -1;
 
 const parseChunkConfig = (raw?: string | null): Record<string, unknown> => {
   if (!raw) return {};
@@ -75,18 +66,6 @@ const parseChunkConfig = (raw?: string | null): Record<string, unknown> => {
   } catch {
     return {};
   }
-};
-
-const getConfigNumber = (config: Record<string, unknown>, key: string, fallback: number) => {
-  const value = config[key];
-  if (typeof value === "number" && Number.isFinite(value)) {
-    return value;
-  }
-  if (typeof value === "string" && value.trim() !== "") {
-    const parsed = Number(value);
-    return Number.isFinite(parsed) ? parsed : fallback;
-  }
-  return fallback;
 };
 
 const statusDotClass = (status?: string | null) => {
@@ -116,16 +95,16 @@ const formatSize = (size?: number | null) => {
 
 const formatSourceLabel = (sourceType?: string | null) => {
   const normalized = sourceType?.toLowerCase();
-  if (normalized === "url") return "URL";
+  if (normalized === "url") return "Remote URL";
   if (normalized === "file") return "Local File";
   return "-";
 };
 
-const formatProcessMode = (processMode?: string | null) => {
-  const normalized = processMode?.toLowerCase();
-  if (normalized === "pipeline") return "数据通道";
-  if (normalized === "chunk") return "分块策略";
-  return "分块策略"; // 默认值
+const formatChunkStrategy = (strategy?: string | null) => {
+  const normalized = strategy?.toLowerCase();
+  if (normalized === "fixed_size") return "固定大小";
+  if (normalized === "structure_aware") return "语义感知（Markdown友好）";
+  return strategy || "-";
 };
 
 export function KnowledgeDocumentsPage() {
@@ -133,7 +112,7 @@ export function KnowledgeDocumentsPage() {
   const navigate = useNavigate();
   const [kb, setKb] = useState<KnowledgeBase | null>(null);
   const [pageData, setPageData] = useState<PageResult<KnowledgeDocument> | null>(null);
-  const [pageNo, setPageNo] = useState(1);
+  const [current, setCurrent] = useState(1);
   const [loading, setLoading] = useState(false);
   const [statusFilter, setStatusFilter] = useState<string | undefined>();
   const [keyword, setKeyword] = useState("");
@@ -144,7 +123,17 @@ export function KnowledgeDocumentsPage() {
   const [detailTarget, setDetailTarget] = useState<KnowledgeDocument | null>(null);
   const [detailName, setDetailName] = useState("");
   const [detailSaving, setDetailSaving] = useState(false);
-  const [detailPipelineName, setDetailPipelineName] = useState<string>("");
+  const [detailProcessMode, setDetailProcessMode] = useState("chunk");
+  const [detailChunkStrategy, setDetailChunkStrategy] = useState("structure_aware");
+  const [detailPipelineId, setDetailPipelineId] = useState("");
+  const [detailStrategies, setDetailStrategies] = useState<ChunkStrategyOption[]>([]);
+  const [detailPipelines, setDetailPipelines] = useState<IngestionPipeline[]>([]);
+  const [detailConfigValues, setDetailConfigValues] = useState<Record<string, string>>({});
+  const [detailNoChunk, setDetailNoChunk] = useState(false);
+  const [detailOriginalChunkSize, setDetailOriginalChunkSize] = useState("512");
+  const [detailSourceLocation, setDetailSourceLocation] = useState("");
+  const [detailScheduleEnabled, setDetailScheduleEnabled] = useState(false);
+  const [detailScheduleCron, setDetailScheduleCron] = useState("");
   const [logTarget, setLogTarget] = useState<KnowledgeDocument | null>(null);
   const [logData, setLogData] = useState<PageResult<KnowledgeDocumentChunkLog> | null>(null);
   const [logLoading, setLogLoading] = useState(false);
@@ -162,13 +151,13 @@ export function KnowledgeDocumentsPage() {
     }
   };
 
-  const loadDocuments = async (current = pageNo, status = statusFilter, keywordValue = keyword) => {
+  const loadDocuments = async (page = current, status = statusFilter, keywordValue = keyword) => {
     if (!kbId) return;
     setLoading(true);
     try {
       const data = await getDocumentsPage(kbId, {
-        pageNo: current,
-        pageSize: PAGE_SIZE,
+        current: page,
+        size: PAGE_SIZE,
         status,
         keyword: keywordValue || undefined
       });
@@ -187,40 +176,63 @@ export function KnowledgeDocumentsPage() {
 
   useEffect(() => {
     loadDocuments();
-  }, [kbId, pageNo, statusFilter, keyword]);
+  }, [kbId, current, statusFilter, keyword]);
 
   useEffect(() => {
     if (detailTarget) {
       setDetailName(detailTarget.docName || "");
-      // 如果是 pipeline 模式，加载 pipeline 名称
-      if (detailTarget.processMode?.toLowerCase() === "pipeline" && detailTarget.pipelineId) {
-        const loadPipelineName = async () => {
-          try {
-            const result = await getIngestionPipelines(1, 100);
-            const pipeline = result.records?.find(p => p.id === String(detailTarget.pipelineId));
-            setDetailPipelineName(pipeline?.name || String(detailTarget.pipelineId));
-          } catch (error) {
-            console.error("加载Pipeline失败", error);
-            setDetailPipelineName(String(detailTarget.pipelineId));
-          }
-        };
-        loadPipelineName();
-      } else {
-        setDetailPipelineName("");
+      const mode = (detailTarget.processMode || "chunk").toLowerCase();
+      setDetailProcessMode(mode);
+      setDetailChunkStrategy((detailTarget.chunkStrategy || "structure_aware").toLowerCase());
+      setDetailPipelineId(detailTarget.pipelineId ? String(detailTarget.pipelineId) : "");
+      setDetailSourceLocation(detailTarget.sourceLocation || "");
+      setDetailScheduleEnabled(Boolean(detailTarget.scheduleEnabled));
+      setDetailScheduleCron(detailTarget.scheduleCron || "");
+
+      // 从文档的 chunkConfig JSON 解析参数值
+      const config = parseChunkConfig(detailTarget.chunkConfig);
+      const values: Record<string, string> = {};
+      for (const [k, v] of Object.entries(config)) {
+        values[k] = String(v);
       }
+      setDetailConfigValues(values);
+
+      // 如果 chunkSize 为 -1（不分块），初始化开关状态
+      const rawChunkSize = values["chunkSize"];
+      if (rawChunkSize === String(NO_CHUNK_VALUE)) {
+        setDetailNoChunk(true);
+        setDetailOriginalChunkSize("512");
+      } else {
+        setDetailNoChunk(false);
+        setDetailOriginalChunkSize(rawChunkSize || "512");
+      }
+
+      // 加载策略列表和管道列表
+      getChunkStrategies().then(setDetailStrategies).catch(() => {});
+      getIngestionPipelines(1, 100).then(r => setDetailPipelines(r.records || [])).catch(() => {});
     } else {
       setDetailName("");
-      setDetailPipelineName("");
+      setDetailProcessMode("chunk");
+      setDetailChunkStrategy("structure_aware");
+      setDetailPipelineId("");
+      setDetailConfigValues({});
+      setDetailStrategies([]);
+      setDetailPipelines([]);
+      setDetailSourceLocation("");
+      setDetailScheduleEnabled(false);
+      setDetailScheduleCron("");
+      setDetailNoChunk(false);
+      setDetailOriginalChunkSize("512");
     }
   }, [detailTarget]);
 
   const handleSearch = () => {
-    setPageNo(1);
+    setCurrent(1);
     setKeyword(searchInput.trim());
   };
 
   const handleRefresh = () => {
-    setPageNo(1);
+    setCurrent(1);
     loadDocuments(1, statusFilter, keyword);
   };
 
@@ -230,7 +242,7 @@ export function KnowledgeDocumentsPage() {
       await deleteDocument(String(deleteTarget.id));
       toast.success("删除成功");
       setDeleteTarget(null);
-      setPageNo(1);
+      setCurrent(1);
       await loadDocuments(1, statusFilter, keyword);
     } catch (error) {
       toast.error(getErrorMessage(error, "删除失败"));
@@ -244,7 +256,7 @@ export function KnowledgeDocumentsPage() {
       await startDocumentChunk(String(chunkTarget.id));
       toast.success("已开始分块");
       setChunkTarget(null);
-      await loadDocuments(pageNo, statusFilter, keyword);
+      await loadDocuments(current, statusFilter, keyword);
     } catch (error) {
       toast.error(getErrorMessage(error, "分块失败"));
       console.error(error);
@@ -256,7 +268,7 @@ export function KnowledgeDocumentsPage() {
     try {
       await enableDocument(String(doc.id), !enabled);
       toast.success(!enabled ? "已启用" : "已禁用");
-      await loadDocuments(pageNo, statusFilter, keyword);
+      await loadDocuments(current, statusFilter, keyword);
     } catch (error) {
       toast.error(getErrorMessage(error, "操作失败"));
       console.error(error);
@@ -272,9 +284,37 @@ export function KnowledgeDocumentsPage() {
     }
     setDetailSaving(true);
     try {
-      await updateDocument(String(detailTarget.id), { docName: nextName });
+      const data: Parameters<typeof updateDocument>[1] = {
+        docName: nextName,
+        processMode: detailProcessMode,
+      };
+      if (detailProcessMode === "chunk") {
+        data.chunkStrategy = detailChunkStrategy;
+        // 根据策略的 defaultConfig keys 组装 chunkConfig JSON
+        const strategy = detailStrategies.find(s => s.value === detailChunkStrategy);
+        if (strategy) {
+          const configObj: Record<string, number> = {};
+          for (const key of Object.keys(strategy.defaultConfig)) {
+            configObj[key] = Number(detailConfigValues[key]) || strategy.defaultConfig[key];
+          }
+          data.chunkConfig = JSON.stringify(configObj);
+        }
+      } else {
+        data.pipelineId = detailPipelineId;
+      }
+      // 添加定时调度相关字段（仅 URL 类型）
+      if (detailTarget.sourceType?.toLowerCase() === "url") {
+        if (detailSourceLocation.trim()) {
+          data.sourceLocation = detailSourceLocation.trim();
+        }
+        data.scheduleEnabled = detailScheduleEnabled ? 1 : 0;
+        if (detailScheduleCron.trim()) {
+          data.scheduleCron = detailScheduleCron.trim();
+        }
+      }
+      await updateDocument(String(detailTarget.id), data);
       toast.success("更新成功");
-      await loadDocuments(pageNo, statusFilter, keyword);
+      await loadDocuments(current, statusFilter, keyword);
       setDetailTarget(null);
     } catch (error) {
       toast.error(getErrorMessage(error, "更新失败"));
@@ -318,23 +358,48 @@ export function KnowledgeDocumentsPage() {
   const detailSourceType = detailTarget?.sourceType?.toLowerCase();
   const detailIsUrlSource = detailSourceType === "url";
   const detailNameLabel = detailIsUrlSource ? "文档名称" : "本地文件";
-  const detailNameHint = detailIsUrlSource ? "仅支持修改文档名称" : "仅支持修改文件名";
-  const detailConfig = detailTarget ? parseChunkConfig(detailTarget.chunkConfig) : {};
-  const detailChunkStrategy = (detailTarget?.chunkStrategy || "structure_aware").toLowerCase();
-  const detailChunkSize =
-    detailTarget?.chunkSize ?? getConfigNumber(detailConfig, "chunkSize", DEFAULT_CHUNK_SIZE);
-  const detailOverlapSize =
-    detailTarget?.overlapSize ?? getConfigNumber(detailConfig, "overlapSize", DEFAULT_OVERLAP_SIZE);
-  const detailTargetChars =
-    detailTarget?.targetChars ?? getConfigNumber(detailConfig, "targetChars", DEFAULT_TARGET_CHARS);
-  const detailMaxChars =
-    detailTarget?.maxChars ?? getConfigNumber(detailConfig, "maxChars", DEFAULT_MAX_CHARS);
-  const detailMinChars =
-    detailTarget?.minChars ?? getConfigNumber(detailConfig, "minChars", DEFAULT_MIN_CHARS);
-  const detailOverlapChars =
-    detailTarget?.overlapChars ?? getConfigNumber(detailConfig, "overlapChars", DEFAULT_OVERLAP_CHARS);
-  const detailNameChanged = detailTarget ? detailName.trim() !== (detailTarget.docName || "") : false;
-  const detailChunkSizeDisplay = detailChunkSize === INT_MAX ? "不分块" : detailChunkSize;
+
+  // 当策略切换时，用默认值填充配置
+  const handleDetailStrategyChange = (value: string) => {
+    setDetailChunkStrategy(value);
+    const strategy = detailStrategies.find(s => s.value === value);
+    if (strategy) {
+      const values: Record<string, string> = {};
+      for (const [k, v] of Object.entries(strategy.defaultConfig)) {
+        values[k] = String(v);
+      }
+      setDetailConfigValues(values);
+      setDetailNoChunk(false);
+      setDetailOriginalChunkSize(
+        strategy.defaultConfig["chunkSize"] !== undefined
+          ? String(strategy.defaultConfig["chunkSize"])
+          : "512"
+      );
+    }
+  };
+
+  // 处理编辑页"不分块"按钮点击
+  const handleDetailNoChunkToggle = () => {
+    if (detailNoChunk) {
+      // 取消选中，恢复原始值
+      setDetailConfigValues(v => ({ ...v, chunkSize: detailOriginalChunkSize }));
+      setDetailNoChunk(false);
+    } else {
+      // 选中，保存当前值并设置为-1
+      const currentSize = detailConfigValues["chunkSize"] || "512";
+      setDetailOriginalChunkSize(currentSize);
+      setDetailConfigValues(v => ({ ...v, chunkSize: String(NO_CHUNK_VALUE) }));
+      setDetailNoChunk(true);
+    }
+  };
+
+  // 用户手动修改块大小值时取消"不分块"状态
+  const handleDetailChunkSizeChange = (value: string) => {
+    setDetailConfigValues(v => ({ ...v, chunkSize: value }));
+    if (detailNoChunk && value !== String(NO_CHUNK_VALUE)) {
+      setDetailNoChunk(false);
+    }
+  };
 
   return (
     <div className="admin-page">
@@ -356,31 +421,36 @@ export function KnowledgeDocumentsPage() {
         </div>
       </div>
 
-      <Card>
-        <CardHeader>
+      <Card className="border-emerald-100 shadow-sm overflow-hidden rounded-2xl">
+        <CardHeader className="bg-gradient-to-r from-emerald-50 to-teal-50 border-b border-emerald-100">
           <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
             <div>
-              <CardTitle>文档列表</CardTitle>
+              <CardTitle className="text-emerald-800">文档列表</CardTitle>
               <CardDescription>支持筛选与分块管理</CardDescription>
             </div>
-            <div className="flex flex-1 flex-wrap items-center justify-end gap-2">
-              <Input
-                value={searchInput}
-                onChange={(event) => setSearchInput(event.target.value)}
-                placeholder="搜索文档名称"
-                className="max-w-xs"
-              />
-              <Button variant="outline" onClick={handleSearch}>
+            <div className="flex flex-1 flex-wrap items-center justify-end gap-3">
+              <div className="relative">
+                <Input
+                  value={searchInput}
+                  onChange={(event) => setSearchInput(event.target.value)}
+                  placeholder="搜索文档名称"
+                  className="max-w-xs pl-10 h-9 bg-white border-emerald-200 focus:border-emerald-400 rounded-xl transition-all"
+                />
+                <svg className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                </svg>
+              </div>
+              <Button variant="outline" onClick={handleSearch} className="h-9 px-4 border-emerald-200 text-emerald-700 hover:bg-emerald-50 rounded-xl">
                 搜索
               </Button>
               <Select
                 value={statusFilter || "all"}
                 onValueChange={(value) => {
-                  setPageNo(1);
+                  setCurrent(1);
                   setStatusFilter(value === "all" ? undefined : value);
                 }}
               >
-                <SelectTrigger className="w-[160px]">
+                <SelectTrigger className="w-[160px] h-9 border-emerald-200 focus:ring-emerald-400/20 rounded-xl">
                   <SelectValue placeholder="状态" />
                 </SelectTrigger>
                 <SelectContent>
@@ -392,7 +462,7 @@ export function KnowledgeDocumentsPage() {
                   ))}
                 </SelectContent>
               </Select>
-              <Button variant="outline" onClick={handleRefresh}>
+              <Button variant="outline" onClick={handleRefresh} className="h-9 px-4 border-emerald-200 text-emerald-700 hover:bg-emerald-50 rounded-xl">
                 <RefreshCw className="mr-2 h-4 w-4" />
                 刷新
               </Button>
@@ -535,7 +605,7 @@ export function KnowledgeDocumentsPage() {
             <div className="mt-4 flex flex-wrap items-center justify-between gap-2 text-sm text-slate-500">
               <span>共 {pageData.total} 条</span>
               <div className="flex items-center gap-2">
-                <Button variant="outline" size="sm" onClick={() => setPageNo((prev) => Math.max(1, prev - 1))} disabled={pageData.current <= 1}>
+                <Button variant="outline" size="sm" onClick={() => setCurrent((prev) => Math.max(1, prev - 1))} disabled={pageData.current <= 1}>
                   上一页
                 </Button>
                 <span>
@@ -544,7 +614,7 @@ export function KnowledgeDocumentsPage() {
                 <Button
                   variant="outline"
                   size="sm"
-                  onClick={() => setPageNo((prev) => Math.min(pageData.pages || 1, prev + 1))}
+                  onClick={() => setCurrent((prev) => Math.min(pageData.pages || 1, prev + 1))}
                   disabled={pageData.current >= pageData.pages}
                 >
                   下一页
@@ -563,7 +633,7 @@ export function KnowledgeDocumentsPage() {
           await uploadDocument(kbId, payload);
           toast.success("上传成功");
           setUploadOpen(false);
-          setPageNo(1);
+          setCurrent(1);
           await loadDocuments(1, statusFilter, keyword);
         }}
       />
@@ -611,107 +681,163 @@ export function KnowledgeDocumentsPage() {
       </AlertDialog>
 
       <Dialog open={Boolean(detailTarget)} onOpenChange={(open) => (!open ? setDetailTarget(null) : null)}>
-        <DialogContent className="max-h-[90vh] overflow-y-auto sidebar-scroll sm:max-w-[620px]">
+        <DialogContent className="max-h-[90vh] overflow-y-auto sidebar-scroll sm:max-w-[620px]" onOpenAutoFocus={(e) => e.preventDefault()} onCloseAutoFocus={(e) => { e.preventDefault(); requestAnimationFrame(() => (document.activeElement as HTMLElement)?.blur()); }}>
           <DialogHeader>
             <DialogTitle>编辑文档</DialogTitle>
-            <DialogDescription>修改文档名称，查看文档配置信息</DialogDescription>
+            <DialogDescription>修改文档配置，保存后需重新分块才会生效</DialogDescription>
           </DialogHeader>
           {detailTarget ? (
             <div className="space-y-4">
               <div>
                 <div className="text-sm font-medium mb-2">来源类型</div>
-                <Input value={formatSourceLabel(detailTarget.sourceType)} disabled />
+                <div className="flex h-9 items-center rounded-md border border-input bg-muted px-3 text-sm text-muted-foreground">
+                  {formatSourceLabel(detailTarget.sourceType)}
+                </div>
               </div>
 
               <div>
                 <div className="text-sm font-medium mb-2">{detailNameLabel}</div>
                 <Input value={detailName} onChange={(event) => setDetailName(event.target.value)} />
-                <div className="text-sm text-muted-foreground mt-1">{detailNameHint}</div>
               </div>
 
-              {detailIsUrlSource && detailTarget.sourceLocation ? (
+              {detailIsUrlSource ? (
                 <>
                   <div>
                     <div className="text-sm font-medium mb-2">来源地址</div>
-                    <Input value={detailTarget.sourceLocation} disabled />
+                    <Input
+                      value={detailSourceLocation}
+                      onChange={(e) => setDetailSourceLocation(e.target.value)}
+                      placeholder="https://example.com/document.pdf"
+                    />
                   </div>
-                  {detailTarget.scheduleEnabled ? (
-                    <>
-                      <div className="space-y-3 rounded-lg border p-3">
-                        <div className="flex items-center justify-between">
-                          <div>
-                            <div className="text-sm font-medium">开启定时拉取</div>
-                            <div className="text-sm text-muted-foreground">开启后按频率自动更新文档</div>
-                          </div>
-                          <Checkbox checked={Boolean(detailTarget.scheduleEnabled)} disabled />
-                        </div>
-                        {detailTarget.scheduleCron ? (
-                          <div>
-                            <div className="text-sm font-medium mb-2">拉取频率</div>
-                            <Input value={detailTarget.scheduleCron} disabled />
-                            <div className="text-sm text-muted-foreground mt-1">支持 cron 表达式</div>
-                          </div>
-                        ) : null}
+                  <div className="space-y-3 rounded-lg border p-3">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <div className="text-sm font-medium">开启定时拉取</div>
+                        <div className="text-sm text-muted-foreground">开启后按频率自动更新文档</div>
                       </div>
-                    </>
-                  ) : null}
+                      <Checkbox
+                        checked={detailScheduleEnabled}
+                        onCheckedChange={(checked) => setDetailScheduleEnabled(Boolean(checked))}
+                      />
+                    </div>
+                    {detailScheduleEnabled ? (
+                      <div>
+                        <div className="text-sm font-medium mb-2">拉取频率（Cron表达式）</div>
+                        <Input
+                          value={detailScheduleCron}
+                          onChange={(e) => setDetailScheduleCron(e.target.value)}
+                          placeholder="0 0 * * * (每小时)"
+                        />
+                        <div className="text-sm text-muted-foreground mt-1">
+                          例如：0 0 * * * (每小时)，0 0 0 * * * (每天)
+                        </div>
+                      </div>
+                    ) : null}
+                  </div>
                 </>
               ) : null}
 
               <div>
                 <div className="text-sm font-medium mb-2">处理模式</div>
-                <Input value={formatProcessMode(detailTarget.processMode)} disabled />
+                <Select value={detailProcessMode} onValueChange={setDetailProcessMode}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="chunk">分块策略</SelectItem>
+                    <SelectItem value="pipeline">数据通道</SelectItem>
+                  </SelectContent>
+                </Select>
                 <div className="text-sm text-muted-foreground mt-1">
                   分块策略：直接分块；数据通道：使用Pipeline清洗
                 </div>
               </div>
 
-              {detailTarget.processMode?.toLowerCase() === "pipeline" ? (
+              {detailProcessMode === "pipeline" ? (
                 <div>
-                  <div className="text-sm font-medium mb-2">数据通道名称</div>
-                  <Input value={detailPipelineName || "-"} disabled />
+                  <div className="text-sm font-medium mb-2">数据通道</div>
+                  <Select value={detailPipelineId} onValueChange={setDetailPipelineId}>
+                    <SelectTrigger><SelectValue placeholder="选择数据通道" /></SelectTrigger>
+                    <SelectContent>
+                      {detailPipelines.map(p => (
+                        <SelectItem key={p.id} value={String(p.id)}>{p.name}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
               ) : null}
 
-              {(!detailTarget.processMode || detailTarget.processMode?.toLowerCase() === "chunk") ? (
+              {detailProcessMode === "chunk" ? (
                 <div className="space-y-3 rounded-lg border p-3">
                   <div>
                     <div className="text-sm font-medium mb-2">分块策略</div>
-                    <Input
-                      value={detailChunkStrategy === "fixed_size" ? "fixed_size" : "structure_aware"}
-                      disabled
-                    />
+                    <Select value={detailChunkStrategy} onValueChange={handleDetailStrategyChange}>
+                      <SelectTrigger><SelectValue /></SelectTrigger>
+                      <SelectContent>
+                        {detailStrategies.map(s => (
+                          <SelectItem key={s.value} value={s.value}>{s.label || s.value}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                   </div>
 
                   {detailChunkStrategy === "fixed_size" ? (
-                    <div className="grid gap-4 md:grid-cols-2">
+                    <div className="grid gap-4 md:grid-cols-3">
                       <div>
                         <div className="text-sm font-medium mb-2">块大小</div>
-                        <Input value={detailChunkSizeDisplay ?? "-"} disabled />
+                        <Input type="number" value={detailConfigValues["chunkSize"] ?? "512"}
+                          onChange={e => handleDetailChunkSizeChange(e.target.value)} />
                         <div className="text-sm text-muted-foreground mt-1">字符数</div>
                       </div>
                       <div>
                         <div className="text-sm font-medium mb-2">重叠大小</div>
-                        <Input value={detailOverlapSize ?? "-"} disabled />
+                        <Input type="number" value={detailConfigValues["overlapSize"] ?? "128"}
+                          onChange={e => setDetailConfigValues(v => ({ ...v, overlapSize: e.target.value }))} />
+                      </div>
+                      <div>
+                        <div className="text-sm font-medium mb-2">不分块</div>
+                        <div className="flex h-9 items-center">
+                          <button
+                            type="button"
+                            role="switch"
+                            aria-checked={detailNoChunk}
+                            onClick={handleDetailNoChunkToggle}
+                            className={cn(
+                              "relative inline-flex h-5 w-9 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 focus:ring-offset-background",
+                              detailNoChunk ? "bg-blue-600" : "bg-slate-200"
+                            )}
+                          >
+                            <span
+                              className={cn(
+                                "inline-block h-4 w-4 transform rounded-full bg-background shadow transition-transform",
+                                detailNoChunk ? "translate-x-4" : "translate-x-1"
+                              )}
+                            />
+                          </button>
+                        </div>
+                        <div className="text-sm text-muted-foreground mt-1">开启后块大小为-1</div>
                       </div>
                     </div>
                   ) : (
                     <div className="grid gap-4 md:grid-cols-2">
                       <div>
                         <div className="text-sm font-medium mb-2">理想块大小</div>
-                        <Input value={detailTargetChars ?? "-"} disabled />
+                        <Input type="number" value={detailConfigValues["targetChars"] ?? "1400"}
+                          onChange={e => setDetailConfigValues(v => ({ ...v, targetChars: e.target.value }))} />
                       </div>
                       <div>
                         <div className="text-sm font-medium mb-2">块上限</div>
-                        <Input value={detailMaxChars ?? "-"} disabled />
+                        <Input type="number" value={detailConfigValues["maxChars"] ?? "1800"}
+                          onChange={e => setDetailConfigValues(v => ({ ...v, maxChars: e.target.value }))} />
                       </div>
                       <div>
                         <div className="text-sm font-medium mb-2">块下限</div>
-                        <Input value={detailMinChars ?? "-"} disabled />
+                        <Input type="number" value={detailConfigValues["minChars"] ?? "600"}
+                          onChange={e => setDetailConfigValues(v => ({ ...v, minChars: e.target.value }))} />
                       </div>
                       <div>
                         <div className="text-sm font-medium mb-2">重叠大小</div>
-                        <Input value={detailOverlapChars ?? "-"} disabled />
+                        <Input type="number" value={detailConfigValues["overlapChars"] ?? "0"}
+                          onChange={e => setDetailConfigValues(v => ({ ...v, overlapChars: e.target.value }))} />
                       </div>
                     </div>
                   )}
@@ -725,7 +851,7 @@ export function KnowledgeDocumentsPage() {
             </Button>
             <Button
               onClick={handleDetailSave}
-              disabled={detailSaving || !detailName.trim() || !detailNameChanged}
+              disabled={detailSaving || !detailName.trim()}
             >
               {detailSaving ? "保存中..." : "保存"}
             </Button>
@@ -734,7 +860,7 @@ export function KnowledgeDocumentsPage() {
       </Dialog>
 
       <Dialog open={Boolean(logTarget)} onOpenChange={(open) => (!open ? setLogTarget(null) : null)}>
-        <DialogContent className="max-h-[90vh] overflow-y-auto sidebar-scroll sm:max-w-[800px]">
+        <DialogContent className="max-h-[90vh] overflow-y-auto sidebar-scroll sm:max-w-[800px]" onOpenAutoFocus={(e) => e.preventDefault()} onCloseAutoFocus={(e) => { e.preventDefault(); requestAnimationFrame(() => (document.activeElement as HTMLElement)?.blur()); }}>
           <DialogHeader>
             <DialogTitle>分块详情</DialogTitle>
             <DialogDescription>
@@ -749,77 +875,71 @@ export function KnowledgeDocumentsPage() {
                 const isPipelineLog = log.processMode?.toLowerCase() === "pipeline";
                 const chunkLabel = isPipelineLog ? "数据通道耗时" : "分块耗时";
                 return (
-                <div key={log.id} className="rounded-lg border p-4 space-y-3">
+                <div key={log.id} className="space-y-4">
+                  {/* 状态 + 基本信息 */}
                   <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <span className="text-sm font-medium">执行状态:</span>
+                    <div className="flex items-center gap-3">
                       <span className={cn(
-                        "text-sm font-medium",
-                        log.status === "success" ? "text-emerald-600" :
-                        log.status === "failed" ? "text-red-600" :
-                        "text-amber-600"
+                        "inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium",
+                        log.status === "success" ? "bg-emerald-50 text-emerald-700" :
+                        log.status === "failed" ? "bg-red-50 text-red-700" :
+                        "bg-amber-50 text-amber-700"
                       )}>
                         {formatLogStatus(log.status)}
                       </span>
+                      <span className="text-sm text-muted-foreground">
+                        {log.processMode === "pipeline" ? "数据通道" : "直接分块"}
+                        {log.processMode === "chunk" && log.chunkStrategy ? ` · ${formatChunkStrategy(log.chunkStrategy)}` : ""}
+                        {log.processMode === "pipeline" && (log.pipelineName || log.pipelineId) ? ` · ${log.pipelineName || log.pipelineId}` : ""}
+                      </span>
                     </div>
-                    <span className="text-xs text-muted-foreground">
-                      {formatDate(log.createTime)}
-                    </span>
+                    <span className="text-2xl font-semibold tabular-nums">{log.chunkCount ?? 0} <span className="text-sm font-normal text-muted-foreground">块</span></span>
                   </div>
 
-                  <div className="grid grid-cols-2 gap-4 text-sm">
-                    <div>
-                      <span className="text-muted-foreground">处理模式: </span>
-                      <span>{log.processMode === "pipeline" ? "数据通道" : "分块策略"}</span>
-                    </div>
-                    {log.processMode === "chunk" && log.chunkStrategy && (
-                      <div>
-                        <span className="text-muted-foreground">分块策略: </span>
-                        <span>{log.chunkStrategy}</span>
-                      </div>
-                    )}
-                    {log.processMode === "pipeline" && log.pipelineId && (
-                      <div>
-                        <span className="text-muted-foreground">数据通道: </span>
-                        <span>{log.pipelineName || log.pipelineId}</span>
-                      </div>
-                    )}
-                    <div>
-                      <span className="text-muted-foreground">分块数量: </span>
-                      <span className="font-medium">{log.chunkCount ?? "-"}</span>
-                    </div>
-                  </div>
-
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+                  {/* 耗时指标卡片 */}
+                  <div className={cn("grid gap-3", isPipelineLog ? "grid-cols-2 md:grid-cols-3" : "grid-cols-2 md:grid-cols-3 lg:grid-cols-4")}>
                     {!isPipelineLog && (
-                      <div>
-                        <span className="text-muted-foreground">文本提取: </span>
-                        <span className="font-medium">{formatDuration(log.extractDuration)}</span>
+                      <div className="rounded-lg border bg-slate-50/50 p-3">
+                        <div className="text-xs text-muted-foreground mb-1">文本提取</div>
+                        <div className="text-lg font-semibold tabular-nums">{formatDuration(log.extractDuration)}</div>
                       </div>
                     )}
-                    <div>
-                      <span className="text-muted-foreground">{chunkLabel}: </span>
-                      <span className="font-medium">{formatDuration(log.chunkDuration)}</span>
+                    <div className="rounded-lg border bg-slate-50/50 p-3">
+                      <div className="text-xs text-muted-foreground mb-1">{chunkLabel}</div>
+                      <div className="text-lg font-semibold tabular-nums">{formatDuration(log.chunkDuration)}</div>
                     </div>
                     {!isPipelineLog && (
-                      <div>
-                        <span className="text-muted-foreground">向量化: </span>
-                        <span className="font-medium">{formatDuration(log.embeddingDuration)}</span>
+                      <div className="rounded-lg border bg-slate-50/50 p-3">
+                        <div className="text-xs text-muted-foreground mb-1">向量化</div>
+                        <div className="text-lg font-semibold tabular-nums">{formatDuration(log.embedDuration)}</div>
                       </div>
                     )}
-                    <div>
-                      <span className="text-muted-foreground">其他耗时: </span>
-                      <span className="font-medium">{formatDuration(log.otherDuration)}</span>
+                    <div className="rounded-lg border bg-slate-50/50 p-3">
+                      <div className="text-xs text-muted-foreground mb-1">持久化</div>
+                      <div className="text-lg font-semibold tabular-nums">{formatDuration(log.persistDuration)}</div>
                     </div>
-                    <div>
-                      <span className="text-muted-foreground">总耗时: </span>
-                      <span className="font-medium text-slate-900">{formatDuration(log.totalDuration)}</span>
+                    <div className="rounded-lg border bg-slate-50/50 p-3">
+                      <div className="text-xs text-muted-foreground mb-1">其他</div>
+                      <div className="text-lg font-semibold tabular-nums">{formatDuration(log.otherDuration)}</div>
+                    </div>
+                    <div className="rounded-lg border bg-blue-50 p-3">
+                      <div className="text-xs text-blue-600 mb-1">总耗时</div>
+                      <div className="text-lg font-bold tabular-nums text-blue-600">{formatDuration(log.totalDuration)}</div>
                     </div>
                   </div>
 
+                  {/* 执行时间 */}
+                  <div className="flex items-center gap-2 text-sm text-slate-500">
+                    <span>执行时间</span>
+                    <span className="tabular-nums text-slate-700">{formatDate(log.startTime)}</span>
+                    <span>~</span>
+                    <span className="tabular-nums text-slate-700">{log.endTime ? formatDate(log.endTime) : "进行中"}</span>
+                  </div>
+
+                  {/* 错误信息 */}
                   {log.errorMessage && (
-                    <div className="rounded bg-red-50 p-3 text-sm text-red-600">
-                      <div className="font-medium mb-1">错误信息:</div>
+                    <div className="rounded-lg bg-red-50 p-3 text-sm text-red-600">
+                      <div className="font-medium mb-1">错误信息</div>
                       <div className="text-xs">{log.errorMessage}</div>
                     </div>
                   )}
@@ -854,7 +974,7 @@ const uploadSchema = z
     scheduleEnabled: z.boolean().default(false),
     scheduleCron: z.string().optional(),
     processMode: z.enum(["chunk", "pipeline"]).default("chunk"),
-    chunkStrategy: z.enum(["fixed_size", "structure_aware"]).optional(),
+    chunkStrategy: z.string().optional(),
     pipelineId: z.string().optional(),
     chunkSize: z.string().optional(),
     overlapSize: z.string().optional(),
@@ -931,11 +1051,15 @@ type UploadFormValues = z.infer<typeof uploadSchema>;
 
 function UploadDialog({ open, onOpenChange, onSubmit }: UploadDialogProps) {
   const [file, setFile] = useState<File | null>(null);
+  const [isDragging, setIsDragging] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const [saving, setSaving] = useState(false);
+  const [chunkStrategies, setChunkStrategies] = useState<ChunkStrategyOption[]>([]);
   const [noChunk, setNoChunk] = useState(false);
   const [originalChunkSize, setOriginalChunkSize] = useState("512");
   const [pipelines, setPipelines] = useState<IngestionPipeline[]>([]);
   const [loadingPipelines, setLoadingPipelines] = useState(false);
+  const [maxFileSize, setMaxFileSize] = useState<number>(50 * 1024 * 1024);
 
   const form = useForm<UploadFormValues>({
     resolver: zodResolver(uploadSchema),
@@ -1000,6 +1124,10 @@ function UploadDialog({ open, onOpenChange, onSubmit }: UploadDialogProps) {
       setNoChunk(false);
       setOriginalChunkSize("512");
       loadPipelines();
+      getChunkStrategies().then(setChunkStrategies).catch(() => {});
+      getSystemSettings()
+        .then((settings) => setMaxFileSize(settings.upload.maxFileSize))
+        .catch(() => {});
     }
   }, [open, form]);
 
@@ -1009,9 +1137,32 @@ function UploadDialog({ open, onOpenChange, onSubmit }: UploadDialogProps) {
     }
   }, [isUrlSource]);
 
+  // 切换策略时，用 API 返回的默认值填充表单
+  useEffect(() => {
+    const strategy = chunkStrategies.find((s) => s.value === chunkStrategy);
+    if (!strategy) return;
+    const defaults = strategy.defaultConfig;
+    const formAccessors: Record<string, (v: string) => void> = {
+      chunkSize: (v) => form.setValue("chunkSize", v),
+      overlapSize: (v) => form.setValue("overlapSize", v),
+      targetChars: (v) => form.setValue("targetChars", v),
+      maxChars: (v) => form.setValue("maxChars", v),
+      minChars: (v) => form.setValue("minChars", v),
+      overlapChars: (v) => form.setValue("overlapChars", v)
+    };
+    for (const key of Object.keys(strategy.defaultConfig)) {
+      if (defaults[key] !== undefined && formAccessors[key]) {
+        formAccessors[key](String(defaults[key]));
+      }
+    }
+    if (defaults["chunkSize"] !== undefined) {
+      setOriginalChunkSize(String(defaults["chunkSize"]));
+    }
+  }, [chunkStrategy, chunkStrategies, form]);
+
   // 监听块大小变化，如果用户手动修改了值，取消"不分块"状态
   useEffect(() => {
-    if (noChunk && chunkSize !== String(INT_MAX)) {
+    if (noChunk && chunkSize !== String(NO_CHUNK_VALUE)) {
       setNoChunk(false);
     }
   }, [chunkSize, noChunk]);
@@ -1023,9 +1174,9 @@ function UploadDialog({ open, onOpenChange, onSubmit }: UploadDialogProps) {
       form.setValue("chunkSize", originalChunkSize);
       setNoChunk(false);
     } else {
-      // 选中，保存当前值并设置为最大值
+      // 选中，保存当前值并设置为-1
       setOriginalChunkSize(chunkSize || "512");
-      form.setValue("chunkSize", String(INT_MAX));
+      form.setValue("chunkSize", String(NO_CHUNK_VALUE));
       setNoChunk(true);
     }
   };
@@ -1041,12 +1192,35 @@ function UploadDialog({ open, onOpenChange, onSubmit }: UploadDialogProps) {
       toast.error("请选择文件");
       return;
     }
-    const chunkSize = parseNumber(values.chunkSize);
-    const overlapSize = parseNumber(values.overlapSize);
-    const targetChars = parseNumber(values.targetChars);
-    const maxChars = parseNumber(values.maxChars);
-    const minChars = parseNumber(values.minChars);
-    const overlapChars = parseNumber(values.overlapChars);
+    if (values.sourceType === "file" && file && file.size > maxFileSize) {
+      const sizeMB = Math.floor(maxFileSize / 1024 / 1024);
+      toast.error(`上传文件大小超过限制，最大允许 ${sizeMB}MB`);
+      return;
+    }
+
+    // 根据当前策略的 defaultConfig keys 从表单值组装 chunkConfig JSON
+    let chunkConfig: string | undefined;
+    if (values.processMode === "chunk") {
+      const strategy = chunkStrategies.find((s) => s.value === values.chunkStrategy);
+      if (strategy) {
+        const formAccessors: Record<string, string | undefined> = {
+          chunkSize: values.chunkSize,
+          overlapSize: values.overlapSize,
+          targetChars: values.targetChars,
+          maxChars: values.maxChars,
+          minChars: values.minChars,
+          overlapChars: values.overlapChars
+        };
+        const config: Record<string, number> = {};
+        for (const key of Object.keys(strategy.defaultConfig)) {
+          const val = parseNumber(formAccessors[key]);
+          if (val !== null) {
+            config[key] = val;
+          }
+        }
+        chunkConfig = JSON.stringify(config);
+      }
+    }
 
     setSaving(true);
     try {
@@ -1061,12 +1235,7 @@ function UploadDialog({ open, onOpenChange, onSubmit }: UploadDialogProps) {
             : null,
         processMode: values.processMode,
         chunkStrategy: values.processMode === "chunk" ? values.chunkStrategy : undefined,
-        chunkSize: values.processMode === "chunk" && values.chunkStrategy === "fixed_size" ? chunkSize : null,
-        overlapSize: values.processMode === "chunk" && values.chunkStrategy === "fixed_size" ? overlapSize : null,
-        targetChars: values.processMode === "chunk" && values.chunkStrategy === "structure_aware" ? targetChars : null,
-        maxChars: values.processMode === "chunk" && values.chunkStrategy === "structure_aware" ? maxChars : null,
-        minChars: values.processMode === "chunk" && values.chunkStrategy === "structure_aware" ? minChars : null,
-        overlapChars: values.processMode === "chunk" && values.chunkStrategy === "structure_aware" ? overlapChars : null,
+        chunkConfig: chunkConfig ?? null,
         pipelineId: values.processMode === "pipeline" ? values.pipelineId : null
       };
       await onSubmit(payload);
@@ -1081,8 +1250,9 @@ function UploadDialog({ open, onOpenChange, onSubmit }: UploadDialogProps) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
-        className="max-h-[90vh] overflow-y-auto sm:max-w-[620px]"
+        className="max-h-[90vh] overflow-y-auto sidebar-scroll sm:max-w-[620px]"
         onOpenAutoFocus={(e) => e.preventDefault()}
+        onCloseAutoFocus={(e) => { e.preventDefault(); requestAnimationFrame(() => (document.activeElement as HTMLElement)?.blur()); }}
       >
         <DialogHeader>
           <DialogTitle>上传文档</DialogTitle>
@@ -1137,7 +1307,52 @@ function UploadDialog({ open, onOpenChange, onSubmit }: UploadDialogProps) {
               <FormItem>
                 <FormLabel>本地文件</FormLabel>
                 <FormControl>
-                  <Input type="file" onChange={(event) => setFile(event.target.files?.[0] || null)} />
+                  <div
+                    className={cn(
+                      "flex flex-col items-center justify-center gap-2 rounded-lg border-2 border-dashed p-6 cursor-pointer transition-colors select-none",
+                      isDragging ? "border-primary bg-primary/5" : "border-muted-foreground/25 hover:border-primary/50 hover:bg-muted/50",
+                      file && !isDragging && "border-primary/40 bg-muted/30"
+                    )}
+                    onClick={() => fileInputRef.current?.click()}
+                    onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
+                    onDragLeave={(e) => { if (!e.currentTarget.contains(e.relatedTarget as Node)) setIsDragging(false); }}
+                    onDrop={(e) => {
+                      e.preventDefault();
+                      setIsDragging(false);
+                      const dropped = e.dataTransfer.files[0];
+                      if (dropped) setFile(dropped);
+                    }}
+                  >
+                    <input
+                      ref={fileInputRef}
+                      type="file"
+                      className="hidden"
+                      onChange={(e) => setFile(e.target.files?.[0] || null)}
+                    />
+                    {file ? (
+                      <>
+                        <FileUp className="h-7 w-7 text-primary" />
+                        <div className="text-sm font-medium text-center break-all px-2">{file.name}</div>
+                        <div className="text-xs text-muted-foreground">{formatSize(file.size)}</div>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          className="h-7 px-2 text-xs text-muted-foreground hover:text-foreground"
+                          onClick={(e) => { e.stopPropagation(); setFile(null); if (fileInputRef.current) fileInputRef.current.value = ""; }}
+                        >
+                          <X className="h-3 w-3 mr-1" />
+                          重新选择
+                        </Button>
+                      </>
+                    ) : (
+                      <>
+                        <FileUp className="h-7 w-7 text-muted-foreground" />
+                        <div className="text-sm font-medium">拖拽文件到此处，或点击选择</div>
+                        <div className="text-xs text-muted-foreground">支持 PDF、Markdown、Word、TXT 等格式</div>
+                      </>
+                    )}
+                  </div>
                 </FormControl>
               </FormItem>
             )}
@@ -1178,78 +1393,21 @@ function UploadDialog({ open, onOpenChange, onSubmit }: UploadDialogProps) {
               </div>
             ) : null}
 
-            <FormField
-              control={form.control}
-              name="processMode"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>处理模式</FormLabel>
-                  <Select value={field.value} onValueChange={field.onChange}>
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="选择处理模式" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      {PROCESS_MODE_OPTIONS.map((option) => (
-                        <SelectItem key={option.value} value={option.value}>
-                          {option.label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <FormDescription>
-                    分块策略：直接分块；数据通道：使用Pipeline清洗
-                  </FormDescription>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            {isPipelineMode ? (
+            <div className="space-y-3 rounded-lg border p-3">
               <FormField
                 control={form.control}
-                name="pipelineId"
+                name="processMode"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>数据通道</FormLabel>
-                    <Select value={field.value} onValueChange={field.onChange} disabled={loadingPipelines}>
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder={loadingPipelines ? "加载中..." : "选择数据通道"} />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        {pipelines.map((pipeline) => (
-                          <SelectItem key={pipeline.id} value={pipeline.id}>
-                            {pipeline.name}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <FormDescription>选择用于数据清洗的Pipeline</FormDescription>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            ) : null}
-
-            {isChunkMode ? (
-              <div className="space-y-3 rounded-lg border p-3">
-              <FormField
-                control={form.control}
-                name="chunkStrategy"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>分块策略</FormLabel>
+                    <FormLabel>处理模式</FormLabel>
                     <Select value={field.value} onValueChange={field.onChange}>
                       <FormControl>
                         <SelectTrigger>
-                          <SelectValue placeholder="选择分块策略" />
+                          <SelectValue placeholder="选择处理模式" />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        {CHUNK_STRATEGY_OPTIONS.map((option) => (
+                        {PROCESS_MODE_OPTIONS.map((option) => (
                           <SelectItem key={option.value} value={option.value}>
                             {option.label}
                           </SelectItem>
@@ -1261,50 +1419,123 @@ function UploadDialog({ open, onOpenChange, onSubmit }: UploadDialogProps) {
                 )}
               />
 
+              {isPipelineMode ? (
+                <FormField
+                  control={form.control}
+                  name="pipelineId"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="text-xs text-muted-foreground font-normal">选择通道</FormLabel>
+                      <Select value={field.value} onValueChange={field.onChange} disabled={loadingPipelines}>
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder={loadingPipelines ? "加载中..." : "请选择"} />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {pipelines.length > 0 ? (
+                            pipelines.map((pipeline) => (
+                              <SelectItem key={pipeline.id} value={pipeline.id}>
+                                {pipeline.name}
+                              </SelectItem>
+                            ))
+                          ) : (
+                            <div className="py-6 text-center text-sm text-muted-foreground">
+                              暂无数据通道
+                            </div>
+                          )}
+                        </SelectContent>
+                      </Select>
+                      <FormDescription>通过ETL处理提升文件数据质量，增强向量搜索效果</FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              ) : null}
+
+              {isChunkMode ? (
+                <div className="space-y-3">
+                  <FormField
+                    control={form.control}
+                    name="chunkStrategy"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="text-xs text-muted-foreground font-normal">切分方式</FormLabel>
+                        <Select value={field.value} onValueChange={field.onChange}>
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder="选择切分方式" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            {chunkStrategies.map((option) => (
+                              <SelectItem key={option.value} value={option.value}>
+                                {option.label}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
               {isFixedSize ? (
-                <div className="grid gap-4 md:grid-cols-2">
-                  <FormField
-                    control={form.control}
-                    name="chunkSize"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>块大小</FormLabel>
-                        <FormControl>
-                          <div className="flex items-center gap-2">
+                <>
+                  <div className="grid gap-4 md:grid-cols-3">
+                    <FormField
+                      control={form.control}
+                      name="chunkSize"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel className="text-xs text-muted-foreground font-normal">块大小</FormLabel>
+                          <FormControl>
                             <Input type="number" {...field} />
-                            <Button
-                              type="button"
-                              variant="outline"
-                              onClick={handleNoChunkToggle}
-                              className={noChunk
-                                ? "bg-slate-100 border-slate-400 font-medium"
-                                : ""
-                              }
-                            >
-                              {noChunk && <Check className="w-4 h-4 mr-1" />}
-                              不分块
-                            </Button>
-                          </div>
-                        </FormControl>
-                        <FormDescription>字符数，选择不分块会写入最大值</FormDescription>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={form.control}
-                    name="overlapSize"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>重叠大小</FormLabel>
-                        <FormControl>
-                          <Input type="number" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </div>
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="overlapSize"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel className="text-xs text-muted-foreground font-normal">重叠大小</FormLabel>
+                          <FormControl>
+                            <Input type="number" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormItem>
+                      <FormLabel className="text-xs text-muted-foreground font-normal">不分块</FormLabel>
+                      <FormControl>
+                        <div className="flex h-9 items-center">
+                          <button
+                            type="button"
+                            role="switch"
+                            aria-checked={noChunk}
+                            onClick={handleNoChunkToggle}
+                            className={cn(
+                              "relative inline-flex h-5 w-9 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 focus:ring-offset-background",
+                              noChunk ? "bg-blue-600" : "bg-slate-200"
+                            )}
+                          >
+                            <span
+                              className={cn(
+                                "inline-block h-4 w-4 transform rounded-full bg-background shadow transition-transform",
+                                noChunk ? "translate-x-4" : "translate-x-1"
+                              )}
+                            />
+                          </button>
+                        </div>
+                      </FormControl>
+                      <FormDescription>开启后块大小为-1</FormDescription>
+                    </FormItem>
+                  </div>
+                </>
               ) : (
                 <div className="grid gap-4 md:grid-cols-2">
                   <FormField
@@ -1312,7 +1543,7 @@ function UploadDialog({ open, onOpenChange, onSubmit }: UploadDialogProps) {
                     name="targetChars"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>理想块大小</FormLabel>
+                        <FormLabel className="text-xs text-muted-foreground font-normal">理想块大小</FormLabel>
                         <FormControl>
                           <Input type="number" {...field} />
                         </FormControl>
@@ -1325,7 +1556,7 @@ function UploadDialog({ open, onOpenChange, onSubmit }: UploadDialogProps) {
                     name="maxChars"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>块上限</FormLabel>
+                        <FormLabel className="text-xs text-muted-foreground font-normal">块上限</FormLabel>
                         <FormControl>
                           <Input type="number" {...field} />
                         </FormControl>
@@ -1338,7 +1569,7 @@ function UploadDialog({ open, onOpenChange, onSubmit }: UploadDialogProps) {
                     name="minChars"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>块下限</FormLabel>
+                        <FormLabel className="text-xs text-muted-foreground font-normal">块下限</FormLabel>
                         <FormControl>
                           <Input type="number" {...field} />
                         </FormControl>
@@ -1351,7 +1582,7 @@ function UploadDialog({ open, onOpenChange, onSubmit }: UploadDialogProps) {
                     name="overlapChars"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>重叠大小</FormLabel>
+                        <FormLabel className="text-xs text-muted-foreground font-normal">重叠大小</FormLabel>
                         <FormControl>
                           <Input type="number" {...field} />
                         </FormControl>
@@ -1363,6 +1594,7 @@ function UploadDialog({ open, onOpenChange, onSubmit }: UploadDialogProps) {
               )}
             </div>
             ) : null}
+            </div>
 
             <DialogFooter>
               <Button variant="outline" onClick={() => onOpenChange(false)} disabled={saving}>

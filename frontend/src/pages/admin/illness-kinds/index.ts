@@ -1,0 +1,1 @@
+export { IllnessKindListPage } from "./IllnessKindListPage";

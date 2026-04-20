@@ -61,9 +61,9 @@ const KIND_OPTIONS = [
 ];
 
 const FILTER_SELECT_TRIGGER_CLASS =
-  "h-10 text-sm border-slate-200 focus:ring-0 focus:ring-offset-0 focus-visible:ring-0 focus-visible:ring-offset-0 data-[state=open]:border-slate-200 data-[state=open]:ring-0";
+  "h-10 text-sm border-emerald-200 focus:ring-0 focus:ring-offset-0 focus-visible:ring-0 focus-visible:ring-offset-0 data-[state=open]:border-emerald-300 data-[state=open]:ring-0 bg-white rounded-xl transition-all";
 const FILTER_INPUT_CLASS =
-  "h-10 border-slate-200 pl-10 text-sm focus-visible:ring-0 focus-visible:ring-offset-0 focus-visible:border-slate-200";
+  "h-10 border-emerald-200 pl-10 text-sm focus-visible:ring-0 focus-visible:ring-offset-0 focus-visible:border-emerald-300 bg-white rounded-xl transition-all";
 
 type FlatIntentNode = {
   id: number;
@@ -147,16 +147,16 @@ const resolveKindLabel = (value: number) =>
 
 const resolveKindBadge = (value: number) => {
   const label = resolveKindLabel(value);
-  if (label === "MCP") return "default";
-  if (label === "SYSTEM") return "secondary";
-  return "outline";
+  if (label === "MCP") return "bg-gradient-to-r from-emerald-500 to-teal-500 text-white border-0 shadow-sm";
+  if (label === "SYSTEM") return "bg-gradient-to-r from-teal-100 to-emerald-100 text-teal-700 border-teal-200/50";
+  return "bg-white text-emerald-700 border-emerald-200";
 };
 
 const resolveLevelBadgeClass = (value: number) => {
-  if (value === 0) return "border-[#91d5ff] bg-[#e6f7ff] text-[#1890FF]";
-  if (value === 1) return "border-[#b7eb8f] bg-[#f6ffed] text-[#52C41A]";
-  if (value === 2) return "border-[#ffd591] bg-[#fff7e6] text-[#FA8C16]";
-  return "border-slate-200 bg-slate-50 text-slate-600";
+  if (value === 0) return "bg-gradient-to-r from-emerald-500 to-teal-500 text-white border-0 shadow-sm";
+  if (value === 1) return "bg-gradient-to-r from-teal-100 to-emerald-100 text-teal-700 border-teal-200/50";
+  if (value === 2) return "bg-gradient-to-r from-emerald-50 to-teal-50 text-emerald-600 border-emerald-200/50";
+  return "bg-slate-100 text-slate-600 border-slate-200";
 };
 
 export function IntentListPage() {
@@ -462,7 +462,7 @@ export function IntentListPage() {
 
               <Button
                 variant="outline"
-                className="h-10 gap-1.5 border-slate-200 px-3 text-sm"
+                className="h-10 gap-1.5 border-emerald-200 px-3 text-sm text-emerald-700 hover:bg-emerald-50 hover:border-emerald-300"
                 onClick={loadIntentTree}
                 disabled={loading}
               >
@@ -482,12 +482,12 @@ export function IntentListPage() {
         </div>
       </div>
 
-      <Card className="overflow-hidden">
+      <Card className="overflow-hidden border-emerald-100 shadow-sm rounded-2xl">
         <CardContent className="space-y-3 pt-4">
           {selectedRows.length > 0 ? (
             <div className="-mx-6">
-              <div className="flex flex-wrap items-center justify-between gap-2 rounded-none border-y border-slate-200/80 bg-slate-50 px-6 py-2">
-                <span className="text-sm font-medium text-slate-700">已选 {selectedRows.length} 项</span>
+              <div className="flex flex-wrap items-center justify-between gap-2 rounded-none border-y border-emerald-100/80 bg-gradient-to-r from-emerald-50 to-teal-50 px-6 py-2">
+                <span className="text-sm font-medium text-emerald-700">已选 {selectedRows.length} 项</span>
                 <div className="flex flex-wrap items-center gap-2">
                   <Button
                     size="sm"
@@ -518,17 +518,17 @@ export function IntentListPage() {
                         批量删除
                       </Button>
                     </AlertDialogTrigger>
-                    <AlertDialogContent>
+                    <AlertDialogContent className="rounded-2xl border-emerald-100">
                       <AlertDialogHeader>
-                        <AlertDialogTitle>确认批量删除？</AlertDialogTitle>
+                        <AlertDialogTitle className="text-emerald-800">确认批量删除？</AlertDialogTitle>
                         <AlertDialogDescription>
                           将删除已选中的 {selectedRows.length} 个意图节点，该操作不可恢复。
                         </AlertDialogDescription>
                       </AlertDialogHeader>
                       <AlertDialogFooter>
-                        <AlertDialogCancel>取消</AlertDialogCancel>
+                        <AlertDialogCancel className="rounded-xl border-emerald-200 text-emerald-700 hover:bg-emerald-50">取消</AlertDialogCancel>
                         <AlertDialogAction
-                          className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                          className="bg-gradient-to-r from-red-500 to-rose-500 hover:from-red-600 hover:to-rose-600 text-white rounded-xl border-0 shadow-md"
                           onClick={runBatchDelete}
                         >
                           删除
@@ -552,8 +552,8 @@ export function IntentListPage() {
           ) : (
             <Table className="min-w-[1280px] [&_th]:h-10 [&_th]:py-2 [&_td]:py-2">
               <TableHeader>
-                <TableRow>
-                  <TableHead className="w-[48px]">
+                <TableRow className="bg-gradient-to-r from-emerald-50 to-teal-50 border-b border-emerald-200">
+                  <TableHead className="w-[48px] font-semibold text-emerald-700">
                     <Checkbox
                       checked={allPageSelected ? true : somePageSelected ? "indeterminate" : false}
                       onCheckedChange={(checked) => togglePageSelect(checked === true)}
@@ -561,23 +561,23 @@ export function IntentListPage() {
                       disabled={batchSubmitting !== null || pageRows.length === 0}
                     />
                   </TableHead>
-                  <TableHead className="w-[300px]">意图节点</TableHead>
-                  <TableHead className="w-[120px]">层级</TableHead>
-                  <TableHead className="w-[120px]">类型</TableHead>
-                  <TableHead className="w-[320px]">路径</TableHead>
-                  <TableHead className="w-[220px]">关联资源</TableHead>
-                  <TableHead className="w-[90px]">示例数</TableHead>
-                  <TableHead className="w-[90px]">状态</TableHead>
-                  <TableHead className="sticky right-0 z-20 w-[180px] bg-[#F9FAFB] text-left shadow-[-1px_0_0_rgba(226,232,240,1)]">
+                  <TableHead className="w-[300px] font-semibold text-emerald-700">意图节点</TableHead>
+                  <TableHead className="w-[120px] font-semibold text-emerald-700">层级</TableHead>
+                  <TableHead className="w-[120px] font-semibold text-emerald-700">类型</TableHead>
+                  <TableHead className="w-[320px] font-semibold text-emerald-700">路径</TableHead>
+                  <TableHead className="w-[220px] font-semibold text-emerald-700">关联资源</TableHead>
+                  <TableHead className="w-[90px] font-semibold text-emerald-700">示例数</TableHead>
+                  <TableHead className="w-[90px] font-semibold text-emerald-700">状态</TableHead>
+                  <TableHead className="sticky right-0 z-20 w-[180px] bg-gradient-to-r from-emerald-50 to-teal-50 text-left shadow-[-1px_0_0_rgba(16,185,129,0.2)] font-semibold text-emerald-700">
                     操作
                   </TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {pageRows.map((row) => (
+                {pageRows.map((row, index) => (
                   <TableRow
                     key={row.id}
-                    className="group text-[13px] hover:!bg-slate-50"
+                    className={`${index % 2 === 0 ? 'bg-white' : 'bg-gradient-to-r from-emerald-50/20 to-teal-50/20'} group text-[13px] hover:bg-emerald-50/60 transition-colors duration-200 border-b border-emerald-50/50`}
                   >
                     <TableCell>
                       <Checkbox
@@ -648,18 +648,17 @@ export function IntentListPage() {
                     </TableCell>
                     <TableCell>
                       <Badge
-                        variant={row.enabled === 0 ? "secondary" : "default"}
                         className={cn(
                           row.enabled === 0
-                            ? "border-[#d9d9d9] bg-[#fafafa] text-[#8c8c8c] font-semibold"
-                            : "border-[#b7eb8f] bg-[#f6ffed] text-[#52C41A] font-semibold"
+                            ? "bg-slate-100 text-slate-600 border-slate-200"
+                            : "bg-gradient-to-r from-emerald-500 to-teal-500 text-white border-0 shadow-sm"
                         )}
                       >
                         {row.enabled === 0 ? "禁用" : "启用"}
                       </Badge>
                     </TableCell>
                     <TableCell
-                      className="sticky right-0 z-10 bg-white shadow-[-1px_0_0_rgba(226,232,240,1)] group-hover:bg-slate-50"
+                      className="sticky right-0 z-10 bg-white shadow-[-1px_0_0_rgba(16,185,129,0.2)] group-hover:bg-emerald-50/60"
                     >
                       <div className="flex items-center gap-2">
                         <Button
@@ -705,12 +704,12 @@ export function IntentListPage() {
       </Card>
 
       {showPagination ? (
-        <div className="mt-4 flex flex-wrap items-center justify-between gap-2 text-sm text-slate-500">
-          <span>
-            共 {total} 条，显示 {rangeStart}-{rangeEnd}
+        <div className="mt-4 flex flex-wrap items-center justify-between gap-3 text-sm bg-white/60 backdrop-blur-sm rounded-xl border border-emerald-100 px-5 py-4">
+          <span className="text-slate-600">
+            共 <span className="font-semibold text-emerald-700">{total}</span> 条，显示 <span className="font-semibold text-emerald-700">{rangeStart}-{rangeEnd}</span>
           </span>
           <div className="flex flex-wrap items-center gap-2">
-            <span>每页</span>
+            <span className="text-slate-500">每页</span>
             <Select
               value={String(pageSize)}
               onValueChange={(value) => {
@@ -718,7 +717,7 @@ export function IntentListPage() {
                 setPageNo(1);
               }}
             >
-              <SelectTrigger className="h-8 w-[92px]">
+              <SelectTrigger className="h-8 w-[92px] border-emerald-200">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -734,6 +733,7 @@ export function IntentListPage() {
               size="sm"
               onClick={() => setPageNo(1)}
               disabled={currentPage <= 1}
+              className="h-8 px-3 border-emerald-200 text-emerald-700 hover:bg-emerald-50 rounded-lg transition-all"
             >
               首页
             </Button>
@@ -742,17 +742,19 @@ export function IntentListPage() {
               size="sm"
               onClick={() => setPageNo((prev) => Math.max(1, prev - 1))}
               disabled={currentPage <= 1}
+              className="h-8 px-3 border-emerald-200 text-emerald-700 hover:bg-emerald-50 rounded-lg transition-all"
             >
               上一页
             </Button>
-            <span>
-              {currentPage} / {totalPages}
+            <span className="px-3 text-slate-600">
+              <span className="font-semibold text-emerald-700">{currentPage}</span> / {totalPages}
             </span>
             <Button
               variant="outline"
               size="sm"
               onClick={() => setPageNo((prev) => Math.min(totalPages, prev + 1))}
               disabled={currentPage >= totalPages}
+              className="h-8 px-3 border-emerald-200 text-emerald-700 hover:bg-emerald-50 rounded-lg transition-all"
             >
               下一页
             </Button>
@@ -761,6 +763,7 @@ export function IntentListPage() {
               size="sm"
               onClick={() => setPageNo(totalPages)}
               disabled={currentPage >= totalPages}
+              className="h-8 px-3 border-emerald-200 text-emerald-700 hover:bg-emerald-50 rounded-lg transition-all"
             >
               末页
             </Button>

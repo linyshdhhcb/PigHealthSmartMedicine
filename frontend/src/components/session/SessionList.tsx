@@ -25,7 +25,7 @@ export function SessionList({ onSelect }: SessionListProps) {
   }
 
   if (sessions.length === 0) {
-    return <p className="text-sm text-muted-foreground">暂无会话。</p>;
+    return <p className="text-sm text-emerald-600">暂无会话。</p>;
   }
 
   return (

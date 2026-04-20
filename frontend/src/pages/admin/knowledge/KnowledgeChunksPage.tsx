@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { PenSquare, Plus, RefreshCw, ShieldCheck, ShieldX, Trash2 } from "lucide-react";
+import { CircleHelp, PenSquare, Plus, RefreshCw, ShieldCheck, ShieldX, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
@@ -8,27 +8,25 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 import type { KnowledgeChunk, KnowledgeDocument, PageResult } from "@/services/knowledgeService";
 import {
-  batchDisableChunks,
-  batchEnableChunks,
+  batchToggleChunks,
   createChunk,
   deleteChunk,
-  disableChunk,
-  enableChunk,
+  toggleChunk,
   getChunksPage,
   getDocument,
-  rebuildChunks,
   updateChunk
 } from "@/services/knowledgeService";
 import { getErrorMessage } from "@/utils/error";
 
-const PAGE_SIZE = 12;
+const PAGE_SIZE = 10;
 
 const truncateText = (value?: string | null, max = 120) => {
   if (!value) return "-";
@@ -60,9 +58,6 @@ export function KnowledgeChunksPage() {
     chunk: null
   });
   const [deleteTarget, setDeleteTarget] = useState<KnowledgeChunk | null>(null);
-  const [batchAllAction, setBatchAllAction] = useState<"enable" | "disable" | null>(null);
-  const [rebuildOpen, setRebuildOpen] = useState(false);
-
   const chunks = pageData?.records || [];
 
   const selectedList = useMemo(() => Array.from(selectedIds), [selectedIds]);
@@ -106,7 +101,7 @@ export function KnowledgeChunksPage() {
 
   useEffect(() => {
     setSelectedIds(new Set());
-  }, [docId, pageNo, enabledFilter]);
+  }, [docId, enabledFilter]);
 
   const allSelected = chunks.length > 0 && chunks.every((chunk) => selectedIds.has(String(chunk.id)));
 
@@ -132,54 +127,26 @@ export function KnowledgeChunksPage() {
     });
   };
 
-  const handleBatchEnable = async () => {
+  const handleBatchToggle = async (enabled: boolean) => {
     if (!docId) return;
     if (selectedList.length === 0) {
       toast.error("请选择需要操作的分块");
       return;
     }
-    try {
-      await batchEnableChunks(docId, selectedList);
-      toast.success("批量启用成功");
-      setSelectedIds(new Set());
-      await loadChunks(pageNo, enabledFilter);
-    } catch (error) {
-      toast.error(getErrorMessage(error, "批量启用失败"));
-      console.error(error);
-    }
-  };
-
-  const handleBatchDisable = async () => {
-    if (!docId) return;
-    if (selectedList.length === 0) {
-      toast.error("请选择需要操作的分块");
+    const targetValue = enabled ? 1 : 0;
+    const selectedChunks = chunks.filter((c) => selectedList.includes(String(c.id)));
+    const needChange = selectedChunks.some((c) => c.enabled !== targetValue);
+    if (!needChange) {
+      toast.info(enabled ? "所选分块已全部启用" : "所选分块已全部禁用");
       return;
     }
     try {
-      await batchDisableChunks(docId, selectedList);
-      toast.success("批量禁用成功");
+      await batchToggleChunks(docId, enabled, selectedList);
+      toast.success(enabled ? "批量启用成功" : "批量禁用成功");
       setSelectedIds(new Set());
       await loadChunks(pageNo, enabledFilter);
     } catch (error) {
-      toast.error(getErrorMessage(error, "批量禁用失败"));
-      console.error(error);
-    }
-  };
-
-  const handleBatchAll = async () => {
-    if (!docId || !batchAllAction) return;
-    try {
-      if (batchAllAction === "enable") {
-        await batchEnableChunks(docId);
-      } else {
-        await batchDisableChunks(docId);
-      }
-      toast.success(batchAllAction === "enable" ? "全量启用完成" : "全量禁用完成");
-      setBatchAllAction(null);
-      setPageNo(1);
-      await loadChunks(1, enabledFilter);
-    } catch (error) {
-      toast.error(getErrorMessage(error, "批量操作失败"));
+      toast.error(getErrorMessage(error, enabled ? "批量启用失败" : "批量禁用失败"));
       console.error(error);
     }
   };
@@ -197,28 +164,12 @@ export function KnowledgeChunksPage() {
     }
   };
 
-  const handleRebuild = async () => {
-    if (!docId) return;
-    try {
-      await rebuildChunks(docId);
-      toast.success("重建完成");
-      setRebuildOpen(false);
-    } catch (error) {
-      toast.error(getErrorMessage(error, "重建失败"));
-      console.error(error);
-    }
-  };
-
   const handleToggleEnabled = async (chunk: KnowledgeChunk) => {
     if (!docId) return;
     try {
-      if (chunk.enabled === 1) {
-        await disableChunk(docId, String(chunk.id));
-        toast.success("已禁用");
-      } else {
-        await enableChunk(docId, String(chunk.id));
-        toast.success("已启用");
-      }
+      const enable = chunk.enabled !== 1;
+      await toggleChunk(docId, String(chunk.id), enable);
+      toast.success(enable ? "已启用" : "已禁用");
       await loadChunks(pageNo, enabledFilter);
     } catch (error) {
       toast.error(getErrorMessage(error, "操作失败"));
@@ -239,9 +190,6 @@ export function KnowledgeChunksPage() {
           <Button variant="outline" onClick={() => navigate(`/admin/knowledge/${kbId}`)}>
             返回文档
           </Button>
-          <Button variant="outline" onClick={() => setRebuildOpen(true)}>
-            重建向量
-          </Button>
           <Button className="admin-primary-gradient" onClick={() => setCreateOpen(true)}>
             <Plus className="mr-2 h-4 w-4" />
             新建分块
@@ -249,14 +197,14 @@ export function KnowledgeChunksPage() {
         </div>
       </div>
 
-      <Card>
-        <CardHeader>
+      <Card className="border-emerald-100 shadow-sm overflow-hidden rounded-2xl">
+        <CardHeader className="bg-gradient-to-r from-emerald-50 to-teal-50 border-b border-emerald-100">
           <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
             <div>
-              <CardTitle>Chunk 列表</CardTitle>
+              <CardTitle className="text-emerald-800">Chunk 列表</CardTitle>
               <CardDescription>支持编辑、启停、批量操作</CardDescription>
             </div>
-            <div className="flex flex-1 flex-wrap items-center justify-end gap-2">
+            <div className="flex flex-1 flex-wrap items-center justify-end gap-3">
               <Select
                 value={enabledFilter === undefined ? "all" : String(enabledFilter)}
                 onValueChange={(value) => {
@@ -264,7 +212,7 @@ export function KnowledgeChunksPage() {
                   setEnabledFilter(value === "all" ? undefined : Number(value));
                 }}
               >
-                <SelectTrigger className="w-[160px]">
+                <SelectTrigger className="w-[160px] h-9 border-emerald-200 focus:ring-emerald-400/20 rounded-xl">
                   <SelectValue placeholder="启用状态" />
                 </SelectTrigger>
                 <SelectContent>
@@ -279,20 +227,19 @@ export function KnowledgeChunksPage() {
                   setPageNo(1);
                   loadChunks(1, enabledFilter);
                 }}
+                className="h-9 px-4 border-emerald-200 text-emerald-700 hover:bg-emerald-50 rounded-xl"
               >
                 <RefreshCw className="mr-2 h-4 w-4" />
                 刷新
               </Button>
-              <Button variant="outline" onClick={handleBatchEnable} disabled={selectedList.length === 0}>
+              <Button variant="outline" onClick={() => handleBatchToggle(true)} disabled={selectedList.length === 0} className="h-9 px-4 border-emerald-200 text-emerald-700 hover:bg-emerald-50 rounded-xl">
                 <ShieldCheck className="mr-2 h-4 w-4" />
                 批量启用
               </Button>
-              <Button variant="outline" onClick={handleBatchDisable} disabled={selectedList.length === 0}>
+              <Button variant="outline" onClick={() => handleBatchToggle(false)} disabled={selectedList.length === 0} className="h-9 px-4 border-emerald-200 text-emerald-700 hover:bg-emerald-50 rounded-xl">
                 <ShieldX className="mr-2 h-4 w-4" />
                 批量禁用
               </Button>
-              <Button variant="outline" onClick={() => setBatchAllAction("enable")}>全量启用</Button>
-              <Button variant="outline" onClick={() => setBatchAllAction("disable")}>全量禁用</Button>
             </div>
           </div>
         </CardHeader>
@@ -312,7 +259,21 @@ export function KnowledgeChunksPage() {
                   <TableHead>内容</TableHead>
                   <TableHead className="w-[90px]">状态</TableHead>
                   <TableHead className="w-[90px]">字符数</TableHead>
-                  <TableHead className="w-[90px]">Token数</TableHead>
+                  <TableHead className="w-[90px]">
+                    <span className="inline-flex items-center gap-1">
+                      Token
+                      <TooltipProvider delayDuration={0}>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <CircleHelp className="h-3.5 w-3.5 text-muted-foreground" />
+                          </TooltipTrigger>
+                          <TooltipContent side="top">
+                            <span className="text-xs font-normal">预估Token数，仅提供参考</span>
+                          </TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
+                    </span>
+                  </TableHead>
                   <TableHead className="w-[170px]">更新时间</TableHead>
                   <TableHead className="w-[140px] text-left">操作</TableHead>
                 </TableRow>
@@ -328,7 +289,7 @@ export function KnowledgeChunksPage() {
                       />
                     </TableCell>
                     <TableCell>{chunk.chunkIndex ?? "-"}</TableCell>
-                    <TableCell className="max-w-[360px] text-sm text-muted-foreground">
+                    <TableCell className="max-w-[360px] text-sm text-muted-foreground break-all">
                       {truncateText(chunk.content)}
                     </TableCell>
                     <TableCell>
@@ -395,7 +356,7 @@ export function KnowledgeChunksPage() {
         onOpenChange={setCreateOpen}
         onSubmit={async (payload) => {
           if (!docId) return;
-          await createChunk(docId, payload);
+          await createChunk(docId, { content: payload.content, index: payload.index });
           toast.success("创建成功");
           setCreateOpen(false);
           await loadChunks(pageNo, enabledFilter);
@@ -431,33 +392,6 @@ export function KnowledgeChunksPage() {
         </AlertDialogContent>
       </AlertDialog>
 
-      <AlertDialog open={Boolean(batchAllAction)} onOpenChange={(open) => (!open ? setBatchAllAction(null) : null)}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>确认全量操作？</AlertDialogTitle>
-            <AlertDialogDescription>
-              将对该文档下所有分块执行{batchAllAction === "enable" ? "启用" : "禁用"}操作。
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>取消</AlertDialogCancel>
-            <AlertDialogAction onClick={handleBatchAll}>确认</AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
-
-      <AlertDialog open={rebuildOpen} onOpenChange={setRebuildOpen}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>重建向量索引？</AlertDialogTitle>
-            <AlertDialogDescription>会基于当前启用的分块重新生成向量。</AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>取消</AlertDialogCancel>
-            <AlertDialogAction onClick={handleRebuild}>确认</AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
     </div>
   );
 }
@@ -467,27 +401,23 @@ interface ChunkDialogProps {
   open: boolean;
   chunk?: KnowledgeChunk | null;
   onOpenChange: (open: boolean) => void;
-  onSubmit: (payload: { content: string; index?: number | null; chunkId?: string }) => Promise<void>;
+  onSubmit: (payload: { content: string; index?: number | null }) => Promise<void>;
 }
 
 function ChunkDialog({ mode, open, chunk, onOpenChange, onSubmit }: ChunkDialogProps) {
   const [content, setContent] = useState("");
-  const [indexValue, setIndexValue] = useState<string>("");
-  const [chunkId, setChunkId] = useState<string>("");
+  const [chunkIndex, setChunkIndex] = useState<string>("");
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
     if (!open) return;
     if (mode === "edit") {
       setContent(chunk?.content || "");
-      setIndexValue("");
-      setChunkId("");
+      setChunkIndex("");
       return;
     }
-    const generatedId = `${Date.now()}${Math.floor(Math.random() * 1000).toString().padStart(3, "0")}`;
     setContent("");
-    setIndexValue("");
-    setChunkId(generatedId);
+    setChunkIndex("");
   }, [open, mode, chunk]);
 
   const handleSubmit = async () => {
@@ -497,25 +427,15 @@ function ChunkDialog({ mode, open, chunk, onOpenChange, onSubmit }: ChunkDialogP
       return;
     }
 
-    const payload = {
-      content: trimmed,
-      index: indexValue.trim() ? Number(indexValue) : undefined,
-      chunkId: mode === "create" ? chunkId.trim() : undefined
-    };
-
-    if (payload.index !== undefined && Number.isNaN(payload.index)) {
-      toast.error("索引必须是数字");
-      return;
-    }
-
-    if (mode === "create" && !payload.chunkId) {
-      toast.error("Chunk ID 不能为空");
+    const indexValue = chunkIndex.trim() === "" ? null : Number(chunkIndex);
+    if (chunkIndex.trim() !== "" && (Number.isNaN(indexValue) || !Number.isInteger(indexValue) || (indexValue as number) < 0)) {
+      toast.error("序号必须为非负整数");
       return;
     }
 
     setSaving(true);
     try {
-      await onSubmit(payload);
+      await onSubmit({ content: trimmed, index: indexValue });
     } catch (error) {
       toast.error(getErrorMessage(error, mode === "create" ? "创建失败" : "更新失败"));
       console.error(error);
@@ -527,26 +447,30 @@ function ChunkDialog({ mode, open, chunk, onOpenChange, onSubmit }: ChunkDialogP
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
-        className="sm:max-w-[760px] sm:min-h-[70vh] overflow-hidden flex flex-col max-h-[92vh]"
+        className="sm:max-w-[760px] overflow-hidden flex flex-col max-h-[85vh]"
         onOpenAutoFocus={(e) => e.preventDefault()}
+        onCloseAutoFocus={(e) => { e.preventDefault(); requestAnimationFrame(() => (document.activeElement as HTMLElement)?.blur()); }}
       >
         <DialogHeader>
           <DialogTitle>{mode === "create" ? "新建分块" : "编辑分块"}</DialogTitle>
           <DialogDescription>手动维护分块内容</DialogDescription>
         </DialogHeader>
-        <div className="flex flex-1 flex-col gap-4 overflow-y-auto px-1 pb-3 sidebar-scroll">
-          {mode === "create" ? (
-            <div className="space-y-4">
-              <div>
-                <label className="text-sm font-medium">Chunk ID（数字）</label>
-                <Input value={chunkId} onChange={(event) => setChunkId(event.target.value)} />
-              </div>
-              <div>
-                <label className="text-sm font-medium">序号（可选）</label>
-                <Input value={indexValue} onChange={(event) => setIndexValue(event.target.value)} placeholder="例如：0" />
-              </div>
+        <div className="flex flex-1 flex-col gap-4 overflow-y-auto px-2 pb-3 sidebar-scroll">
+          {mode === "create" && (
+            <div className="flex items-baseline gap-3 pt-1">
+              <label className="shrink-0 text-sm font-medium">序号</label>
+              <Input
+                type="number"
+                min={0}
+                step={1}
+                placeholder="0、1..."
+                className="[appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none h-8 w-24"
+                value={chunkIndex}
+                onChange={(e) => setChunkIndex(e.target.value)}
+              />
+              <span className="text-xs text-muted-foreground">留空则自动追加到末尾</span>
             </div>
-          ) : null}
+          )}
           <div className="flex min-h-0 flex-1 flex-col">
             <label className="text-sm font-medium">内容</label>
             <Textarea

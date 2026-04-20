@@ -253,81 +253,94 @@ export function KnowledgeListPage() {
           <h1 className="admin-page-title">知识库管理</h1>
           <p className="admin-page-subtitle">管理所有知识库及其文档</p>
         </div>
-        <div className="admin-page-actions">
-          <Input
-            value={searchName}
-            onChange={(event) => setSearchName(event.target.value)}
-            placeholder="搜索知识库名称"
-            className="w-[220px]"
-          />
-          <Button variant="outline" onClick={handleSearch}>
+        <div className="admin-page-actions flex flex-wrap items-center gap-3">
+          <div className="relative">
+            <Input
+              value={searchName}
+              onChange={(event) => setSearchName(event.target.value)}
+              placeholder="搜索知识库名称"
+              className="w-[220px] pl-10 h-10 bg-white border-emerald-200 focus:border-emerald-400 focus:ring-emerald-400/20 rounded-xl transition-all duration-200"
+            />
+            <svg className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+            </svg>
+          </div>
+          <Button variant="outline" onClick={handleSearch} className="h-10 px-4 border-emerald-200 text-emerald-700 hover:bg-emerald-50 hover:border-emerald-300 rounded-xl transition-all duration-200">
             搜索
           </Button>
-          <Button variant="outline" onClick={handleRefresh}>
+          <Button variant="outline" onClick={handleRefresh} className="h-10 px-4 border-emerald-200 text-emerald-700 hover:bg-emerald-50 hover:border-emerald-300 rounded-xl transition-all duration-200">
             <RefreshCw className="w-4 h-4 mr-2" />
             刷新
           </Button>
-          <Button className="admin-primary-gradient" onClick={() => setCreateDialogOpen(true)}>
+          <Button className="h-10 px-5 bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 text-white shadow-lg shadow-emerald-500/25 hover:shadow-emerald-600/30 rounded-xl transition-all duration-200 font-medium" onClick={() => setCreateDialogOpen(true)}>
             <Plus className="w-4 h-4 mr-2" />
             新建知识库
           </Button>
         </div>
       </div>
 
-      <div className="admin-stat-grid">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
         {[
-          { label: "知识库", value: stats.totalCount, icon: Database, scope: "全部" },
-          { label: "文档数", value: stats.documentCount, icon: FileBarChart, scope: "全部" },
-          { label: "含文档知识库", value: stats.activeCount, icon: FolderOpen, scope: "全部" },
-          { label: "创建用户数", value: stats.creatorCount, icon: Layers, scope: "全部" }
+          { label: "知识库", value: stats.totalCount, icon: Database, scope: "全部", gradient: "from-emerald-400 to-teal-500" },
+          { label: "文档数", value: stats.documentCount, icon: FileBarChart, scope: "全部", gradient: "from-teal-400 to-emerald-500" },
+          { label: "含文档知识库", value: stats.activeCount, icon: FolderOpen, scope: "全部", gradient: "from-emerald-500 to-teal-600" },
+          { label: "创建用户数", value: stats.creatorCount, icon: Layers, scope: "全部", gradient: "from-teal-500 to-emerald-600" }
         ].map((item) => {
           const Icon = item.icon;
           return (
-            <div key={item.label} className="admin-stat-card">
-              <div className="flex items-center gap-3">
-                <div className="admin-stat-icon">
-                  <Icon className="h-5 w-5" />
+            <div key={item.label} className="relative overflow-hidden bg-white rounded-2xl border border-emerald-100 shadow-sm hover:shadow-lg hover:shadow-emerald-500/10 hover:-translate-y-0.5 transition-all duration-300 group">
+              <div className={`absolute inset-0 bg-gradient-to-br ${item.gradient} opacity-[0.03] group-hover:opacity-[0.06] transition-opacity duration-300`} />
+              <div className="relative p-5">
+                <div className="flex items-center gap-3">
+                  <div className={`p-2.5 rounded-xl bg-gradient-to-br ${item.gradient} shadow-lg`}>
+                    <Icon className="h-5 w-5 text-white" />
+                  </div>
+                  <div>
+                    <div className="text-sm text-slate-500 font-medium">{item.label}</div>
+                    <div className="text-2xl font-bold text-slate-800">{formatStatValue(item.value)}</div>
+                  </div>
                 </div>
-                <div>
-                  <div className="admin-stat-label">{item.label}</div>
-                  <div className="admin-stat-value">{formatStatValue(item.value)}</div>
+                <div className="mt-3 pt-3 border-t border-emerald-100">
+                  <span className="text-xs text-emerald-600 bg-emerald-50 px-2 py-1 rounded-lg">{item.scope}</span>
                 </div>
               </div>
-              <span className="admin-stat-scope admin-stat-scope--stamp">{item.scope}</span>
             </div>
           );
         })}
       </div>
 
-      <Card>
-        <CardContent className="pt-6">
+      <Card className="border-emerald-100 shadow-sm overflow-hidden rounded-2xl">
+        <CardContent className="p-0">
           {loading ? (
-            <div className="text-center py-8 text-muted-foreground">加载中...</div>
+            <div className="text-center py-12 text-muted-foreground">加载中...</div>
           ) : knowledgeBases.length === 0 ? (
-            <div className="text-center py-8 text-muted-foreground">
+            <div className="text-center py-12 text-muted-foreground">
+              <svg className="mx-auto h-12 w-12 text-emerald-300 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+              </svg>
               暂无知识库，点击上方按钮创建
             </div>
           ) : (
             <Table className="min-w-[980px]">
               <TableHeader>
-                <TableRow>
-                  <TableHead className="w-[200px]">名称</TableHead>
-                  <TableHead className="w-[180px]">Embedding模型</TableHead>
-                  <TableHead className="w-[220px]">Collection</TableHead>
-                  <TableHead className="w-[90px]">文档数</TableHead>
-                  <TableHead className="w-[120px]">负责人</TableHead>
-                  <TableHead className="w-[160px]">创建时间</TableHead>
-                  <TableHead className="w-[160px]">修改时间</TableHead>
-                  <TableHead className="w-[150px] text-left">操作</TableHead>
+                <TableRow className="bg-gradient-to-r from-emerald-50 to-teal-50 border-b border-emerald-100 hover:bg-gradient-to-r hover:from-emerald-100 hover:to-teal-100 transition-colors">
+                  <TableHead className="w-[200px] font-semibold text-emerald-700 py-4">名称</TableHead>
+                  <TableHead className="w-[180px] font-semibold text-emerald-700">Embedding模型</TableHead>
+                  <TableHead className="w-[220px] font-semibold text-emerald-700">Collection</TableHead>
+                  <TableHead className="w-[90px] font-semibold text-emerald-700">文档数</TableHead>
+                  <TableHead className="w-[120px] font-semibold text-emerald-700">负责人</TableHead>
+                  <TableHead className="w-[160px] font-semibold text-emerald-700">创建时间</TableHead>
+                  <TableHead className="w-[160px] font-semibold text-emerald-700">修改时间</TableHead>
+                  <TableHead className="w-[150px] text-left font-semibold text-emerald-700">操作</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {knowledgeBases.map((kb) => (
-                  <TableRow key={kb.id}>
-                    <TableCell className="font-medium">
+                {knowledgeBases.map((kb, index) => (
+                  <TableRow key={kb.id} className={`${index % 2 === 0 ? 'bg-white' : 'bg-gradient-to-r from-emerald-50/30 to-teal-50/30'} hover:bg-emerald-50/60 transition-colors duration-200 border-b border-emerald-50`}>
+                    <TableCell className="font-medium py-4">
                       <button
                         type="button"
-                        className="admin-link max-w-[200px] truncate"
+                        className="max-w-[200px] truncate text-emerald-700 hover:text-emerald-600 hover:underline transition-colors"
                         onClick={() => navigate(`/admin/knowledge/${kb.id}`)}
                       >
                         {kb.name}
@@ -340,7 +353,7 @@ export function KnowledgeListPage() {
                       {kb.collectionName ? (
                         <Badge
                           variant="outline"
-                          className={cn("px-3 py-1", getCollectionBadgeClass(kb.collectionName))}
+                          className={cn("px-3 py-1.5 rounded-lg font-medium border-2 transition-all hover:scale-105", getCollectionBadgeClass(kb.collectionName))}
                         >
                           {kb.collectionName}
                         </Badge>
@@ -348,12 +361,18 @@ export function KnowledgeListPage() {
                         "-"
                       )}
                     </TableCell>
-                    <TableCell>{kb.documentCount ?? "-"}</TableCell>
-                    <TableCell>{kb.createdBy || "-"}</TableCell>
-                    <TableCell className="text-muted-foreground">
+                    <TableCell>
+                      <span className="inline-flex items-center justify-center min-w-[36px] px-2.5 py-1 bg-teal-50 text-teal-700 rounded-lg text-sm font-medium">
+                        {kb.documentCount ?? "-"}
+                      </span>
+                    </TableCell>
+                    <TableCell>
+                      <span className="text-slate-600">{kb.createdBy || "-"}</span>
+                    </TableCell>
+                    <TableCell className="text-slate-500">
                       {formatDate(kb.createTime)}
                     </TableCell>
-                    <TableCell className="text-muted-foreground">
+                    <TableCell className="text-slate-500">
                       {formatDate(kb.updateTime)}
                     </TableCell>
                     <TableCell className="text-center">
@@ -364,17 +383,18 @@ export function KnowledgeListPage() {
                           onClick={() => {
                             setRenameDialog({ open: true, kb });
                           }}
+                          className="h-8 px-3 border-emerald-200 text-emerald-600 hover:bg-emerald-50 hover:border-emerald-300 rounded-lg transition-all duration-200"
                         >
-                          <Pencil className="w-4 h-4 mr-0.1" />
+                          <Pencil className="w-3.5 h-3.5 mr-1" />
                           编辑
                         </Button>
                         <Button
                           variant="ghost"
                           size="sm"
-                          className="text-destructive hover:text-destructive"
+                          className="h-8 px-3 text-red-500 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all duration-200"
                           onClick={() => setDeleteTarget(kb)}
                         >
-                          <Trash2 className="w-4 h-4 mr-0.1" />
+                          <Trash2 className="w-3.5 h-3.5 mr-1" />
                           删除
                         </Button>
                       </div>
@@ -393,7 +413,7 @@ export function KnowledgeListPage() {
           <AlertDialogHeader>
             <AlertDialogTitle>确认删除</AlertDialogTitle>
             <AlertDialogDescription>
-              此操作将永久删除该知识库及其所有文档和数据，无法恢复。确定要继续吗？
+              知识库删除后当前不提供恢复入口。确定要继续吗？
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -406,7 +426,7 @@ export function KnowledgeListPage() {
       </AlertDialog>
 
       <Dialog open={renameDialog.open} onOpenChange={(open) => setRenameDialog({ open, kb: open ? renameDialog.kb : null })}>
-        <DialogContent className="sm:max-w-[420px]">
+        <DialogContent className="sm:max-w-[420px]" onOpenAutoFocus={(e) => e.preventDefault()} onCloseAutoFocus={(e) => { e.preventDefault(); requestAnimationFrame(() => (document.activeElement as HTMLElement)?.blur()); }}>
           <DialogHeader>
             <DialogTitle>重命名知识库</DialogTitle>
             <DialogDescription>修改知识库名称</DialogDescription>

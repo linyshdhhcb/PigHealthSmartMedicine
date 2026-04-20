@@ -45,8 +45,8 @@ import {
   updateIngestionPipeline,
   uploadIngestionTask
 } from "@/services/ingestionService";
+import { getSystemSettings } from "@/services/settingsService";
 import { getErrorMessage } from "@/utils/error";
-
 const PIPELINE_PAGE_SIZE = 10;
 const TASK_PAGE_SIZE = 10;
 
@@ -59,7 +59,7 @@ const STATUS_OPTIONS = [
 
 const SOURCE_OPTIONS = [
   { value: "file", label: "Local File" },
-  { value: "url", label: "URL" },
+  { value: "url", label: "Remote URL" },
   { value: "feishu", label: "Feishu" },
   { value: "s3", label: "S3" }
 ];
@@ -75,9 +75,7 @@ const NODE_TYPE_OPTIONS = [
 
 const CHUNK_STRATEGY_OPTIONS = [
   { value: "fixed_size", label: "fixed_size" },
-  { value: "structure_aware", label: "structure_aware" },
-  { value: "sentence", label: "sentence" },
-  { value: "paragraph", label: "paragraph" }
+  { value: "structure_aware", label: "structure_aware" }
 ];
 
 const ENHANCER_TASK_OPTIONS = [
@@ -355,11 +353,12 @@ export function IngestionPage() {
           <h1 className="admin-page-title">数据通道</h1>
           <p className="admin-page-subtitle">管理通道流水线与任务执行情况</p>
         </div>
-        <div className="admin-page-actions">
+        <div className="admin-page-actions flex flex-wrap items-center gap-3">
           <Button
             variant={activeTab === "pipelines" ? "default" : "outline"}
             size="sm"
             onClick={() => handleTabChange("pipelines")}
+            className={activeTab === "pipelines" ? "bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 shadow-lg shadow-emerald-500/25 text-white border-0" : "h-9 px-4 border-emerald-200 text-emerald-700 hover:bg-emerald-50 rounded-xl"}
           >
             <FolderKanban className="mr-2 h-4 w-4" />
             流水线
@@ -368,6 +367,7 @@ export function IngestionPage() {
             variant={activeTab === "tasks" ? "default" : "outline"}
             size="sm"
             onClick={() => handleTabChange("tasks")}
+            className={activeTab === "tasks" ? "bg-gradient-to-r from-teal-500 to-teal-600 hover:from-teal-600 hover:to-teal-700 shadow-lg shadow-teal-500/25 text-white border-0" : "h-9 px-4 border-emerald-200 text-emerald-700 hover:bg-emerald-50 rounded-xl"}
           >
             <ClipboardList className="mr-2 h-4 w-4" />
             任务
@@ -376,29 +376,34 @@ export function IngestionPage() {
       </div>
 
       {activeTab === "pipelines" ? (
-        <Card>
-          <CardHeader>
+        <Card className="border-emerald-100 shadow-sm overflow-hidden rounded-2xl">
+          <CardHeader className="bg-gradient-to-r from-emerald-50 to-teal-50 border-b border-emerald-100">
             <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
               <div>
-                <CardTitle>通道流水线</CardTitle>
+                <CardTitle className="text-emerald-800">通道流水线</CardTitle>
                 <CardDescription>配置节点顺序与处理逻辑</CardDescription>
               </div>
-              <div className="flex flex-1 items-center justify-end gap-2">
-                <Input
-                  value={pipelineSearch}
-                  onChange={(event) => setPipelineSearch(event.target.value)}
-                  placeholder="搜索流水线名称"
-                  className="max-w-xs"
-                />
-                <Button variant="outline" onClick={handlePipelineSearch}>
+              <div className="flex flex-1 items-center justify-end gap-3">
+                <div className="relative">
+                  <Input
+                    value={pipelineSearch}
+                    onChange={(event) => setPipelineSearch(event.target.value)}
+                    placeholder="搜索流水线名称"
+                    className="max-w-xs pl-10 h-9 bg-white border-emerald-200 focus:border-emerald-400 rounded-xl"
+                  />
+                  <svg className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                  </svg>
+                </div>
+                <Button variant="outline" onClick={handlePipelineSearch} className="h-9 px-4 border-emerald-200 text-emerald-700 hover:bg-emerald-50 rounded-xl">
                   搜索
                 </Button>
-                <Button variant="outline" onClick={handlePipelineRefresh}>
+                <Button variant="outline" onClick={handlePipelineRefresh} className="h-9 px-4 border-emerald-200 text-emerald-700 hover:bg-emerald-50 rounded-xl">
                   <RefreshCw className="mr-2 h-4 w-4" />
                   刷新
                 </Button>
                 <Button
-                  className="admin-primary-gradient"
+                  className="h-9 px-5 bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 shadow-lg shadow-emerald-500/25 text-white rounded-xl"
                   onClick={() => setPipelineDialog({ open: true, mode: "create", pipeline: null })}
                 >
                   <Plus className="mr-2 h-4 w-4" />
@@ -476,14 +481,14 @@ export function IngestionPage() {
           </CardContent>
         </Card>
       ) : (
-        <Card>
-          <CardHeader>
+        <Card className="border-emerald-100 shadow-sm overflow-hidden rounded-2xl">
+          <CardHeader className="bg-gradient-to-r from-teal-50 to-emerald-50 border-b border-emerald-100">
             <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
               <div>
-                <CardTitle>通道任务</CardTitle>
+                <CardTitle className="text-emerald-800">通道任务</CardTitle>
                 <CardDescription>监控执行状态与节点日志</CardDescription>
               </div>
-              <div className="flex flex-1 flex-wrap items-center justify-end gap-2">
+              <div className="flex flex-1 flex-wrap items-center justify-end gap-3">
                 <Select
                   value={taskStatus || "all"}
                   onValueChange={(value) => {
@@ -491,7 +496,7 @@ export function IngestionPage() {
                     setTaskStatus(value === "all" ? undefined : value);
                   }}
                 >
-                  <SelectTrigger className="w-[180px]">
+                  <SelectTrigger className="w-[180px] h-9 border-emerald-200 focus:ring-emerald-400/20 rounded-xl">
                     <SelectValue placeholder="任务状态" />
                   </SelectTrigger>
                   <SelectContent>
@@ -503,15 +508,15 @@ export function IngestionPage() {
                     ))}
                   </SelectContent>
                 </Select>
-                <Button variant="outline" onClick={handleTaskRefresh}>
+                <Button variant="outline" onClick={handleTaskRefresh} className="h-9 px-4 border-emerald-200 text-emerald-700 hover:bg-emerald-50 rounded-xl">
                   <RefreshCw className="mr-2 h-4 w-4" />
                   刷新
                 </Button>
-                <Button variant="outline" onClick={() => setUploadDialogOpen(true)}>
+                <Button variant="outline" onClick={() => setUploadDialogOpen(true)} className="h-9 px-4 border-emerald-200 text-emerald-700 hover:bg-emerald-50 rounded-xl">
                   <FileUp className="mr-2 h-4 w-4" />
                   上传文件
                 </Button>
-                <Button className="admin-primary-gradient" onClick={() => setTaskDialogOpen(true)}>
+                <Button className="h-9 px-5 bg-gradient-to-r from-teal-500 to-teal-600 hover:from-teal-600 hover:to-teal-700 shadow-lg shadow-teal-500/25 text-white rounded-xl" onClick={() => setTaskDialogOpen(true)}>
                   <Plus className="mr-2 h-4 w-4" />
                   新建任务
                 </Button>
@@ -1836,6 +1841,7 @@ interface TaskDialogProps {
 function TaskDialog({ open, pipelineOptions, onOpenChange, onSubmit, onUpload }: TaskDialogProps) {
   const [saving, setSaving] = useState(false);
   const [localFile, setLocalFile] = useState<File | null>(null);
+  const [maxFileSize, setMaxFileSize] = useState<number>(50 * 1024 * 1024);
   const form = useForm<TaskFormValues>({
     resolver: zodResolver(taskSchema),
     defaultValues: {
@@ -1894,6 +1900,9 @@ function TaskDialog({ open, pipelineOptions, onOpenChange, onSubmit, onUpload }:
         metadataJson: ""
       });
       setLocalFile(null);
+      getSystemSettings()
+        .then((settings) => setMaxFileSize(settings.upload.maxFileSize))
+        .catch(() => {});
     }
   }, [open, pipelineOptions, form]);
 
@@ -1916,6 +1925,11 @@ function TaskDialog({ open, pipelineOptions, onOpenChange, onSubmit, onUpload }:
     if (values.sourceType === "file") {
       if (!localFile) {
         toast.error("请选择文件");
+        return;
+      }
+      if (localFile.size > maxFileSize) {
+        const sizeMB = Math.floor(maxFileSize / 1024 / 1024);
+        toast.error(`上传文件大小超过限制，最大允许 ${sizeMB}MB`);
         return;
       }
       setSaving(true);
@@ -2131,11 +2145,15 @@ function UploadDialog({ open, pipelineOptions, onOpenChange, onSubmit }: UploadD
   const [pipelineId, setPipelineId] = useState(pipelineOptions[0]?.id || "");
   const [file, setFile] = useState<File | null>(null);
   const [saving, setSaving] = useState(false);
+  const [maxFileSize, setMaxFileSize] = useState<number>(50 * 1024 * 1024);
 
   useEffect(() => {
     if (open) {
       setPipelineId(pipelineOptions[0]?.id || "");
       setFile(null);
+      getSystemSettings()
+        .then((settings) => setMaxFileSize(settings.upload.maxFileSize))
+        .catch(() => {});
     }
   }, [open, pipelineOptions]);
 
@@ -2146,6 +2164,11 @@ function UploadDialog({ open, pipelineOptions, onOpenChange, onSubmit }: UploadD
     }
     if (!file) {
       toast.error("请选择文件");
+      return;
+    }
+    if (file.size > maxFileSize) {
+      const sizeMB = Math.floor(maxFileSize / 1024 / 1024);
+      toast.error(`上传文件大小超过限制，最大允许 ${sizeMB}MB`);
       return;
     }
     setSaving(true);

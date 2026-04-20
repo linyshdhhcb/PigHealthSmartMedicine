@@ -1,0 +1,1 @@
+export { NewsArticleListPage } from "./NewsArticleListPage";

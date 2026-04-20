@@ -94,7 +94,7 @@ function MetricItem({
       <div className="flex items-center gap-2 px-4 py-2">
         <Icon className={cn("h-4 w-4", styles[variant])} />
         <span className={cn("text-lg font-semibold", styles[variant])}>{value}</span>
-        <span className="text-xs text-slate-500">{label}</span>
+        <span className="text-xs text-emerald-600">{label}</span>
       </div>
   );
 }
@@ -141,7 +141,7 @@ function WaterfallRow({
   return (
       <div className={cn(
           "grid grid-cols-[minmax(180px,1fr)_120px_2fr_100px] gap-4 px-4 py-2.5 transition-colors group",
-          "hover:bg-slate-50/80",
+          "hover:bg-emerald-50/80",
           isTopSlowest && "bg-amber-50/40"
       )}>
         <div
@@ -152,7 +152,7 @@ function WaterfallRow({
             "h-2 w-2 rounded-full shrink-0 transition-transform group-hover:scale-125",
             colors.dot
         )} />
-          <span className="text-sm text-slate-700 truncate" title={nodeDisplayName}>
+          <span className="text-sm text-emerald-800 truncate" title={nodeDisplayName}>
           {nodeDisplayName}
         </span>
           {isTopSlowest && (
@@ -162,7 +162,7 @@ function WaterfallRow({
 
         <div className="flex items-center">
         <span
-            className="text-xs text-slate-500 bg-slate-100 px-2 py-0.5 rounded truncate"
+            className="text-xs text-emerald-600 bg-emerald-100 px-2 py-0.5 rounded truncate"
             title={node.nodeType || "-"}
         >
           {node.nodeType || "-"}
@@ -170,11 +170,11 @@ function WaterfallRow({
         </div>
 
         <div className="flex items-center">
-          <div className="relative w-full h-6 bg-slate-50 rounded overflow-hidden">
+          <div className="relative w-full h-6 bg-emerald-50 rounded overflow-hidden">
             {[25, 50, 75].map(p => (
                 <div
                     key={p}
-                    className="absolute top-0 bottom-0 w-px bg-slate-200"
+                    className="absolute top-0 bottom-0 w-px bg-emerald-200"
                     style={{ left: `${p}%` }}
                 />
             ))}
@@ -195,10 +195,10 @@ function WaterfallRow({
         </div>
 
         <div className="text-right">
-          <p className="text-sm font-medium text-slate-700">
+          <p className="text-sm font-medium text-emerald-800">
             {formatDuration(node.resolvedDurationMs)}
           </p>
-          <p className="text-[10px] text-slate-400">
+          <p className="text-[10px] text-emerald-500">
             @{formatDuration(node.offsetMs)}
           </p>
         </div>
@@ -354,14 +354,14 @@ export function RagTraceDetailPage() {
             <div className="flex items-center gap-1.5 text-sm">
               <Link
                   to="/admin/traces"
-                  className="text-slate-500 hover:text-slate-700 transition-colors"
+                  className="text-emerald-600 hover:text-emerald-800 transition-colors"
               >
                 RAG 链路列表
               </Link>
-              <span className="text-slate-300">/</span>
+              <span className="text-emerald-300">/</span>
             </div>
             <div className="flex items-center gap-2">
-              <h1 className="text-lg font-semibold text-slate-900">
+              <h1 className="text-lg font-semibold text-emerald-900">
                 {selectedRun.traceName || "未命名链路"}
               </h1>
               <Badge variant={statusBadgeVariant(selectedRun.status)} className="text-xs">
@@ -376,7 +376,7 @@ export function RagTraceDetailPage() {
                 asChild
                 variant="outline"
                 size="sm"
-                className="text-slate-600 hover:text-slate-800"
+                className="border-emerald-200 text-emerald-700 hover:bg-emerald-50 hover:border-emerald-300 hover:text-emerald-800"
             >
               <Link to="/admin/traces">
                 <ArrowLeft className="mr-1.5 h-4 w-4" />
@@ -386,7 +386,7 @@ export function RagTraceDetailPage() {
             <Button
                 variant="outline"
                 size="sm"
-                className="text-slate-600 hover:text-slate-800"
+                className="border-emerald-200 text-emerald-700 hover:bg-emerald-50 hover:border-emerald-300 hover:text-emerald-800"
                 onClick={() => loadDetail(traceId)}
                 disabled={detailLoading}
             >
@@ -397,9 +397,9 @@ export function RagTraceDetailPage() {
         </div>
 
         {/* 元信息 */}
-        <div className="flex items-center gap-4 text-xs text-slate-500">
+        <div className="flex items-center gap-4 text-xs text-emerald-600">
         <span
-            className="font-mono cursor-pointer hover:text-slate-700 flex items-center gap-1 transition-colors"
+            className="font-mono cursor-pointer hover:text-emerald-800 flex items-center gap-1 transition-colors"
             onClick={() => copyToClipboard(traceId, "Trace Id")}
             title="点击复制 Trace Id"
         >
@@ -430,7 +430,7 @@ export function RagTraceDetailPage() {
         )}
 
         {/* 指标条 */}
-        <div className="flex items-center bg-slate-50 rounded-lg border border-slate-200 divide-x divide-slate-200">
+        <div className="flex items-center bg-emerald-50 rounded-lg border border-emerald-200 divide-x divide-emerald-200">
           <MetricItem
               icon={Clock}
               label="总耗时"
@@ -473,23 +473,23 @@ export function RagTraceDetailPage() {
         <Card>
           <CardHeader className="py-3 px-4">
             <div className="flex items-center justify-between">
-              <CardTitle className="text-sm font-medium text-slate-700">
+              <CardTitle className="text-sm font-medium text-emerald-800">
                 执行时序
               </CardTitle>
-              <span className="text-xs text-slate-500">
+              <span className="text-xs text-emerald-600">
               窗口 {formatDuration(timeline.totalWindowMs)}
             </span>
             </div>
           </CardHeader>
           <CardContent className="p-0">
             {timeline.nodes.length === 0 ? (
-                <div className="py-16 text-center text-slate-400">
+                <div className="py-16 text-center text-emerald-400">
                   <Activity className="h-10 w-10 mx-auto mb-3 opacity-50" />
                   <p>暂无节点记录</p>
                 </div>
             ) : (
                 <div>
-                  <div className="grid grid-cols-[minmax(180px,1fr)_120px_2fr_100px] gap-4 px-4 py-2 text-xs font-medium text-slate-500 bg-slate-50 border-y border-slate-100">
+                  <div className="grid grid-cols-[minmax(180px,1fr)_120px_2fr_100px] gap-4 px-4 py-2 text-xs font-medium text-emerald-700 bg-emerald-50 border-y border-emerald-100">
                     <span>节点</span>
                     <span>类型</span>
                     <span>时间线</span>

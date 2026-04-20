@@ -149,14 +149,21 @@ const findNodeByCode = (nodes: IntentNodeTree[], code: string | null): IntentNod
 const resolveLevelLabel = (value?: number | null) =>
     LEVEL_OPTIONS.find((option) => option.value === (value ?? 0))?.label ?? "UNKNOWN";
 
+const resolveLevelBadgeClass = (value?: number | null) => {
+  const label = LEVEL_OPTIONS.find((option) => option.value === (value ?? 0))?.label ?? "UNKNOWN";
+  if (label === "DOMAIN") return "bg-gradient-to-r from-emerald-500 to-teal-500 text-white border-0 shadow-sm";
+  if (label === "CATEGORY") return "bg-gradient-to-r from-teal-100 to-emerald-100 text-teal-700 border-teal-200/50";
+  return "bg-gradient-to-r from-emerald-50 to-teal-50 text-emerald-600 border-emerald-200/50";
+};
+
 const resolveKindLabel = (value?: number | null) =>
     KIND_OPTIONS.find((option) => option.value === (value ?? 0))?.label ?? "UNKNOWN";
 
 const resolveKindBadge = (value?: number | null) => {
   const label = resolveKindLabel(value);
-  if (label === "MCP") return "default";
-  if (label === "SYSTEM") return "secondary";
-  return "outline";
+  if (label === "MCP") return "bg-gradient-to-r from-emerald-500 to-teal-500 text-white border-0";
+  if (label === "SYSTEM") return "bg-gradient-to-r from-teal-100 to-emerald-100 text-teal-700 border-teal-200/50";
+  return "bg-white text-emerald-700 border-emerald-200";
 };
 
 export function IntentTreePage() {
@@ -271,17 +278,17 @@ export function IntentTreePage() {
         <div key={node.intentCode}>
           <div
               className={cn(
-                  "group flex cursor-pointer items-center justify-between rounded-xl px-3 py-2 transition-colors",
-                  isSelected ? "bg-slate-100 text-slate-900" : "hover:bg-slate-50"
+                  "group flex cursor-pointer items-center justify-between rounded-xl px-4 py-3 transition-all duration-200",
+                  isSelected ? "bg-gradient-to-r from-emerald-100 to-teal-100 text-emerald-900 shadow-sm" : "hover:bg-emerald-50"
               )}
               style={{ paddingLeft: `${depth * 16 + 12}px` }}
               onClick={() => setSelectedCode(node.intentCode)}
           >
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-3">
               {hasChildren ? (
                   <button
                       type="button"
-                      className="flex h-5 w-5 items-center justify-center rounded-md text-muted-foreground hover:text-foreground"
+                      className="flex h-6 w-6 items-center justify-center rounded-lg text-emerald-600 hover:text-emerald-800 hover:bg-emerald-200/50 transition-all"
                       onClick={(event) => {
                         event.stopPropagation();
                         setExpandedMap((prev) => ({
@@ -294,11 +301,11 @@ export function IntentTreePage() {
                     {isExpanded ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
                   </button>
               ) : (
-                  <span className="h-5 w-5" />
+                  <span className="h-6 w-6" />
               )}
               <div className="flex items-center gap-2">
                 <span className="text-sm font-medium text-foreground">{node.name}</span>
-                <Badge variant="outline">{resolveLevelLabel(node.level)}</Badge>
+                <Badge className={resolveLevelBadgeClass(node.level)}>{resolveLevelLabel(node.level)}</Badge>
                 <Badge variant={resolveKindBadge(node.kind)}>{resolveKindLabel(node.kind)}</Badge>
               </div>
             </div>
@@ -318,12 +325,12 @@ export function IntentTreePage() {
             <h1 className="admin-page-title">意图树配置</h1>
             <p className="admin-page-subtitle">配置意图层级、类型和节点关系</p>
           </div>
-          <div className="admin-page-actions">
-            <Button variant="outline" onClick={handleRefresh}>
+          <div className="admin-page-actions flex flex-wrap items-center gap-3">
+            <Button variant="outline" onClick={handleRefresh} className="h-10 px-4 border-emerald-200 text-emerald-700 hover:bg-emerald-50 hover:border-emerald-300 rounded-xl transition-all duration-200">
               <RefreshCw className="mr-2 h-4 w-4" />
               刷新
             </Button>
-            <Button className="admin-primary-gradient" onClick={() => openCreateDialog(null)}>
+            <Button className="h-10 px-5 bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 text-white shadow-lg shadow-emerald-500/25 hover:shadow-emerald-600/30 rounded-xl transition-all duration-200 font-medium" onClick={() => openCreateDialog(null)}>
               <Plus className="mr-2 h-4 w-4" />
               新建根节点
             </Button>
@@ -331,12 +338,12 @@ export function IntentTreePage() {
         </div>
 
         <div className="grid gap-6 lg:grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)]">
-          <Card>
-            <CardHeader>
-              <CardTitle>意图树结构</CardTitle>
+          <Card className="border-emerald-100 shadow-sm overflow-hidden rounded-2xl">
+            <CardHeader className="bg-gradient-to-r from-emerald-50 to-teal-50 border-b border-emerald-100 pb-4">
+              <CardTitle className="text-emerald-800">意图树结构</CardTitle>
               <CardDescription>点击节点查看详情或进行编辑</CardDescription>
             </CardHeader>
-            <CardContent className="space-y-2">
+            <CardContent className="space-y-2 p-5">
               {loading ? (
                   <div className="py-10 text-center text-muted-foreground">加载中...</div>
               ) : tree.length === 0 ? (
@@ -347,9 +354,9 @@ export function IntentTreePage() {
             </CardContent>
           </Card>
 
-          <Card>
-            <CardHeader>
-              <CardTitle>节点详情</CardTitle>
+          <Card className="border-emerald-100 shadow-sm overflow-hidden rounded-2xl">
+            <CardHeader className="bg-gradient-to-r from-teal-50 to-emerald-50 border-b border-emerald-100 pb-4">
+              <CardTitle className="text-emerald-800">节点详情</CardTitle>
               <CardDescription>查看并管理当前选择的节点</CardDescription>
             </CardHeader>
             <CardContent>
@@ -361,29 +368,29 @@ export function IntentTreePage() {
                       <div>
                         <div className="flex items-center gap-2">
                           <h2 className="text-lg font-semibold text-foreground">{selectedNode.name}</h2>
-                          <Badge variant="outline">{resolveLevelLabel(selectedNode.level)}</Badge>
+                          <Badge className={resolveLevelBadgeClass(selectedNode.level)}>{resolveLevelLabel(selectedNode.level)}</Badge>
                           <Badge variant={resolveKindBadge(selectedNode.kind)}>
                             {resolveKindLabel(selectedNode.kind)}
                           </Badge>
-                          <Badge variant={selectedNode.enabled === 0 ? "secondary" : "default"}>
+                          <Badge className={selectedNode.enabled === 0 ? "bg-slate-100 text-slate-600 border-slate-200" : "bg-gradient-to-r from-emerald-500 to-teal-500 text-white border-0 shadow-sm"}>
                             {selectedNode.enabled === 0 ? "停用" : "启用"}
                           </Badge>
                         </div>
                         <p className="mt-1 text-xs text-muted-foreground">{selectedNode.intentCode}</p>
                       </div>
                       <div className="flex flex-col gap-2">
-                        <Button size="sm" onClick={() => openCreateDialog(selectedNode)}>
+                        <Button size="sm" onClick={() => openCreateDialog(selectedNode)} className="h-9 bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white border-0 shadow-md rounded-lg transition-all">
                           <Plus className="mr-2 h-4 w-4" />
                           新建子节点
                         </Button>
-                        <Button size="sm" variant="outline" onClick={() => openEditDialog(selectedNode)}>
+                        <Button size="sm" variant="outline" onClick={() => openEditDialog(selectedNode)} className="h-9 border-emerald-200 text-emerald-700 hover:bg-emerald-50 rounded-lg transition-all">
                           <Pencil className="mr-2 h-4 w-4" />
                           编辑节点
                         </Button>
                         <Button
                             size="sm"
                             variant="ghost"
-                            className="text-destructive hover:text-destructive"
+                            className="h-9 text-red-500 hover:text-red-600 hover:bg-red-50 transition-colors"
                             onClick={() => setDeleteTarget(selectedNode)}
                         >
                           <Trash2 className="mr-2 h-4 w-4" />
@@ -427,7 +434,7 @@ export function IntentTreePage() {
                             return <span className="text-sm text-muted-foreground">暂无示例</span>;
                           }
                           return examples.map((item) => (
-                              <Badge key={item} variant="secondary">
+                              <Badge key={item} className="bg-gradient-to-r from-emerald-50 to-teal-50 text-emerald-700 border-emerald-200/50 px-3 py-1 rounded-full text-xs font-medium shadow-sm">
                                 {item}
                               </Badge>
                           ));
@@ -453,16 +460,16 @@ export function IntentTreePage() {
         />
 
         <AlertDialog open={Boolean(deleteTarget)} onOpenChange={(open) => (!open ? setDeleteTarget(null) : null)}>
-          <AlertDialogContent>
+          <AlertDialogContent className="rounded-2xl border-emerald-100">
             <AlertDialogHeader>
-              <AlertDialogTitle>确认删除节点？</AlertDialogTitle>
+              <AlertDialogTitle className="text-emerald-800">确认删除节点？</AlertDialogTitle>
               <AlertDialogDescription>
                 节点 [{deleteTarget?.name}] 将被永久删除，无法恢复。
               </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>
-              <AlertDialogCancel>取消</AlertDialogCancel>
-              <AlertDialogAction onClick={handleDelete} className="bg-destructive text-destructive-foreground">
+              <AlertDialogCancel className="rounded-xl border-emerald-200 text-emerald-700 hover:bg-emerald-50">取消</AlertDialogCancel>
+              <AlertDialogAction onClick={handleDelete} className="bg-gradient-to-r from-red-500 to-rose-500 hover:from-red-600 hover:to-rose-600 text-white rounded-xl border-0 shadow-md">
                 删除
               </AlertDialogAction>
             </AlertDialogFooter>
@@ -529,7 +536,7 @@ function IntentNodeDialog({
       level: nextLevel,
       kind: parentKind,
       parentCode: parentNode?.intentCode || ROOT_PARENT,
-      kbId: kbMatch?.id || knowledgeBases[0]?.id || "",
+      kbId: "",
       mcpToolId: "",
       collectionName: "",
       description: "",
@@ -571,8 +578,8 @@ function IntentNodeDialog({
         : [];
 
     if (mode === "create") {
-      if (values.kind === 0 && !values.kbId) {
-        form.setError("kbId", { message: "请选择知识库" });
+      if (values.kind === 0 && values.level === 2 && !values.kbId) {
+        form.setError("kbId", { message: "TOPIC 节点请选择知识库" });
         return;
       }
       if (values.kind === 2 && !values.mcpToolId?.trim()) {
@@ -640,9 +647,9 @@ function IntentNodeDialog({
 
   return (
       <Dialog open={open} onOpenChange={onOpenChange}>
-        <DialogContent className="max-h-[85vh] overflow-y-auto sidebar-scroll sm:max-w-[640px]">
+        <DialogContent className="max-h-[85vh] overflow-y-auto sidebar-scroll sm:max-w-[640px] rounded-2xl border-emerald-100">
           <DialogHeader>
-            <DialogTitle>{mode === "create" ? "新建意图节点" : "编辑意图节点"}</DialogTitle>
+            <DialogTitle className="text-emerald-800">{mode === "create" ? "新建意图节点" : "编辑意图节点"}</DialogTitle>
             <DialogDescription>
               {mode === "create" ? "配置意图节点的层级、类型与描述信息" : "更新节点基础信息"}
             </DialogDescription>
@@ -769,11 +776,11 @@ function IntentNodeDialog({
                       name="kbId"
                       render={({ field }) => (
                           <FormItem>
-                            <FormLabel>知识库</FormLabel>
+                            <FormLabel>知识库{form.watch("level") === 2 ? "（必填）" : "（可选）"}</FormLabel>
                             <Select value={field.value} onValueChange={field.onChange}>
                               <FormControl>
                                 <SelectTrigger>
-                                  <SelectValue placeholder="选择知识库" />
+                                  <SelectValue placeholder="请选择知识库" />
                                 </SelectTrigger>
                               </FormControl>
                               <SelectContent>
@@ -798,7 +805,7 @@ function IntentNodeDialog({
                           <FormItem>
                             <FormLabel>Collection 名称</FormLabel>
                             <FormControl>
-                              <Input placeholder="Milvus Collection 名称" {...field} />
+                              <Input placeholder="向量数据库 Collection 名称" {...field} />
                             </FormControl>
                             <FormMessage />
                           </FormItem>

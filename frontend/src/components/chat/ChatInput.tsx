@@ -64,8 +64,8 @@ export function ChatInput() {
         className={cn(
           "relative flex flex-col rounded-2xl border bg-white px-4 pt-3 pb-2 transition-all duration-200",
           isFocused
-            ? "border-[#D4D4D4] shadow-[0_4px_12px_rgba(0,0,0,0.06)]"
-            : "border-[#E5E5E5] hover:border-[#D4D4D4]"
+            ? "border-emerald-300 shadow-[0_4px_12px_rgba(16,185,129,0.1)]"
+            : "border-emerald-200 hover:border-emerald-300"
         )}
       >
         <div className="relative">
@@ -107,16 +107,16 @@ export function ChatInput() {
             className={cn(
               "absolute left-0 rounded-lg border px-3 py-1.5 text-xs font-medium transition-all",
               deepThinkingEnabled
-                ? "border-[#BFDBFE] bg-[#DBEAFE] text-[#2563EB]"
-                : "border-transparent bg-[#F5F5F5] text-[#999999] hover:bg-[#EEEEEE]",
+                ? "border-emerald-200 bg-emerald-50 text-emerald-700"
+                : "border-transparent bg-emerald-50/50 text-emerald-600 hover:bg-emerald-100",
               isStreaming && "cursor-not-allowed opacity-60"
             )}
           >
             <span className="inline-flex items-center gap-2">
-              <Brain className={cn("h-3.5 w-3.5", deepThinkingEnabled && "text-[#3B82F6]")} />
+              <Brain className={cn("h-3.5 w-3.5", deepThinkingEnabled && "text-emerald-600")} />
               深度思考
               {deepThinkingEnabled ? (
-                <span className="h-2 w-2 rounded-full bg-[#3B82F6] animate-pulse" />
+                <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
               ) : null}
             </span>
           </button>
@@ -128,10 +128,10 @@ export function ChatInput() {
             className={cn(
               "ml-auto rounded-full p-2.5 transition-all duration-200",
               isStreaming
-                ? "bg-[#FEE2E2] text-[#EF4444] hover:bg-[#FECACA]"
+                ? "bg-rose-100 text-rose-600 hover:bg-rose-200"
                 : hasContent
-                  ? "bg-[#3B82F6] text-white hover:bg-[#2563EB]"
-                  : "cursor-not-allowed bg-[#F5F5F5] text-[#CCCCCC]"
+                  ? "bg-gradient-to-r from-emerald-500 to-teal-500 text-white hover:from-emerald-600 hover:to-teal-600"
+                  : "cursor-not-allowed bg-emerald-50 text-emerald-300"
             )}
           >
             {isStreaming ? <Square className="h-4 w-4" /> : <Send className="h-4 w-4" />}
@@ -139,21 +139,21 @@ export function ChatInput() {
         </div>
       </div>
       {deepThinkingEnabled ? (
-        <p className="text-xs text-[#2563EB]">
+        <p className="text-xs text-emerald-600">
           <span className="inline-flex items-center gap-1.5">
-            <Lightbulb className="h-3.5 w-3.5" />
+            <Lightbulb className="h-3.5 w-3.5 text-emerald-500" />
             深度思考模式已开启，AI将进行更深入的分析推理
           </span>
         </p>
       ) : null}
-      <p className="text-center text-xs text-[#999999]">
-        <kbd className="rounded bg-[#F5F5F5] px-1.5 py-0.5 text-[#666666]">Enter</kbd> 发送
+      <p className="text-center text-xs text-emerald-600">
+        <kbd className="rounded bg-emerald-50 px-1.5 py-0.5 text-emerald-700">Enter</kbd> 发送
         <span className="px-1.5">·</span>
-        <kbd className="rounded bg-[#F5F5F5] px-1.5 py-0.5 text-[#666666]">
+        <kbd className="rounded bg-emerald-50 px-1.5 py-0.5 text-emerald-700">
           Shift + Enter
         </kbd>{" "}
         换行
-        {isStreaming ? <span className="ml-2 animate-pulse-soft">生成中...</span> : null}
+        {isStreaming ? <span className="ml-2 animate-pulse text-emerald-500">生成中...</span> : null}
       </p>
     </div>
   );

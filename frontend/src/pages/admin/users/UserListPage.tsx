@@ -159,70 +159,87 @@ export function UserListPage() {
           <h1 className="admin-page-title">用户管理</h1>
           <p className="admin-page-subtitle">管理后台账号与角色权限</p>
         </div>
-        <div className="admin-page-actions">
-          <Input
-            value={searchInput}
-            onChange={(event) => setSearchInput(event.target.value)}
-            placeholder="搜索用户名或角色"
-            className="w-[220px]"
-          />
-          <Button variant="outline" onClick={handleSearch}>
+        <div className="admin-page-actions flex flex-wrap items-center gap-3">
+          <div className="relative">
+            <Input
+              value={searchInput}
+              onChange={(event) => setSearchInput(event.target.value)}
+              placeholder="搜索用户名或角色"
+              className="w-[220px] pl-10 h-10 bg-white border-emerald-200 focus:border-emerald-400 focus:ring-emerald-400/20 rounded-xl transition-all duration-200"
+            />
+            <svg className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+            </svg>
+          </div>
+          <Button variant="outline" onClick={handleSearch} className="h-10 px-4 border-emerald-200 text-emerald-700 hover:bg-emerald-50 hover:border-emerald-300 rounded-xl transition-all duration-200">
             搜索
           </Button>
-          <Button variant="outline" onClick={handleRefresh}>
+          <Button variant="outline" onClick={handleRefresh} className="h-10 px-4 border-emerald-200 text-emerald-700 hover:bg-emerald-50 hover:border-emerald-300 rounded-xl transition-all duration-200">
             <RefreshCw className="w-4 h-4 mr-2" />
             刷新
           </Button>
-          <Button className="admin-primary-gradient" onClick={openCreateDialog}>
+          <Button className="h-10 px-5 bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 text-white shadow-lg shadow-emerald-500/25 hover:shadow-emerald-600/30 rounded-xl transition-all duration-200 font-medium" onClick={openCreateDialog}>
             <UserPlus className="w-4 h-4 mr-2" />
             新增用户
           </Button>
         </div>
       </div>
 
-      <Card>
-        <CardContent className="pt-6">
+      <Card className="border-emerald-100 shadow-sm overflow-hidden rounded-2xl">
+        <CardContent className="p-0">
           {loading ? (
-            <div className="text-center py-8 text-muted-foreground">加载中...</div>
+            <div className="text-center py-12 text-muted-foreground">加载中...</div>
           ) : users.length === 0 ? (
-            <div className="text-center py-8 text-muted-foreground">暂无用户</div>
+            <div className="text-center py-12 text-muted-foreground">
+              <svg className="mx-auto h-12 w-12 text-emerald-300 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+              </svg>
+              暂无用户
+            </div>
           ) : (
             <Table className="min-w-[860px]">
               <TableHeader>
-                <TableRow>
-                  <TableHead className="w-[240px]">用户</TableHead>
-                  <TableHead className="w-[140px]">角色</TableHead>
-                  <TableHead className="w-[180px]">创建时间</TableHead>
-                  <TableHead className="w-[180px]">更新时间</TableHead>
-                  <TableHead className="w-[160px] text-left">操作</TableHead>
+                <TableRow className="bg-gradient-to-r from-emerald-50 to-teal-50 border-b border-emerald-100">
+                  <TableHead className="w-[240px] font-semibold text-emerald-700 py-4">用户</TableHead>
+                  <TableHead className="w-[140px] font-semibold text-emerald-700">角色</TableHead>
+                  <TableHead className="w-[180px] font-semibold text-emerald-700">创建时间</TableHead>
+                  <TableHead className="w-[180px] font-semibold text-emerald-700">更新时间</TableHead>
+                  <TableHead className="w-[160px] text-left font-semibold text-emerald-700">操作</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {users.map((user) => {
+                {users.map((user, index) => {
                   const isProtected = isProtectedAdmin(user);
                   const roleLabel = user.role === "admin" ? "管理员" : "成员";
                   return (
-                    <TableRow key={user.id}>
+                    <TableRow key={user.id} className={`${index % 2 === 0 ? 'bg-white' : 'bg-gradient-to-r from-emerald-50/30 to-teal-50/30'} hover:bg-emerald-50/60 transition-colors duration-200 border-b border-emerald-50`}>
                       <TableCell>
                         <div className="flex items-center gap-3">
                           <Avatar
                             name={user.username || "用户"}
                             src={user.avatar?.trim() || undefined}
-                            className="h-9 w-9 border-slate-200 bg-indigo-50 text-xs font-semibold text-indigo-600"
+                            className="h-9 w-9 border-2 border-emerald-200 bg-gradient-to-br from-emerald-50 to-teal-50 text-xs font-semibold text-emerald-600"
                           />
                           <div>
-                            <div className="font-medium text-slate-900">{user.username || "-"}</div>
+                            <div className="font-medium text-slate-800">{user.username || "-"}</div>
                             {isProtected ? (
-                              <div className="text-xs text-slate-400">默认管理员</div>
+                              <div className="text-xs text-emerald-500 flex items-center gap-1">
+                                <svg className="h-3 w-3" fill="currentColor" viewBox="0 0 20 20">
+                                  <path fillRule="evenodd" d="M2.166 4.999A11.954 11.954 0 0010 1.944 11.954 11.954 0 0017.834 5c.11.65.166 1.32.166 2.001 0 5.225-3.34 9.67-8 11.317C5.34 16.67 2 12.225 2 7c0-.682.057-1.35.166-2.001zm11.541 3.708a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                                </svg>
+                                默认管理员
+                              </div>
                             ) : null}
                           </div>
                         </div>
                       </TableCell>
                       <TableCell>
-                        <Badge variant={user.role === "admin" ? "default" : "secondary"}>{roleLabel}</Badge>
+                        <Badge variant={user.role === "admin" ? "default" : "secondary"} className={user.role === "admin" ? "bg-gradient-to-r from-emerald-500 to-teal-500 text-white border-0" : "bg-teal-50 text-teal-700 border-teal-200"}>
+                          {roleLabel}
+                        </Badge>
                       </TableCell>
-                      <TableCell className="text-muted-foreground">{formatDate(user.createTime)}</TableCell>
-                      <TableCell className="text-muted-foreground">{formatDate(user.updateTime)}</TableCell>
+                      <TableCell className="text-slate-500">{formatDate(user.createTime)}</TableCell>
+                      <TableCell className="text-slate-500">{formatDate(user.updateTime)}</TableCell>
                       <TableCell className="text-center">
                         <div className="flex justify-center gap-2">
                           <Button
@@ -230,18 +247,19 @@ export function UserListPage() {
                             size="sm"
                             disabled={isProtected}
                             onClick={() => openEditDialog(user)}
+                            className="h-8 px-3 border-emerald-200 text-emerald-600 hover:bg-emerald-50 hover:border-emerald-300 rounded-lg transition-all duration-200"
                           >
-                            <Pencil className="w-4 h-4 mr-0.5" />
+                            <Pencil className="w-3.5 h-3.5 mr-1" />
                             编辑
                           </Button>
                           <Button
                             variant="ghost"
                             size="sm"
-                            className="text-destructive hover:text-destructive"
+                            className="h-8 px-3 text-red-500 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all duration-200"
                             disabled={isProtected}
                             onClick={() => setDeleteTarget(user)}
                           >
-                            <Trash2 className="w-4 h-4 mr-0.5" />
+                            <Trash2 className="w-3.5 h-3.5 mr-1" />
                             删除
                           </Button>
                         </div>

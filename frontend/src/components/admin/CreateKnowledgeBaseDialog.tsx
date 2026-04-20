@@ -42,7 +42,7 @@ const formSchema = z.object({
     .string()
     .min(1, "请输入Collection名称")
     .max(50, "名称不能超过50个字符")
-    .regex(/^[a-zA-Z0-9_]+$/, "只能包含字母、数字和下划线"),
+    .regex(/^[a-z0-9]+$/, "只能包含小写英文字母和数字"),
 });
 
 type FormValues = z.infer<typeof formSchema>;
@@ -138,11 +138,11 @@ export function CreateKnowledgeBaseDialog({
   return (
     <Dialog open={open} onOpenChange={handleDialogOpenChange}>
       <DialogContent
-        className="sm:max-w-[500px]"
+        className="sm:max-w-[500px] rounded-2xl border-emerald-100 shadow-lg"
         onOpenAutoFocus={(e) => e.preventDefault()}
       >
         <DialogHeader>
-          <DialogTitle>创建知识库</DialogTitle>
+          <DialogTitle className="text-emerald-800">创建知识库</DialogTitle>
           <DialogDescription>
             创建一个新的知识库，用于存储和检索文档
           </DialogDescription>
@@ -175,7 +175,7 @@ export function CreateKnowledgeBaseDialog({
                   <FormLabel>Embedding模型</FormLabel>
                   <Select value={field.value} onValueChange={field.onChange}>
                     <FormControl>
-                      <SelectTrigger>
+                      <SelectTrigger className="border-emerald-200 focus:ring-0 focus:ring-offset-0">
                         <SelectValue placeholder="选择Embedding模型" />
                       </SelectTrigger>
                     </FormControl>
@@ -217,10 +217,10 @@ export function CreateKnowledgeBaseDialog({
                 <FormItem>
                   <FormLabel>Collection名称</FormLabel>
                   <FormControl>
-                    <Input placeholder="例如：product_docs" {...field} />
+                    <Input placeholder="例如：productdocs" {...field} />
                   </FormControl>
                   <FormDescription>
-                    Milvus中的Collection名称，只能包含字母、数字和下划线
+                    只能包含小写英文字母和数字
                   </FormDescription>
                   <FormMessage />
                 </FormItem>
@@ -233,10 +233,15 @@ export function CreateKnowledgeBaseDialog({
                 variant="outline"
                 onClick={() => handleDialogOpenChange(false)}
                 disabled={loading}
+                className="h-10 px-5 border-emerald-200 text-emerald-700 hover:bg-emerald-50 hover:border-emerald-300 rounded-xl transition-all"
               >
                 取消
               </Button>
-              <Button type="submit" disabled={loading}>
+              <Button 
+                type="submit" 
+                disabled={loading}
+                className="h-10 px-6 bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white rounded-xl shadow-md transition-all"
+              >
                 {loading ? "创建中..." : "创建"}
               </Button>
             </DialogFooter>

@@ -18,7 +18,7 @@ export function SessionItem({ session, active, onSelect, onDelete }: SessionItem
     <div
       className={cn(
         "group flex cursor-pointer items-center justify-between rounded-2xl border border-transparent px-3 py-2 transition",
-        active ? "border-border bg-background/80" : "hover:bg-muted/50"
+        active ? "border-emerald-200 bg-emerald-50/80" : "hover:bg-emerald-50/50"
       )}
       onClick={onSelect}
       role="button"
@@ -28,35 +28,36 @@ export function SessionItem({ session, active, onSelect, onDelete }: SessionItem
       }}
     >
       <div className="min-w-0">
-        <p className="truncate text-sm font-medium">{truncate(session.title || "新对话", 36)}</p>
-        <p className="text-xs text-muted-foreground">{formatTimestamp(session.lastTime)}</p>
+        <p className="truncate text-sm font-medium text-emerald-800">{truncate(session.title || "新对话", 36)}</p>
+        <p className="text-xs text-emerald-600">{formatTimestamp(session.lastTime)}</p>
       </div>
       <AlertDialog>
         <AlertDialogTrigger asChild>
           <Button
             variant="ghost"
             size="icon"
-            className="opacity-0 transition group-hover:opacity-100"
+            className="opacity-0 transition group-hover:opacity-100 text-emerald-600 hover:bg-emerald-100"
             onClick={(event) => event.stopPropagation()}
             aria-label="删除会话"
           >
             <Trash2 className="h-4 w-4" />
           </Button>
         </AlertDialogTrigger>
-        <AlertDialogContent>
+        <AlertDialogContent className="rounded-2xl border-emerald-100">
           <AlertDialogHeader>
-            <AlertDialogTitle>删除该会话？</AlertDialogTitle>
+            <AlertDialogTitle className="text-emerald-800">删除该会话？</AlertDialogTitle>
             <AlertDialogDescription>
               会话与消息将被永久删除，无法恢复。
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>取消</AlertDialogCancel>
+            <AlertDialogCancel className="rounded-xl border-emerald-200 text-emerald-700 hover:bg-emerald-50">取消</AlertDialogCancel>
             <AlertDialogAction
               onClick={(event) => {
                 event.stopPropagation();
                 onDelete();
               }}
+              className="bg-gradient-to-r from-red-500 to-rose-500 hover:from-red-600 hover:to-rose-600 text-white rounded-xl border-0 shadow-md"
             >
               删除
             </AlertDialogAction>

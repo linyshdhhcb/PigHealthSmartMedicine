@@ -55,7 +55,7 @@ type DashboardTrendBundle = {
   quality: DashboardTrends | null;
 };
 
-type HealthStatus = "healthy" | "attention" | "critical";
+type HealthStatus = "healthy" | "attention" | "critical" | "unknown";
 type MetricTone = "good" | "warning" | "bad";
 
 type MetricStatusView = {
@@ -151,9 +151,10 @@ const getHealthStatus = (
       successRate?: number | null;
       errorRate?: number | null;
       noDocRate?: number | null;
-    } | null
+    } | null,
+    windowMessages?: number
 ): HealthStatus => {
-  if (!performance) return "attention";
+  if (!performance || !windowMessages) return "unknown";
   if ((performance.errorRate ?? 0) > DASHBOARD_THRESHOLDS.errorRate.warning) return "critical";
   if ((performance.successRate ?? 0) < DASHBOARD_THRESHOLDS.successRate.warning) return "critical";
   if ((performance.noDocRate ?? 0) > 20) return "attention";
@@ -299,8 +300,9 @@ const useDashboardData = () => {
   };
 };
 
-const useHealthStatus = (performance: DashboardPerformance | null) => {
-  const health = useMemo(() => getHealthStatus(performance), [performance]);
+const useHealthStatus = (performance: DashboardPerformance | null, overview: DashboardOverview | null) => {
+  const windowMessages = overview?.kpis?.messages24h?.value;
+  const health = useMemo(() => getHealthStatus(performance, windowMessages), [performance, windowMessages]);
 
   const metricStatus = useMemo<MetricStatusView>(
       () => ({
@@ -320,17 +322,17 @@ const useHealthStatus = (performance: DashboardPerformance | null) => {
 // ============================================================================
 
 const DashCard = ({ children, className }: { children: ReactNode; className?: string }) => (
-    <div className={cn("rounded-2xl bg-white p-5 shadow-[0_1px_3px_rgba(0,0,0,0.08)]", className)}>
+    <div className={cn("rounded-2xl border border-emerald-100 bg-white p-5 shadow-sm transition-all duration-300 hover:shadow-md", className)}>
       {children}
     </div>
 );
 
 const CardTitle = ({ children }: { children: ReactNode }) => (
-    <h3 className="mb-4 text-sm font-semibold text-slate-700">{children}</h3>
+    <h3 className="mb-4 text-sm font-semibold text-emerald-800">{children}</h3>
 );
 
 const LoadingBlock = ({ className }: { className?: string }) => (
-    <div className={cn("animate-pulse rounded-lg bg-slate-100", className)} />
+    <div className={cn("animate-pulse rounded-lg bg-emerald-50", className)} />
 );
 
 // ============================================================================
@@ -340,7 +342,8 @@ const LoadingBlock = ({ className }: { className?: string }) => (
 const HEALTH_CONFIG: Record<HealthStatus, { bg: string; text: string; label: string }> = {
   healthy: { bg: "bg-emerald-100", text: "text-emerald-700", label: "运行正常" },
   attention: { bg: "bg-amber-100", text: "text-amber-700", label: "需要关注" },
-  critical: { bg: "bg-red-100", text: "text-red-700", label: "风险偏高" }
+  critical: { bg: "bg-red-100", text: "text-red-700", label: "风险偏高" },
+  unknown: { bg: "bg-gray-100", text: "text-gray-500", label: "暂无数据" }
 };
 
 const DashboardHeader = ({
@@ -357,10 +360,10 @@ const DashboardHeader = ({
   onTimeWindowChange: (window: DashboardTimeWindow) => void;
 }) => (
     <header className="mb-3 flex items-center justify-between">
-      <h1 className="text-4xl font-bold tracking-tight text-slate-900">Dashboard</h1>
+      <h1 className="text-4xl font-bold tracking-tight bg-gradient-to-r from-emerald-700 to-teal-700 bg-clip-text text-transparent">Dashboard</h1>
 
       <div className="flex items-center gap-3">
-        <div className="inline-flex rounded-lg bg-white p-1 shadow-sm">
+        <div className="inline-flex rounded-lg border border-emerald-200 bg-white p-1 shadow-sm">
           {WINDOW_OPTIONS.map((opt) => (
               <button
                   key={opt.value}
@@ -369,8 +372,8 @@ const DashboardHeader = ({
                   className={cn(
                       "rounded-md px-3 py-1.5 text-sm font-medium transition-all",
                       timeWindow === opt.value
-                          ? "bg-slate-900 text-white"
-                          : "text-slate-500 hover:text-slate-700"
+                          ? "bg-gradient-to-r from-emerald-600 to-teal-600 text-white shadow-sm"
+                          : "text-gray-600 hover:text-emerald-700 hover:bg-emerald-50"
                   )}
               >
                 {opt.label}
@@ -378,8 +381,8 @@ const DashboardHeader = ({
           ))}
         </div>
 
-        <div className="flex items-center gap-2 text-sm text-slate-400">
-          <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
+        <div className="flex items-center gap-2 text-sm text-gray-500">
+          <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
           <span>{formatLastUpdated(lastUpdated)}</span>
         </div>
 
@@ -388,7 +391,7 @@ const DashboardHeader = ({
             size="icon"
             onClick={onRefresh}
             disabled={loading}
-            className="h-9 w-9 rounded-lg border-slate-200 bg-white text-slate-500 hover:text-slate-700"
+            className="h-9 w-9 rounded-lg border-emerald-200 bg-white text-emerald-600 hover:bg-emerald-50 hover:border-emerald-300 hover:text-emerald-700 transition-all duration-200"
         >
           <RefreshCw className={cn("h-4 w-4", loading && "animate-spin")} />
         </Button>
@@ -420,14 +423,14 @@ const KPICardItem = ({ value, label, change, icon, iconBg, iconColor }: KPICardP
           : "text-red-500";
 
   return (
-      <div className="rounded-xl bg-slate-50 p-4">
+      <div className="rounded-xl border border-emerald-100 bg-gradient-to-br from-emerald-50/50 to-teal-50/50 p-4 transition-all duration-200 hover:shadow-md">
         <div className="flex items-start justify-between">
           <div>
-            <p className="text-2xl font-bold tracking-tight text-slate-900">{value}</p>
-            <p className="mt-1 text-sm text-slate-500">{label}</p>
+            <p className="text-2xl font-bold tracking-tight text-emerald-900">{value}</p>
+            <p className="mt-1 text-sm text-emerald-600">{label}</p>
           </div>
           <div
-              className="flex h-10 w-10 items-center justify-center rounded-xl"
+              className="flex h-10 w-10 items-center justify-center rounded-xl shadow-sm"
               style={{ backgroundColor: iconBg, color: iconColor }}
           >
             {icon}
@@ -446,10 +449,10 @@ const KPICardItem = ({ value, label, change, icon, iconBg, iconColor }: KPICardP
               {change!.value > 0 ? "+" : ""}
                   {change!.value.toFixed(1)}%
             </span>
-                <span className="text-slate-400">较上周期</span>
+                <span className="text-emerald-400">较上周期</span>
               </>
           ) : (
-              <span className="text-slate-400">--</span>
+              <span className="text-gray-400">--</span>
           )}
         </div>
       </div>
@@ -710,7 +713,7 @@ const SimpleAreaChart = ({
             {yTicks.map((_, i) => (
                 <div
                     key={i}
-                    className="absolute left-0 right-0 border-t border-dashed border-slate-100"
+                    className="absolute left-0 right-0 border-t border-dashed border-emerald-100"
                     style={{ top: `${(i / (yTicks.length - 1)) * 100}%` }}
                 />
             ))}
@@ -724,15 +727,15 @@ const SimpleAreaChart = ({
           >
             <defs>
               <linearGradient id="trafficGradient" x1="0%" y1="0%" x2="0%" y2="100%">
-                <stop offset="0%" stopColor="#3B82F6" stopOpacity="0.25" />
-                <stop offset="100%" stopColor="#3B82F6" stopOpacity="0.02" />
+                <stop offset="0%" stopColor="#10B981" stopOpacity="0.25" />
+                <stop offset="100%" stopColor="#10B981" stopOpacity="0.02" />
               </linearGradient>
             </defs>
             <path d={areaPath} fill="url(#trafficGradient)" />
             <path
                 d={linePath}
                 fill="none"
-                stroke="#3B82F6"
+                stroke="#10B981"
                 strokeWidth="2"
                 vectorEffect="non-scaling-stroke"
             />
@@ -748,12 +751,12 @@ const SimpleAreaChart = ({
                 />
                 {/* 圆点 */}
                 <div
-                    className="pointer-events-none absolute h-3 w-3 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-blue-500 bg-white shadow-sm"
+                    className="pointer-events-none absolute h-3 w-3 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-emerald-500 bg-white shadow-sm"
                     style={{ left: tooltip.x, top: tooltip.y }}
                 />
                 {/* 标签 */}
                 <div
-                    className="pointer-events-none absolute z-10 -translate-x-1/2 whitespace-nowrap rounded-lg bg-slate-800 px-2.5 py-1.5 text-xs text-white shadow-lg"
+                    className="pointer-events-none absolute z-10 -translate-x-1/2 whitespace-nowrap rounded-lg bg-gradient-to-br from-emerald-700 to-teal-700 px-2.5 py-1.5 text-xs text-white shadow-lg"
                     style={{
                       left: tooltip.x,
                       top: Math.max(0, tooltip.y - 48)
@@ -761,7 +764,7 @@ const SimpleAreaChart = ({
                 >
                   <div className="font-medium">{tooltip.label}</div>
                   <div className="flex items-center gap-1">
-                    <span className="h-2 w-2 rounded-sm bg-blue-400" />
+                    <span className="h-2 w-2 rounded-sm bg-emerald-400" />
                     <span>
                   {valueLabel}: {tooltip.value}
                 </span>
@@ -828,14 +831,14 @@ const TrafficOverviewSection = ({
   return (
       <DashCard className={cn("flex flex-col", className)}>
         <div className="mb-3">
-          <p className="text-sm font-semibold text-slate-700">流量概览</p>
+          <p className="text-sm font-semibold text-emerald-800">流量概览</p>
           {showChange}
         </div>
 
         {loading ? (
             <LoadingBlock className="h-full flex-1" />
         ) : chartData.length === 0 ? (
-            <div className="flex flex-1 items-center justify-center text-sm text-slate-400">
+            <div className="flex flex-1 items-center justify-center text-sm text-emerald-400">
               暂无流量数据
             </div>
         ) : (
@@ -892,9 +895,9 @@ const TrendChartItem = ({
   }
 
   return (
-      <div className="rounded-xl bg-slate-50 p-4">
-        <div className="mb-1 text-xs font-medium text-slate-500">{title}</div>
-        {yAxisLabel && <p className="mb-2 text-[11px] text-slate-400">{yAxisLabel}</p>}
+      <div className="rounded-xl border border-emerald-100 bg-gradient-to-br from-emerald-50/30 to-teal-50/30 p-4 transition-all duration-200 hover:shadow-md">
+        <div className="mb-1 text-xs font-medium text-emerald-700">{title}</div>
+        {yAxisLabel && <p className="mb-2 text-[11px] text-emerald-600/70">{yAxisLabel}</p>}
         <div className="h-48">
           <SimpleLineChart
               series={series}
@@ -1033,10 +1036,10 @@ const QualitySnapshot = ({
   ];
 
   return (
-      <div className="mt-4 rounded-xl border border-slate-100 bg-slate-50 p-3.5">
+      <div className="mt-4 rounded-xl border border-emerald-100 bg-emerald-50 p-3.5">
         <div className="mb-3 flex items-center justify-between">
-          <p className="text-xs font-medium text-slate-600">质量快照（柱状）</p>
-          <span className="text-[11px] text-slate-400">{windowLabel}</span>
+          <p className="text-xs font-medium text-emerald-700">质量快照（柱状）</p>
+          <span className="text-[11px] text-emerald-500">{windowLabel}</span>
         </div>
         <div className="grid grid-cols-3 gap-2.5">
           {items.map((item) => {
@@ -1087,19 +1090,19 @@ const EfficiencySnapshot = ({
   ];
 
   return (
-      <div className="mt-4 rounded-xl border border-slate-100 bg-slate-50 p-3.5">
+      <div className="mt-4 rounded-xl border border-emerald-100 bg-emerald-50 p-3.5">
         <div className="mb-1.5 flex items-center justify-between">
-          <p className="text-xs font-medium text-slate-600">运营效率</p>
-          <span className="text-[11px] text-slate-400">{windowLabel}</span>
+          <p className="text-xs font-medium text-emerald-700">运营效率</p>
+          <span className="text-[11px] text-emerald-500">{windowLabel}</span>
         </div>
-        <div className="divide-y divide-slate-100">
+        <div className="divide-y divide-emerald-100">
           {metrics.map((metric) => {
             const valueText =
                 metric.value === null ? "-" : `${formatRatio(metric.value)} ${metric.unit}`;
             return (
                 <div key={metric.label} className="flex items-center justify-between py-2">
-                  <span className="text-xs text-slate-500">{metric.label}</span>
-                  <span className="text-sm font-semibold tabular-nums text-slate-700">{valueText}</span>
+                  <span className="text-xs text-emerald-600">{metric.label}</span>
+                  <span className="text-sm font-semibold tabular-nums text-emerald-800">{valueText}</span>
                 </div>
             );
           })}
@@ -1134,7 +1137,7 @@ const AIPerformanceCard = ({
   return (
       <DashCard>
         <div className="mb-4 flex items-center justify-between">
-          <h3 className="text-sm font-semibold text-slate-700">AI 性能</h3>
+          <h3 className="text-sm font-semibold text-emerald-800">AI 性能</h3>
           <span
               className={cn("rounded-full px-2.5 py-1 text-xs font-medium", healthCfg.bg, healthCfg.text)}
           >
@@ -1243,19 +1246,21 @@ const InsightCard = ({ item }: { item: InsightCardData }) => {
 const buildInsightList = (
     performance: DashboardPerformance | null,
     timeWindowLabel: string,
-    timestamp: number | null
+    timestamp: number | null,
+    overview: DashboardOverview | null
 ): InsightCardData[] => {
   const t = formatTime(timestamp);
+  const windowMessages = overview?.kpis?.messages24h?.value;
 
-  if (!performance) {
+  if (!performance || !windowMessages) {
     return [
       {
         type: "trend",
         severity: "info",
-        title: "等待数据回传",
+        title: "暂无会话数据",
         metric: "Dashboard",
         change: timeWindowLabel,
-        context: "当前窗口尚未返回完整性能数据",
+        context: "当前窗口内暂无消息记录，各项指标将在会话产生后自动更新",
         timestamp: t
       }
     ];
@@ -1329,18 +1334,20 @@ const buildInsightList = (
 
 const InsightSection = ({
                           performance,
+                          overview,
                           timeWindowLabel,
                           timestamp,
                           className
                         }: {
   performance: DashboardPerformance | null;
+  overview: DashboardOverview | null;
   timeWindowLabel: string;
   timestamp: number | null;
   className?: string;
 }) => {
   const items = useMemo(
-      () => buildInsightList(performance, timeWindowLabel, timestamp),
-      [performance, timeWindowLabel, timestamp]
+      () => buildInsightList(performance, timeWindowLabel, timestamp, overview),
+      [performance, timeWindowLabel, timestamp, overview]
   );
   const contentRef = useRef<HTMLDivElement | null>(null);
   const [isScrollable, setIsScrollable] = useState(false);
@@ -1441,7 +1448,7 @@ export function DashboardPage() {
     refresh
   } = useDashboardData();
 
-  const { health, metricStatus } = useHealthStatus(performance);
+  const { health, metricStatus } = useHealthStatus(performance, overview);
 
   useEffect(() => {
     if (error) toast.error(error);
@@ -1480,6 +1487,7 @@ export function DashboardPage() {
             />
             <InsightSection
                 performance={performance}
+                overview={overview}
                 timeWindowLabel={WINDOW_LABEL_MAP[timeWindow]}
                 timestamp={lastUpdated}
                 className="h-[360px]"

@@ -168,29 +168,34 @@ export function SampleQuestionPage() {
           <h1 className="admin-page-title">示例问题管理</h1>
           <p className="admin-page-subtitle">配置欢迎页的示例问题与推荐问法</p>
         </div>
-        <div className="admin-page-actions">
-          <Input
-            value={searchKeyword}
-            onChange={(event) => setSearchKeyword(event.target.value)}
-            placeholder="搜索标题/描述/问题"
-            className="w-[240px]"
-          />
-          <Button variant="outline" onClick={handleSearch}>
+        <div className="admin-page-actions flex flex-wrap items-center gap-3">
+          <div className="relative">
+            <Input
+              value={searchKeyword}
+              onChange={(event) => setSearchKeyword(event.target.value)}
+              placeholder="搜索标题/描述/问题"
+              className="w-[240px] pl-10 h-10 bg-white border-emerald-200 focus:border-emerald-400 focus:ring-emerald-400/20 rounded-xl transition-all duration-200"
+            />
+            <svg className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+            </svg>
+          </div>
+          <Button variant="outline" onClick={handleSearch} className="h-10 px-4 border-emerald-200 text-emerald-700 hover:bg-emerald-50 hover:border-emerald-300 rounded-xl transition-all duration-200">
             搜索
           </Button>
-          <Button variant="outline" onClick={handleRefresh}>
+          <Button variant="outline" onClick={handleRefresh} className="h-10 px-4 border-emerald-200 text-emerald-700 hover:bg-emerald-50 hover:border-emerald-300 rounded-xl transition-all duration-200">
             <RefreshCw className="w-4 h-4 mr-2" />
             刷新
           </Button>
-          <Button className="admin-primary-gradient" onClick={openCreateDialog}>
+          <Button className="h-10 px-5 bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 text-white shadow-lg shadow-emerald-500/25 hover:shadow-emerald-600/30 rounded-xl transition-all duration-200 font-medium" onClick={openCreateDialog}>
             <Plus className="w-4 h-4 mr-2" />
             新增示例
           </Button>
         </div>
       </div>
 
-      <Card>
-        <CardContent className="pt-6">
+      <Card className="border-emerald-100 shadow-sm overflow-hidden rounded-2xl">
+        <CardContent className="p-0 pt-6">
           {loading ? (
             <div className="text-center py-8 text-muted-foreground">加载中...</div>
           ) : records.length === 0 ? (
@@ -200,39 +205,39 @@ export function SampleQuestionPage() {
           ) : (
             <Table className="min-w-[860px]">
               <TableHeader>
-                <TableRow>
-                  <TableHead className="w-[180px]">标题</TableHead>
-                  <TableHead className="w-[220px]">描述</TableHead>
-                  <TableHead>示例问题</TableHead>
-                  <TableHead className="w-[170px]">更新时间</TableHead>
-                  <TableHead className="w-[140px] text-left">操作</TableHead>
+                <TableRow className="bg-gradient-to-r from-emerald-50 to-teal-50 border-b border-emerald-200">
+                  <TableHead className="w-[180px] font-semibold text-emerald-700 py-4">标题</TableHead>
+                  <TableHead className="w-[220px] font-semibold text-emerald-700">描述</TableHead>
+                  <TableHead className="font-semibold text-emerald-700">示例问题</TableHead>
+                  <TableHead className="w-[170px] font-semibold text-emerald-700">更新时间</TableHead>
+                  <TableHead className="w-[140px] text-left font-semibold text-emerald-700">操作</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {records.map((item) => (
-                  <TableRow key={item.id}>
-                    <TableCell className="font-medium max-w-[160px] truncate" title={item.title || ""}>
+                {records.map((item, index) => (
+                  <TableRow key={item.id} className={`${index % 2 === 0 ? 'bg-white' : 'bg-gradient-to-r from-emerald-50/20 to-teal-50/20'} hover:bg-emerald-50/60 transition-colors duration-200 border-b border-emerald-50/50`}>
+                    <TableCell className="font-medium max-w-[160px] truncate text-slate-800" title={item.title || ""}>
                       {item.title || "-"}
                     </TableCell>
-                    <TableCell className="max-w-[200px] truncate" title={item.description || ""}>
+                    <TableCell className="max-w-[200px] truncate text-slate-600" title={item.description || ""}>
                       {item.description || "-"}
                     </TableCell>
-                    <TableCell className="max-w-[360px] truncate" title={item.question}>
+                    <TableCell className="max-w-[360px] truncate text-slate-600" title={item.question}>
                       {item.question}
                     </TableCell>
-                    <TableCell className="text-muted-foreground">
+                    <TableCell className="text-emerald-600/70">
                       {formatDate(item.updateTime || item.createTime)}
                     </TableCell>
                     <TableCell className="text-center">
                       <div className="flex justify-end gap-2">
-                        <Button variant="outline" size="sm" onClick={() => openEditDialog(item)}>
+                        <Button variant="outline" size="sm" onClick={() => openEditDialog(item)} className="h-8 px-3 border-emerald-200 text-emerald-700 hover:bg-emerald-50 hover:border-emerald-300 rounded-lg transition-all duration-200">
                           <Pencil className="w-4 h-4 mr-0.5" />
                           编辑
                         </Button>
                         <Button
                           variant="ghost"
                           size="sm"
-                          className="text-destructive hover:text-destructive"
+                          className="h-8 px-3 text-red-500 hover:text-red-600 hover:bg-red-50 transition-colors"
                           onClick={() => setDeleteTarget(item)}
                         >
                           <Trash2 className="w-4 h-4 mr-0.5" />
@@ -249,25 +254,27 @@ export function SampleQuestionPage() {
       </Card>
 
       {pageData ? (
-        <div className="mt-4 flex flex-wrap items-center justify-between gap-2 text-sm text-slate-500">
-          <span>共 {pageData.total} 条</span>
+        <div className="mt-4 flex flex-wrap items-center justify-between gap-3 text-sm bg-white/60 backdrop-blur-sm rounded-xl border border-emerald-100 px-5 py-4">
+          <span className="text-slate-600">共 <span className="font-semibold text-emerald-700">{pageData.total}</span> 条</span>
           <div className="flex items-center gap-2">
             <Button
               variant="outline"
               size="sm"
               onClick={() => setPageNo((prev) => Math.max(1, prev - 1))}
               disabled={pageData.current <= 1}
+              className="h-8 px-4 border-emerald-200 text-emerald-700 hover:bg-emerald-50 rounded-lg transition-all duration-200"
             >
               上一页
             </Button>
-            <span>
-              {pageData.current} / {pageData.pages}
+            <span className="px-3 text-slate-600">
+              <span className="font-semibold text-emerald-700">{pageData.current}</span> / {pageData.pages}
             </span>
             <Button
               variant="outline"
               size="sm"
               onClick={() => setPageNo((prev) => Math.min(pageData.pages || 1, prev + 1))}
               disabled={pageData.current >= pageData.pages}
+              className="h-8 px-4 border-emerald-200 text-emerald-700 hover:bg-emerald-50 rounded-lg transition-all duration-200"
             >
               下一页
             </Button>
@@ -276,16 +283,16 @@ export function SampleQuestionPage() {
       ) : null}
 
       <AlertDialog open={!!deleteTarget} onOpenChange={() => setDeleteTarget(null)}>
-        <AlertDialogContent>
+        <AlertDialogContent className="rounded-2xl border-emerald-100">
           <AlertDialogHeader>
-            <AlertDialogTitle>确认删除</AlertDialogTitle>
+            <AlertDialogTitle className="text-emerald-800">确认删除</AlertDialogTitle>
             <AlertDialogDescription>
               删除后该示例问题将不会出现在欢迎页，是否继续？
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>取消</AlertDialogCancel>
-            <AlertDialogAction onClick={handleDelete} className="bg-destructive text-destructive-foreground">
+            <AlertDialogCancel className="rounded-xl border-emerald-200 text-emerald-700 hover:bg-emerald-50">取消</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDelete} className="bg-gradient-to-r from-red-500 to-rose-500 hover:from-red-600 hover:to-rose-600 text-white rounded-xl border-0 shadow-md">
               删除
             </AlertDialogAction>
           </AlertDialogFooter>

@@ -129,19 +129,19 @@ export function WelcomeScreen() {
     <div className="relative flex min-h-full items-center justify-center overflow-hidden px-4 py-16 sm:px-6">
       <div
         aria-hidden="true"
-        className="pointer-events-none absolute inset-0 bg-gradient-to-br from-[#F8FAFC] via-white to-[#EFF6FF]"
+        className="pointer-events-none absolute inset-0 bg-gradient-to-br from-emerald-50/50 via-white to-teal-50/30"
       />
       <div
         aria-hidden="true"
-        className="pointer-events-none absolute inset-0 bg-grid-pattern opacity-40 [background-size:40px_40px]"
+        className="pointer-events-none absolute inset-0 bg-grid-pattern opacity-30 [background-size:40px_40px]"
       />
       <div
         aria-hidden="true"
-        className="pointer-events-none absolute -top-32 right-[-40px] h-72 w-72 rounded-full bg-gradient-radial from-[#BFDBFE]/60 via-transparent to-transparent blur-3xl animate-float"
+        className="pointer-events-none absolute -top-32 right-[-40px] h-72 w-72 rounded-full bg-gradient-radial from-emerald-300/30 via-transparent to-transparent blur-3xl animate-float"
       />
       <div
         aria-hidden="true"
-        className="pointer-events-none absolute -bottom-36 left-[-80px] h-80 w-80 rounded-full bg-gradient-radial from-[#FDE68A]/40 via-transparent to-transparent blur-3xl animate-float"
+        className="pointer-events-none absolute -bottom-36 left-[-80px] h-80 w-80 rounded-full bg-gradient-radial from-teal-300/25 via-transparent to-transparent blur-3xl animate-float"
       />
 
       <div className="relative w-full max-w-[860px]">
@@ -149,15 +149,15 @@ export function WelcomeScreen() {
           className="text-center opacity-0 animate-fade-up"
           style={{ animationFillMode: "both" }}
         >
-          <span className="inline-flex items-center gap-2 rounded-full border border-white/70 bg-white/70 px-3 py-1 text-xs font-medium text-[#2563EB] shadow-sm">
+          <span className="inline-flex items-center gap-2 rounded-full border border-emerald-200/70 bg-emerald-50/70 px-3 py-1 text-xs font-medium text-emerald-700 shadow-sm backdrop-blur-sm">
             <Bot className="h-3.5 w-3.5" />
             RAG 智能问答
           </span>
-          <h1 className="mt-4 font-display text-4xl leading-tight tracking-tight text-[#111827] sm:text-5xl md:text-6xl">
+          <h1 className="mt-4 font-display text-4xl leading-tight tracking-tight text-gray-900 sm:text-5xl md:text-6xl">
             把问题变成
-            <span className="text-gradient">清晰答案</span>
+            <span className="bg-gradient-to-r from-emerald-600 to-teal-600 bg-clip-text text-transparent">清晰答案</span>
           </h1>
-          <p className="mt-4 text-base text-[#4B5563] sm:text-lg">
+          <p className="mt-4 text-base text-gray-600 sm:text-lg">
             结构化提问、知识检索与深度思考，一次对话给出可执行方案
           </p>
         </div>
@@ -168,10 +168,10 @@ export function WelcomeScreen() {
         >
           <div
             className={cn(
-              "relative flex flex-col rounded-3xl border border-white/70 bg-white/80 px-5 pt-4 pb-3 shadow-soft backdrop-blur-xl transition-all duration-200",
+              "relative flex flex-col rounded-3xl border border-emerald-200/50 bg-white/80 px-5 pt-4 pb-3 shadow-lg backdrop-blur-xl transition-all duration-300",
               isFocused
-                ? "border-[#BFDBFE] shadow-glow"
-                : "hover:border-[#D4D4D4]"
+                ? "border-emerald-400 shadow-xl shadow-emerald-100/50"
+                : "hover:border-emerald-300 hover:shadow-md"
             )}
           >
             <div className="relative">
@@ -180,7 +180,7 @@ export function WelcomeScreen() {
                 value={value}
                 onChange={(event) => setValue(event.target.value)}
                 placeholder={deepThinkingEnabled ? "输入需要深度分析的问题..." : "输入你的问题..."}
-                className="max-h-40 min-h-[52px] w-full resize-none border-0 bg-transparent px-2 pt-2 pb-2 text-[15px] text-[#1F2937] placeholder:text-[#9CA3AF] focus:outline-none sm:text-base"
+                className="max-h-40 min-h-[52px] w-full resize-none border-0 bg-transparent px-2 pt-2 pb-2 text-[15px] text-gray-800 placeholder:text-gray-400 focus:outline-none sm:text-base"
                 rows={1}
                 onFocus={() => setIsFocused(true)}
                 onBlur={() => setIsFocused(false)}
@@ -211,18 +211,18 @@ export function WelcomeScreen() {
                 disabled={isStreaming}
                 aria-pressed={deepThinkingEnabled}
                 className={cn(
-                  "rounded-full border px-3 py-1.5 text-xs font-medium transition-all",
+                  "rounded-full border px-3 py-1.5 text-xs font-medium transition-all duration-200 hover:scale-105",
                   deepThinkingEnabled
-                    ? "border-[#BFDBFE] bg-[#DBEAFE] text-[#2563EB]"
-                    : "border-transparent bg-[#F5F5F5] text-[#6B7280] hover:bg-[#EEEEEE]",
-                  isStreaming && "cursor-not-allowed opacity-60"
+                    ? "border-emerald-300 bg-emerald-100 text-emerald-700 shadow-sm"
+                    : "border-transparent bg-gray-100 text-gray-500 hover:bg-emerald-50 hover:text-emerald-600",
+                  isStreaming && "cursor-not-allowed opacity-60 hover:scale-100"
                 )}
               >
                 <span className="inline-flex items-center gap-2">
-                  <Brain className={cn("h-3.5 w-3.5", deepThinkingEnabled && "text-[#3B82F6]")} />
+                  <Brain className={cn("h-3.5 w-3.5", deepThinkingEnabled && "text-emerald-600")} />
                   深度思考
                   {deepThinkingEnabled ? (
-                    <span className="h-2 w-2 rounded-full bg-[#3B82F6] animate-pulse" />
+                    <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
                   ) : null}
                 </span>
               </button>
@@ -232,12 +232,12 @@ export function WelcomeScreen() {
                 disabled={!hasContent && !isStreaming}
                 aria-label={isStreaming ? "停止生成" : "发送消息"}
                 className={cn(
-                  "ml-auto inline-flex items-center justify-center rounded-full p-2.5 transition-all duration-200",
+                  "ml-auto inline-flex items-center justify-center rounded-full p-2.5 transition-all duration-200 hover:scale-110 active:scale-95",
                   isStreaming
-                    ? "bg-[#FEE2E2] text-[#EF4444] hover:bg-[#FECACA]"
+                    ? "bg-red-100 text-red-600 hover:bg-red-200"
                     : hasContent
-                      ? "bg-[#3B82F6] text-white hover:bg-[#2563EB]"
-                      : "cursor-not-allowed bg-[#F5F5F5] text-[#CCCCCC]"
+                      ? "bg-gradient-to-r from-emerald-600 to-teal-600 text-white shadow-md shadow-emerald-500/30 hover:from-emerald-700 hover:to-teal-700 hover:shadow-lg hover:shadow-emerald-600/40"
+                      : "cursor-not-allowed bg-gray-100 text-gray-300"
                 )}
               >
                 {isStreaming ? <Square className="h-4 w-4" /> : <Send className="h-4 w-4" />}
@@ -245,24 +245,24 @@ export function WelcomeScreen() {
             </div>
           </div>
           {deepThinkingEnabled ? (
-            <p className="mt-3 text-xs text-[#2563EB]">
+            <p className="mt-3 text-xs text-emerald-700">
               <span className="inline-flex items-center gap-1.5">
                 <Lightbulb className="h-3.5 w-3.5" />
                 深度思考模式已开启，AI将进行更深入的分析推理
               </span>
             </p>
           ) : null}
-          <p className="mt-3 text-center text-xs text-[#94A3B8]">
-            <kbd className="rounded bg-white/80 px-1.5 py-0.5 text-[#6B7280] shadow-sm">
+          <p className="mt-3 text-center text-xs text-gray-400">
+            <kbd className="rounded bg-emerald-50/80 px-1.5 py-0.5 text-gray-600 shadow-sm border border-emerald-200/50">
               Enter
             </kbd>{" "}
             发送
             <span className="px-1.5">·</span>
-            <kbd className="rounded bg-white/80 px-1.5 py-0.5 text-[#6B7280] shadow-sm">
+            <kbd className="rounded bg-emerald-50/80 px-1.5 py-0.5 text-gray-600 shadow-sm border border-emerald-200/50">
               Shift + Enter
             </kbd>{" "}
             换行
-            {isStreaming ? <span className="ml-2 animate-pulse-soft">生成中...</span> : null}
+            {isStreaming ? <span className="ml-2 animate-pulse-soft text-emerald-600">生成中...</span> : null}
           </p>
         </div>
 
@@ -270,10 +270,10 @@ export function WelcomeScreen() {
           className="mt-10 opacity-0 animate-fade-up"
           style={{ animationDelay: "160ms", animationFillMode: "both" }}
         >
-          <div className="flex items-center justify-center gap-2 text-xs uppercase tracking-[0.24em] text-[#94A3B8]">
-            <span className="h-px w-8 bg-[#E5E7EB]" />
+          <div className="flex items-center justify-center gap-2 text-xs uppercase tracking-[0.24em] text-gray-400">
+            <span className="h-px w-8 bg-emerald-200" />
             试试这些开场
-            <span className="h-px w-8 bg-[#E5E7EB]" />
+            <span className="h-px w-8 bg-emerald-200" />
           </div>
           <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
             {promptPresets.map((preset) => {
@@ -285,22 +285,22 @@ export function WelcomeScreen() {
                   onClick={() => applyPreset(preset.prompt)}
                   disabled={isStreaming}
                   className={cn(
-                    "group rounded-2xl border border-white/70 bg-white/70 p-4 text-left shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:border-[#BFDBFE] hover:shadow-md",
-                    isStreaming && "cursor-not-allowed opacity-60"
+                    "group rounded-2xl border border-emerald-200/50 bg-emerald-50/50 p-4 text-left shadow-sm backdrop-blur-sm transition-all duration-300 hover:-translate-y-1 hover:border-emerald-400 hover:bg-emerald-100/60 hover:shadow-lg hover:shadow-emerald-200/50",
+                    isStreaming && "cursor-not-allowed opacity-60 hover:translate-y-0"
                   )}
                 >
                   <div className="flex items-center gap-3">
-                    <span className="flex h-10 w-10 items-center justify-center rounded-full bg-[#EFF6FF] text-[#2563EB]">
+                    <span className="flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-emerald-100 to-teal-100 text-emerald-600 group-hover:from-emerald-200 group-hover:to-teal-200 transition-all duration-300">
                       <Icon className="h-4 w-4" />
                     </span>
                     <div>
-                      <p className="text-sm font-semibold text-[#1F2937]">{preset.title}</p>
-                      <p className="text-xs text-[#6B7280]">{preset.description}</p>
+                      <p className="text-sm font-semibold text-gray-800 group-hover:text-emerald-700 transition-colors">{preset.title}</p>
+                      <p className="text-xs text-gray-500 group-hover:text-emerald-600 transition-colors">{preset.description}</p>
                     </div>
                   </div>
-                  <div className="mt-3 flex items-center gap-2 text-xs text-[#94A3B8]">
-                    <span className="min-w-0 flex-1 truncate">推荐问法：{preset.prompt}</span>
-                    <ArrowUpRight className="h-3.5 w-3.5 text-[#CBD5F5] transition-colors group-hover:text-[#3B82F6]" />
+                  <div className="mt-3 flex items-center gap-2 text-xs text-gray-400">
+                    <span className="min-w-0 flex-1 truncate group-hover:text-emerald-600 transition-colors">推荐问法：{preset.prompt}</span>
+                    <ArrowUpRight className="h-3.5 w-3.5 text-emerald-300 transition-all duration-300 group-hover:text-emerald-600 group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
                   </div>
                 </button>
               );

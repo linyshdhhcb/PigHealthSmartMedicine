@@ -1,0 +1,1 @@
+export { ArticleTypeListPage } from "./ArticleTypeListPage";

@@ -1,6 +1,10 @@
 import { api } from "@/services/api";
 
 export interface SystemSettings {
+  upload: {
+    maxFileSize: number;
+    maxRequestSize: number;
+  };
   rag: {
     default: {
       collectionName: string;

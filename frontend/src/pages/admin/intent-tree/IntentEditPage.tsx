@@ -303,8 +303,8 @@ export function IntentEditPage() {
   if (loading) {
     return (
       <div className="admin-page">
-        <Card>
-          <CardContent className="py-12 text-center text-muted-foreground">加载中...</CardContent>
+        <Card className="border-emerald-100 shadow-sm rounded-2xl">
+          <CardContent className="py-12 text-center text-emerald-600">加载中...</CardContent>
         </Card>
       </div>
     );
@@ -313,10 +313,10 @@ export function IntentEditPage() {
   if (!currentNode) {
     return (
       <div className="admin-page">
-        <Card>
+        <Card className="border-emerald-100 shadow-sm rounded-2xl">
           <CardContent className="space-y-3 py-12 text-center">
-            <p className="text-sm text-muted-foreground">未找到对应意图节点</p>
-            <Button variant="outline" onClick={() => navigate(returnTo)}>
+            <p className="text-sm text-emerald-600">未找到对应意图节点</p>
+            <Button variant="outline" onClick={() => navigate(returnTo)} className="border-emerald-200 text-emerald-700 hover:bg-emerald-50">
               返回意图列表
             </Button>
           </CardContent>
@@ -335,18 +335,18 @@ export function IntentEditPage() {
           </p>
         </div>
         <div className="admin-page-actions">
-          <Button variant="outline" onClick={() => navigate(returnTo)}>
+          <Button variant="outline" onClick={() => navigate(returnTo)} className="h-10 px-4 border-emerald-200 text-emerald-700 hover:bg-emerald-50 hover:border-emerald-300 rounded-xl transition-all">
             返回意图列表
           </Button>
         </div>
       </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>节点配置</CardTitle>
+      <Card className="border-emerald-100 shadow-sm rounded-2xl overflow-hidden">
+        <CardHeader className="bg-gradient-to-r from-emerald-50 to-teal-50 border-b border-emerald-100 pb-4">
+          <CardTitle className="text-emerald-800">节点配置</CardTitle>
           <CardDescription>修改节点基础信息、Prompt与高级参数</CardDescription>
         </CardHeader>
-        <CardContent>
+        <CardContent className="p-6">
           <Form {...form}>
             <form className="space-y-4" onSubmit={form.handleSubmit(handleSubmit)}>
               <div className="grid gap-4 md:grid-cols-2">
@@ -388,7 +388,7 @@ export function IntentEditPage() {
                       <FormLabel>层级</FormLabel>
                       <Select value={String(field.value)} onValueChange={(value) => field.onChange(Number(value))}>
                         <FormControl>
-                          <SelectTrigger>
+                          <SelectTrigger className="border-emerald-200 focus:ring-0 focus:ring-offset-0">
                             <SelectValue placeholder="选择层级" />
                           </SelectTrigger>
                         </FormControl>
@@ -413,7 +413,7 @@ export function IntentEditPage() {
                       <FormLabel>类型</FormLabel>
                       <Select value={String(field.value)} onValueChange={(value) => field.onChange(Number(value))}>
                         <FormControl>
-                          <SelectTrigger>
+                          <SelectTrigger className="border-emerald-200 focus:ring-0 focus:ring-offset-0">
                             <SelectValue placeholder="选择类型" />
                           </SelectTrigger>
                         </FormControl>
@@ -439,7 +439,7 @@ export function IntentEditPage() {
                     <FormLabel>父节点</FormLabel>
                     <Select value={field.value || ROOT_PARENT} onValueChange={field.onChange}>
                       <FormControl>
-                        <SelectTrigger>
+                        <SelectTrigger className="border-emerald-200 focus:ring-0 focus:ring-offset-0">
                           <SelectValue placeholder="选择父节点" />
                         </SelectTrigger>
                       </FormControl>
@@ -464,7 +464,7 @@ export function IntentEditPage() {
                     <FormItem>
                       <FormLabel>Collection 名称</FormLabel>
                       <FormControl>
-                        <Input placeholder="Milvus Collection 名称" {...field} />
+                        <Input placeholder="向量数据库 Collection 名称" {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -488,8 +488,8 @@ export function IntentEditPage() {
                 />
               ) : null}
 
-              <details className="rounded-lg border px-4 py-3" open>
-                <summary className="cursor-pointer text-sm font-medium text-foreground">描述与示例</summary>
+              <details className="rounded-xl border border-emerald-100 bg-white px-4 py-3 shadow-sm" open>
+                <summary className="cursor-pointer text-sm font-semibold text-emerald-700">描述与示例</summary>
                 <div className="mt-3 space-y-4">
                   <FormField
                     control={form.control}
@@ -521,8 +521,8 @@ export function IntentEditPage() {
                 </div>
               </details>
 
-              <details className="rounded-lg border px-4 py-3">
-                <summary className="cursor-pointer text-sm font-medium text-foreground">Prompt 配置</summary>
+              <details className="rounded-xl border border-emerald-100 bg-white px-4 py-3 shadow-sm">
+                <summary className="cursor-pointer text-sm font-semibold text-emerald-700">Prompt 配置</summary>
                 <div className="mt-3 space-y-4">
                   <FormField
                     control={form.control}
@@ -570,8 +570,8 @@ export function IntentEditPage() {
                 </div>
               </details>
 
-              <details className="rounded-lg border px-4 py-3">
-                <summary className="cursor-pointer text-sm font-medium text-foreground">高级设置</summary>
+              <details className="rounded-xl border border-emerald-100 bg-white px-4 py-3 shadow-sm">
+                <summary className="cursor-pointer text-sm font-semibold text-emerald-700">高级设置</summary>
                 <div className="mt-3 grid gap-4 md:grid-cols-2">
                   <FormField
                     control={form.control}
@@ -635,11 +635,11 @@ export function IntentEditPage() {
                 </div>
               </details>
 
-              <div className="flex justify-end gap-2 pt-2">
-                <Button type="button" variant="outline" onClick={() => navigate(returnTo)} disabled={saving}>
+              <div className="flex justify-end gap-3 pt-4">
+                <Button type="button" variant="outline" onClick={() => navigate(returnTo)} disabled={saving} className="h-10 px-5 border-emerald-200 text-emerald-700 hover:bg-emerald-50 hover:border-emerald-300 rounded-xl transition-all">
                   取消
                 </Button>
-                <Button type="submit" className="admin-primary-gradient" disabled={saving}>
+                <Button type="submit" className="h-10 px-6 bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white rounded-xl shadow-md transition-all" disabled={saving}>
                   {saving ? "保存中..." : "保存修改"}
                 </Button>
               </div>
