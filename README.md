@@ -190,23 +190,51 @@ CREATE DATABASE pig_health_smart_medicine;
 
 ### 3. **其他服务配置**
 
-配置 Milvus 向量数据库：
+#### 3.1 配置 Milvus 向量数据库
+
+项目提供了 Docker Compose 配置文件用于快速部署 Milvus 服务。配置文件位于 `doc/milvus/docker-compose.yml`。
+
+**启动 Milvus 服务：**
+
+```bash
+cd doc/milvus
+docker-compose up -d
+```
+
+**Milvus 服务说明：**
+
+- **etcd**: Milvus 元数据存储，端口 2379
+- **milvus-standalone**: Milvus 主服务，端口 19530（gRPC）、9091（HTTP）
+- **attu**: Milvus 可视化管理工具，访问 http://localhost:8000
+
+**主要配置项：**
+
+- 使用本地存储模式（LOCAL_STORAGE_ENABLED=true），无需额外配置 MinIO/RustFS
+- 数据持久化到 Docker volumes（etcd-data、milvus-data）
+- 自动健康检查和重启策略
+
+**停止 Milvus 服务：**
+
+```bash
+cd doc/milvus
+docker-compose down
+```
 
 ![milvus](./doc/img/milvus.png)
 
-配置邮箱服务：
+#### 3.2 配置邮箱服务
 
 ![mail](./doc/img/mail.png)
 
-配置Redis：
+#### 3.3 配置 Redis
 
 ![redis](./doc/img/redis.png)
 
-配置Minio对象存储：
+#### 3.4 配置 Minio 对象存储
 
 ![minio](./doc/img/minio.png)
 
-配置Ollama AI服务：
+#### 3.5 配置 Ollama AI 服务
 
 ![ollama](./doc/img/ollama.png)
 
