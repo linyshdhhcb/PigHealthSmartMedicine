@@ -62,12 +62,6 @@ spring:
         collection-name: rag_default_store
         initialize-schema: true
 
-knowledge:
-  storage:
-  # 可选：配置知识库存储根目录（绝对路径或相对运行目录）
-  # 不配置时默认使用项目路径 backend/src/main/resources/knowledge
-  # root: C:/Intellij_IDEA/Exploitation/DEV/PigHealthSmartMedicine/backend/src/main/resources/knowledge
-
 # mybatis-plus配置
 mybatis-plus:
   configuration:

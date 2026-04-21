@@ -2,7 +2,7 @@
 
 ## 项目简介
 
-本项目是一个基于RAG的生猪健康管理的智慧医药系统，集成了AI兽医诊断、疾病管理、药品管理、文章资讯管理等功能模块，旨在通过数字化手段提升生猪养殖的医疗管理水平。系统基于 **SpringBoot3 + RAG +Ollama + Spring AI + DeepSeek + Mysql8.0 + Mybatis-Plus** 技术栈构建，提供智能兽医诊断服务，帮助养殖户或兽医快速识别生猪病情并推荐相应的治疗方案。
+本项目是一个基于 RAG 的生猪健康管理智慧医药系统，集成了 AI 兽医诊断、疾病管理、药品管理、文章资讯管理等功能模块，旨在通过数字化手段提升生猪养殖的医疗管理水平。系统基于 **Spring Boot 3 + Spring AI + Milvus + MySQL 8 + MyBatis-Plus + Ollama / DeepSeek / 通义千问 / SiliconFlow** 等技术构建，提供智能兽医诊断服务，帮助养殖户或兽医快速识别生猪病情并推荐相应的治疗方案。
 
 > ⚠️ **重要声明**：本项目为个人开发作品，主要用于竞赛、课程设计、毕业设计等学习与研究用途，不具备商用资质与能力。项目中的数据、接口、功能仅供学习交流，请在遵循相关法律法规前提下使用。
 
@@ -12,12 +12,13 @@
 
 - **后端框架**：SpringBoot 3.3.5、Spring AI、MyBatis Plus
 - **前端框架**：Vue3、JavaScript、Vite、Pinia
-- **AI模型**：Ollama + DeepSeek
-- **数据库**：MySQL 8.0.33
+- **AI 模型**：Ollama、DeepSeek、通义千问（Bailian）、SiliconFlow
+- **向量数据库**：Milvus 2.6.x
+- **关系数据库**：MySQL 8.0.33
 - **缓存系统**：Redis
-- **安全框架**：SaToken
-- **API文档**：knife4j 4.4.0
-- **对象存储**：Minio 8.5.14
+- **安全框架**：Sa-Token
+- **API 文档**：Knife4j 4.4.0
+- **对象存储**：MinIO 8.5.14
 
 ### 主要依赖
 
@@ -42,9 +43,17 @@
 | Apache HttpClient              | 4.5.13        | HTTP客户端          |
 | FastJson                       | 2.0.54        | JSON解析库          |
 
-### AI与向量化支持
+### AI 与向量化支持
 
-项目内置 `KnowledgeInitializer` 组件，使用 Spring AI 的 `VectorStore` 对 `resources/knowledge` 目录下的文档进行读取、切分与向量化处理，支持 txt、md、pdf、docx 等多种格式文档。
+项目当前的 RAG 链路采用 **Milvus + Spring AI Embedding + LLM 生成** 方案：
+
+- 文档上传后先保存到 MinIO 与数据库
+- 后端对文档内容进行切分（chunk）
+- chunk 使用嵌入模型生成向量并写入 Milvus
+- 问答时根据用户问题向量检索相关 chunk
+- 将检索片段拼接后交给大模型生成最终回答
+
+支持 txt、md、pdf、doc、docx 等格式文档。
 
 ## 项目实现图
 
@@ -144,14 +153,15 @@
 - 用户反馈收集与管理
 - 系统文件统一管理
 
-### 7. **RAG知识库系统**
+### 7. **RAG 知识库系统**
 
-- 管理后台"RAG知识库"模块
+- 管理后台 "RAG知识库" 模块
 - 支持上传 txt、md、pdf、doc、docx 格式文件（前后端双重白名单校验）
-- 文件自动存储到 `resources/knowledge/` 下的日期目录（跨平台兼容）
-- 基于MD5的内容去重机制，避免重复存储
+- 文件元数据、文档内容与向量索引分离管理
+- 文档切分后的 chunk 会自动写入 Milvus 向量库
+- 问答时自动基于向量检索相关片段，再交由大模型生成回答
 - 支持分页查询、备注编辑、单文件/批量删除
-- 可通过 `application.yml` 配置自定义存储路径
+- 支持默认知识库自动初始化与统一 collection 管理
 
 ## 快速开始
 
@@ -160,6 +170,8 @@
 - **JDK 21+**
 - **MySQL 8+**
 - **Redis**
+- **Milvus 2.6.x**
+- **MinIO**
 - **Docker**（可选，用于部署 AI 大模型）
 - **Maven 3.8+**
 - **Node.js 16+**
@@ -177,6 +189,10 @@ CREATE DATABASE pig_health_smart_medicine;
 ![mysql](./doc/img/mysql.png)
 
 ### 3. **其他服务配置**
+
+配置 Milvus 向量数据库：
+
+![milvus](./doc/img/milvus.png)
 
 配置邮箱服务：
 
@@ -248,7 +264,9 @@ npm run dev
 | `medicine`         | 药品信息表                                      |
 | `news_articles`    | 新闻资讯表                                      |
 | `pageview`         | 浏览量统计表                                    |
-| `knowledge_file`   | RAG知识库文件表（相对路径、MD5、MIME、备注等）  |
+| `knowledge_base`   | RAG 知识库表（知识库名称、嵌入模型、Milvus collection） |
+| `knowledge_file`   | RAG知识库文件表（文件元数据、MD5、MIME、备注等）  |
+| `knowledge_chunk`  | RAG 知识库分块表（chunk 内容、文档关联、统计信息）  |
 
 ## 数据库：pig_health_smart_medicine
 
@@ -471,23 +489,22 @@ npm run dev
 
 ## API 文档
 
-启动后访问 `http://localhost:9999/doc.html` 查看完整 API 文档。（端口以 `application.yml` 为准，默认 9999）
+启动后访问 `http://localhost:19999/doc.html` 查看完整 API 文档。（端口以 `application-dev.yml` 为准）
 
 ## RAG 知识库使用说明（管理端）
 
-- 菜单：侧边栏进入“RAG 知识库”
-- 上传：仅支持 `.txt .md .pdf .doc .docx`；上传后即写入 `resources/knowledge/yyyy/MM/dd` 并入库，重复内容按 MD5 去重
-- 查询：按文件名、MIME 类型筛选
-- 删除：单删/批量删会同步删除磁盘文件
+- 菜单：侧边栏进入 “RAG 知识库”
+- 上传：仅支持 `.txt .md .pdf .doc .docx`；上传后文件会保存到对象存储，并在数据库中创建对应记录
+- 向量化：后台会自动对文档内容进行 chunk 切分与向量化，并写入 Milvus
+- 查询：按文件名、MIME 类型、知识库筛选
+- 删除：单删/批量删会同步删除数据库记录，并删除对应向量索引
 - 备注：支持编辑保存
 
-可选配置（不是必要）：
+默认知识库说明：
 
-```
-knowledge:
-  storage:
-    root: C:/data/knowledge # 自定义绝对路径（不配置则默认源码目录 resources/knowledge）
-```
+- 系统默认使用名为 `默认知识库` 的知识库记录
+- 默认知识库对应的 Milvus collection 已统一为 `rag_default_store_v2`
+- 若历史数据仍指向旧 collection，请在数据库中更新对应知识库记录后重新上传文档
 
 ## 未来计划
 
