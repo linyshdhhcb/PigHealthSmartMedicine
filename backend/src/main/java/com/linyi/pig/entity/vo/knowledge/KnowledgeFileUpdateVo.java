@@ -5,5 +5,5 @@ import lombok.Data;
 @Data
 public class KnowledgeFileUpdateVo {
     private Long id;
-    private String remark;
+    private String status;
 }

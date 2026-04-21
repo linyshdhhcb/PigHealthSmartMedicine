@@ -1,11 +1,13 @@
 package com.linyi.pig.controller;
 
 import com.linyi.pig.common.model.Result;
-import com.linyi.pig.entity.KnowledgeFile;
-import com.linyi.pig.service.KnowledgeFileService;
 import com.linyi.pig.common.model.PageResult;
+import com.linyi.pig.entity.KnowledgeFile;
 import com.linyi.pig.entity.vo.knowledge.KnowledgeFileQueryVo;
 import com.linyi.pig.entity.vo.knowledge.KnowledgeFileUpdateVo;
+import com.linyi.pig.entity.vo.knowledge.KnowledgeQaRequest;
+import com.linyi.pig.entity.vo.knowledge.KnowledgeQaResult;
+import com.linyi.pig.service.KnowledgeFileService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
@@ -26,8 +28,8 @@ public class KnowledgeFileController {
     @PostMapping("/upload")
     public Result<KnowledgeFile> upload(@RequestParam("file") MultipartFile file,
             @RequestParam(value = "createBy", required = false) Integer createBy,
-            @RequestParam(value = "remark", required = false) String remark) {
-        KnowledgeFile saved = knowledgeFileService.saveToKnowledge(file, createBy, remark);
+            @RequestParam(value = "kbId", required = false) Long kbId) {
+        KnowledgeFile saved = knowledgeFileService.saveToKnowledge(file, createBy, kbId);
         return Result.success(saved);
     }
 
@@ -59,5 +61,20 @@ public class KnowledgeFileController {
     @PutMapping("/updateRemark")
     public Result<Boolean> updateRemark(@RequestBody KnowledgeFileUpdateVo vo) {
         return Result.success(knowledgeFileService.updateRemark(vo));
+    }
+
+    @Operation(summary = "按kbId检索并生成问答")
+    @GetMapping("/qaByKbId")
+    public Result<KnowledgeQaResult> qaByKbId(@RequestParam Long kbId,
+            @RequestParam String question,
+            @RequestParam(defaultValue = "5") int topK) {
+        return Result.success(knowledgeFileService.qaByKbId(kbId, question, topK));
+    }
+
+    @Operation(summary = "按kbId JSON检索并生成问答")
+    @PostMapping("/qaByKbId")
+    public Result<KnowledgeQaResult> qaByKbIdJson(@RequestBody KnowledgeQaRequest request) {
+        int topK = request.getTopK() == null ? 5 : request.getTopK();
+        return Result.success(knowledgeFileService.qaByKbId(request.getKbId(), request.getQuestion(), topK));
     }
 }

@@ -6,6 +6,7 @@ import com.baomidou.mybatisplus.extension.service.IService;
 import com.linyi.pig.entity.vo.conversation.ConversationAddVo;
 import com.linyi.pig.entity.vo.conversation.ConversationQueryVo;
 import com.linyi.pig.entity.vo.conversation.ConversationUpdateVo;
+import com.linyi.pig.entity.vo.conversation.ConversationRagResultVo;
 
 import java.util.List;
 
@@ -17,36 +18,12 @@ import java.util.List;
  * @Description: 对话 服务层
  */
 public interface ConversationService extends IService<Conversation> {
-    /**
-     * 分页查询
-     *
-     * @param conversationQueryVo 分页查询实体
-     * @return PageResult<Conversation>
-     */
     PageResult<Conversation> conversationPage(ConversationQueryVo conversationQueryVo);
 
-    /**
-     * 新增
-     *
-     * @param conversationAddVo 新增实体
-     * @return Boolean
-     */
     Boolean conversationAdd(ConversationAddVo conversationAddVo);
 
-    /**
-     * 修改
-     *
-     * @param conversationUpdateVo 修改实体
-     * @return Boolean
-     */
     Boolean conversationUpdate(ConversationUpdateVo conversationUpdateVo);
 
-    /**
-     * 根据几次历史对话记录
-     * 
-     * @param num 次数
-     * @return
-     */
     List<Conversation> getHistoryNum(Integer num);
 
     List<Conversation> listBySessionId(Long sessionId);
@@ -54,6 +31,10 @@ public interface ConversationService extends IService<Conversation> {
     Conversation getOllama(String prompt);
 
     Conversation getOllama(String prompt, Long sessionId);
+
+    Conversation getKnowledgeAnswer(String prompt, Long kbId, Long sessionId);
+
+    ConversationRagResultVo getKnowledgeAnswerResult(String prompt, Long kbId, Long sessionId);
 
     Conversation getApiLLM(String prompt);
 }

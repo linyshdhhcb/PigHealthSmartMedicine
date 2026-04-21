@@ -9,28 +9,37 @@ import lombok.Data;
 import java.time.LocalDateTime;
 
 @Data
-@TableName("knowledge_file")
+@TableName("knowledge_document")
 public class KnowledgeFile {
     @TableId(type = IdType.AUTO)
     private Long id;
 
-    @TableField("file_name")
-    private String fileName; // 原始文件名（含后缀）
+    @TableField("kb_id")
+    private Long kbId;
 
-    @TableField("file_path")
-    private String filePath; // 相对路径：相对于 resources/knowledge/
+    @TableField("doc_name")
+    private String fileName;
 
     @TableField("file_size")
     private Long fileSize; // 字节
 
-    @TableField("file_md5")
-    private String fileMd5; // 32位MD5
+    @TableField("file_url")
+    private String filePath;
 
     @TableField("file_type")
     private String fileType; // MIME-Type
 
-    @TableField("create_by")
-    private Integer createBy;
+    @TableField("process_mode")
+    private String processMode;
+
+    @TableField("status")
+    private String status;
+
+    @TableField("chunk_count")
+    private Integer chunkCount;
+
+    @TableField("created_by")
+    private String createBy;
 
     @TableField("create_time")
     private LocalDateTime createTime;
@@ -38,6 +47,6 @@ public class KnowledgeFile {
     @TableField("update_time")
     private LocalDateTime updateTime;
 
-    @TableField("remark")
-    private String remark;
+    @TableField("updated_by")
+    private String updatedBy;
 }
