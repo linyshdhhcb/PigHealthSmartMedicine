@@ -1,0 +1,94 @@
+version: '3.8'
+
+services:
+  etcd:
+    container_name: etcd
+    image: quay.io/coreos/etcd:v3.5.18
+    environment:
+      - ETCD_NAME=default
+      - ETCD_DATA_DIR=/etcd
+      - ETCD_LISTEN_CLIENT_URLS=http://0.0.0.0:2379
+      - ETCD_ADVERTISE_CLIENT_URLS=http://etcd:2379
+      - ETCD_LISTEN_PEER_URLS=http://0.0.0.0:2380
+      - ETCD_INITIAL_ADVERTISE_PEER_URLS=http://etcd:2380
+      - ETCD_INITIAL_CLUSTER=default=http://etcd:2380
+      - ETCD_INITIAL_CLUSTER_STATE=new
+      - ETCD_INITIAL_CLUSTER_TOKEN=etcd-cluster
+      - ETCD_AUTO_COMPACTION_MODE=revision
+      - ETCD_AUTO_COMPACTION_RETENTION=1000
+      - ETCD_QUOTA_BACKEND_BYTES=4294967296
+      - ETCD_SNAPSHOT_COUNT=50000
+      - ETCD_LOG_LEVEL=info
+    command: ["etcd"]
+    volumes:
+      - etcd-data:/etcd
+    ports:
+      - "2379:2379"
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "etcdctl", "endpoint", "health", "--endpoints=http://localhost:2379"]
+      interval: 30s
+      timeout: 20s
+      retries: 5
+      start_period: 30s
+    networks:
+      - milvus-net
+
+  standalone:
+    container_name: milvus-standalone
+    image: milvusdb/milvus:v2.6.6
+    command: ["milvus", "run", "standalone"]
+    security_opt:
+      - seccomp:unconfined
+    environment:
+      - ETCD_ENDPOINTS=etcd:2379
+      # 本地存储配置（移除 MinIO/RustFS 相关配置）
+      - LOCAL_STORAGE_ENABLED=true
+      - LOCAL_STORAGE_PATH=/var/lib/milvus/data
+      # 其他配置
+      - KNOWHERE_THREAD_NUM=2
+      - MILVUS_QUERY_NODE_MAX_CONCURRENT_QUERY=4
+      - LOG_LEVEL=info
+      - MEMSINGLEINDEXLOADMEMORYRATIO=0.8
+    volumes:
+      - milvus-data:/var/lib/milvus
+    ports:
+      - "19530:19530"
+      - "9091:9091"
+    restart: unless-stopped
+    depends_on:
+      etcd:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9091/healthz"]
+      interval: 30s
+      start_period: 180s
+      timeout: 20s
+      retries: 5
+    networks:
+      - milvus-net
+
+  attu:
+    container_name: milvus-attu
+    image: zilliz/attu:v2.6.3
+    environment:
+      - MILVUS_URL=milvus-standalone:19530
+    ports:
+      - "8000:3000"
+    restart: unless-stopped
+    depends_on:
+      standalone:
+        condition: service_healthy
+    networks:
+      - milvus-net
+
+volumes:
+  etcd-data:
+    driver: local
+  milvus-data:
+    driver: local
+
+networks:
+  milvus-net:
+    driver: bridge
+    name: milvus-net
