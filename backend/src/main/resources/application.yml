@@ -1,15 +1,13 @@
-server:
-  port: 19999
+# Spring Boot 多环境配置
 spring:
+  profiles:
+    active: dev  # 默认激活开发环境，可通过命令行参数 --spring.profiles.active=prod 切换
   application:
     name: "PigHealthSmartMedicine"
     description: "面向生猪健康管理的智慧医药系统"
-  # 数据源配置
+  # 数据源配置（通用配置，具体环境在各自文件中覆盖）
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
-    url: jdbc:mysql://127.0.0.1:3306/pig_health_smart_medicine?serverTimezone=Hongkong&useAffectedRows=true&characterEncoding=utf-8
-    username: your_username               #数据库用户名
-    password: your_password               #数据库密码
     type: com.alibaba.druid.pool.DruidDataSource
     initialSize: 5 # 初始化时创建的连接数
     minIdle: 5 # 最小空闲连接数
@@ -22,10 +20,8 @@ spring:
   jackson:
     date-format: yyyy-MM-dd HH:mm:ss
     time-zone: GMT+8
-  # 邮件配置
+  # 邮件配置（通用配置，具体环境在各自文件中覆盖）
   mail:
-    username: your_qq_email # qq邮箱
-    password: your_qq_email_password # qq邮箱授权码
     host: smtp.qq.com
     port: 465
     properties:
@@ -44,9 +40,6 @@ spring:
     template: "您的动态验证码为：<strong style='color: red'>%s</strong>，%d分钟内有效，若非本人操作，请勿泄露。"
   data:
     redis:
-      host: 127.0.0.1
-      port: 6379
-      password: redis_password
       timeout: 1800
       database: 2
       pool:
@@ -59,12 +52,15 @@ spring:
     multipart:
       max-file-size: 50MB
       max-request-size: 50MB
-  #minio配置
+  #minio配置（通用配置，具体环境在各自文件中覆盖）
   minio:
-    access-key: your_minio_access_key
-    secret-key: your_minio_secret_key
-    url: your_url
     bucket-name: pig-health
+  ai:
+    vectorstore:
+      milvus:
+        database-name: default
+        collection-name: rag_default_store
+        initialize-schema: true
 
 knowledge:
   storage:
@@ -93,7 +89,7 @@ mybatis-plus:
     # token风格
     token-style: uuid
 
-# 日志配置
+# 日志配置（通用配置，具体环境在各自文件中覆盖）
 logging:
   level:
     world.world.xuewei.dao.mapper: debug
@@ -110,7 +106,7 @@ springdoc:
     - group: "default"
       paths-to-match: "/**"
       packages-to-scan: com.linyi.pig.controller
-# knife4j的增强配置，不需要增强可以不配
+# knife4j的增强配置（通用配置，具体环境在各自文件中覆盖）
 knife4j:
   enable: true
   api:
@@ -126,13 +122,35 @@ knife4j:
   setting:
     language: zh_cn
 
-# 配置ai
+# AI配置（通用配置，具体环境在各自文件中覆盖）
 ai:
+  selection:
+    chat-provider: ollama
+    embedding-provider: ollama
+  providers:
+    ollama:
+      endpoints:
+        chat: /v1/chat/completions
+        embedding: /api/embeddings
+    bailian:
+      url: https://dashscope.aliyuncs.com
+      endpoints:
+        chat: /compatible-mode/v1/chat/completions
+        embedding: /compatible-mode/v1/embeddings
+    siliconflow:
+      url: https://api.siliconflow.cn
+      endpoints:
+        chat: /v1/chat/completions
+        embedding: /v1/embeddings
+  chat:
+    default-model: qwen2.5:7b
+  embedding:
+    default-model: nomic-embed-text
   ollama:
-    url: http://127.0.0.1:11434 #这里是我本地部署的ollama默认地址（需要根据你自己的更换）
     chat:
       options:
         model: qwen2.5:7b # 模型名称 本地ollama 下载的模型名称（需要根据你自己的更换）
     embedding:
       options:
         model: nomic-embed-text # 模型名称 本地ollama 下载的模型名称（需要根据你自己的更换）
+

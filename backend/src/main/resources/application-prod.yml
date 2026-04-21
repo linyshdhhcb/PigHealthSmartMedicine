@@ -1,0 +1,62 @@
+# 生产环境配置
+server:
+  port: 8080
+
+spring:
+  # 数据源配置
+  datasource:
+    url: jdbc:mysql://prod-server-ip:3306/pig_health_smart_medicine?serverTimezone=Hongkong&useAffectedRows=true&characterEncoding=utf-8
+    username: prod_username               #生产环境数据库用户名
+    password: prod_password               #生产环境数据库密码
+  
+  # 邮件配置
+  mail:
+    username: prod_qq_email               # 生产环境qq邮箱
+    password: prod_qq_email_password      # 生产环境qq邮箱授权码
+  
+  # Redis配置
+  data:
+    redis:
+      host: prod-server-ip
+      port: 6379
+      password: prod_redis_password
+  
+  # MinIO配置
+  minio:
+    access-key: prod_minio_access_key
+    secret-key: prod_minio_secret_key
+    url: https://minio.yourdomain.com
+
+  # Milvus向量数据库配置
+  ai:
+    vectorstore:
+      milvus:
+        client:
+          host: prod-server-ip
+          port: 19530
+
+# AI配置
+ai:
+  providers:
+    ollama:
+      url: http://prod-server-ip:11434
+    bailian:
+      api-key: prod_bailian_api_key
+    siliconflow:
+      api-key: prod_siliconflow_api_key
+  ollama:
+    url: http://prod-server-ip:11434
+
+# 日志配置（生产环境只记录warn和error）
+logging:
+  level:
+    com.linyi.pig: warn
+    world.world.xuewei.dao.mapper: warn
+  file:
+    name: /var/log/pig-health/application.log
+    max-size: 100MB
+    max-history: 30
+
+# Knife4j配置（生产环境禁用）
+knife4j:
+  enable: false

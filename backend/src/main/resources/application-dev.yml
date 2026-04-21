@@ -1,0 +1,58 @@
+# 开发环境配置
+server:
+  port: 19999
+
+spring:
+  # 数据源配置
+  datasource:
+    url: jdbc:mysql://127.0.0.1:3306/pig_health_smart_medicine?serverTimezone=Hongkong&useAffectedRows=true&characterEncoding=utf-8
+    username: your_username               #数据库用户名
+    password: your_password               #数据库密码
+
+  # 邮件配置
+  mail:
+    username: your_qq_email               # qq邮箱
+    password: your_qq_email_password      # qq邮箱授权码
+
+  # Redis配置
+  data:
+    redis:
+      host: 127.0.0.1
+      port: 6379
+      password: redis_password
+
+  # MinIO配置
+  minio:
+    access-key: your_minio_access_key
+    secret-key: your_minio_secret_key
+    url: your_url
+
+  # Milvus向量数据库配置
+  ai:
+    vectorstore:
+      milvus:
+        client:
+          host: 127.0.0.1
+          port: 19530
+
+# AI配置
+ai:
+  providers:
+    ollama:
+      url: http://127.0.0.1:11434
+    bailian:
+      api-key: test_bailian_api_key
+    siliconflow:
+      api-key: prod_siliconflow_api_key
+  ollama:
+    url: http://127.0.0.1:11434
+
+# 日志配置
+logging:
+  level:
+    com.linyi.pig: debug
+    world.world.xuewei.dao.mapper: debug
+
+# Knife4j配置（开发环境启用）
+knife4j:
+  enable: true

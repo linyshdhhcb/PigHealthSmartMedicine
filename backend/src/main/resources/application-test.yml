@@ -1,0 +1,58 @@
+# 测试环境配置
+server:
+  port: 19998
+
+spring:
+  # 数据源配置
+  datasource:
+    url: jdbc:mysql://test-server-ip:3306/pig_health_smart_medicine?serverTimezone=Hongkong&useAffectedRows=true&characterEncoding=utf-8
+    username: test_username               #测试环境数据库用户名
+    password: test_password               #测试环境数据库密码
+  
+  # 邮件配置
+  mail:
+    username: test_qq_email               # 测试环境qq邮箱
+    password: test_qq_email_password      # 测试环境qq邮箱授权码
+  
+  # Redis配置
+  data:
+    redis:
+      host: test-server-ip
+      port: 6379
+      password: test_redis_password
+  
+  # MinIO配置
+  minio:
+    access-key: test_minio_access_key
+    secret-key: test_minio_secret_key
+    url: http://test-server-ip:9000
+
+  # Milvus向量数据库配置
+  ai:
+    vectorstore:
+      milvus:
+        client:
+          host: test-server-ip
+          port: 19530
+
+# AI配置
+ai:
+  providers:
+    ollama:
+      url: http://test-server-ip:11434
+    bailian:
+      api-key: test_bailian_api_key
+    siliconflow:
+      api-key: test_siliconflow_api_key
+  ollama:
+    url: http://test-server-ip:11434
+
+# 日志配置
+logging:
+  level:
+    com.linyi.pig: info
+    world.world.xuewei.dao.mapper: info
+
+# Knife4j配置（测试环境启用）
+knife4j:
+  enable: true
