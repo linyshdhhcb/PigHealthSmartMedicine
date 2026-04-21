@@ -1,252 +1,116 @@
 <template>
   <div class="smart-doctor">
-    <!-- 智能医生头部 -->
     <div class="doctor-header">
       <img src="@/assets/images/team/user-2.jpg" alt="智能医生头像" class="doctor-avatar">
       <div class="doctor-info">
         <h3>智能在线医生</h3>
-        <p>你的专属医生，随时为您服务！</p>
+        <p>支持按知识库问答，返回命中文本与标准化结论</p>
       </div>
     </div>
 
-    <!-- 聊天内容区域 -->
-    <div class="chat-content">
+    <div class="toolbar">
+      <label class="kb-label">知识库 ID</label>
+      <input v-model="kbId" type="number" min="1" placeholder="请输入 kbId" />
+    </div>
+
+    <div class="chat-content" ref="chatRef">
       <div v-for="(message, index) in messages" :key="index" class="message">
         <div :class="['message-item', message.type]">
-          <img :src="userAvatar" alt="用户头像" class="message-avatar">
+          <img v-if="message.type === 'user'" :src="userAvatar" alt="用户头像" class="message-avatar">
+          <img v-else src="@/assets/images/team/user-2.jpg" alt="医生头像" class="message-avatar">
           <div class="message-text">
-            <p>{{ message.text }}</p>
+            <p class="message-title">{{ message.title }}</p>
+            <p class="message-body">{{ message.text }}</p>
+            <div v-if="message.chunks && message.chunks.length" class="chunk-list">
+              <div v-for="chunk in message.chunks" :key="chunk.id" class="chunk-item">
+                <div class="chunk-meta">
+                  <span>docId: {{ chunk.docId }}</span>
+                  <span>chunkIndex: {{ chunk.chunkIndex }}</span>
+                  <span>fileName: {{ chunk.fileName || '未知文件' }}</span>
+                </div>
+                <p class="chunk-content">{{ chunk.content }}</p>
+              </div>
+            </div>
           </div>
         </div>
       </div>
     </div>
 
-    <!-- 输入区域 -->
     <div class="input-area">
-      <textarea placeholder="输入要咨询的内容..." v-model="newMessage"></textarea>
-      <button @click="sendMessage">发送</button>
+      <textarea
+        v-model="newMessage"
+        placeholder="输入要咨询的内容..."
+        @keydown.enter.exact.prevent="sendMessage"
+      ></textarea>
+      <button :disabled="loading" @click="sendMessage">{{ loading ? '发送中...' : '发送' }}</button>
     </div>
   </div>
 </template>
 
 <script setup>
-import { ref } from 'vue';
-// import userAvatar from '@/assets/images/icons/avatar.png';
+import { nextTick, ref } from 'vue';
 import userAvatar from '@/assets/images/icons/avatar.jpg';
-// 消息列表
+import { conversationKnowledgeAsk } from '@/api/articles.js';
+
+const kbId = ref('');
 const messages = ref([
   {
     type: 'doctor',
-    avatar: '@/assets/images/team/user-2.jpg',
-    text: '管理员你好，我是您的智能专属医生薛伟，身体不舒服或者有任何需要咨询的问题，都可以向我提问，我会全心全意为您解答！'
+    title: '系统提示',
+    text: '请输入 kbId 后提问，系统将返回标准化问答结果。',
+    chunks: []
   }
 ]);
-
-// 新消息输入框绑定的变量
 const newMessage = ref('');
+const loading = ref(false);
+const chatRef = ref(null);
 
-// 发送消息的方法
-const sendMessage = () => {
-  if (newMessage.value.trim() === '') return;
+const scrollToBottom = async () => {
+  await nextTick();
+  if (chatRef.value) {
+    chatRef.value.scrollTop = chatRef.value.scrollHeight;
+  }
+};
 
-  // 添加用户的消息
+const sendMessage = async () => {
+  const question = newMessage.value.trim();
+  const resolvedKbId = Number(kbId.value);
+  if (!question || !resolvedKbId) return;
+
   messages.value.push({
     type: 'user',
-    avatar: '@/assets/images/team/user-4.jpg',
-    text: newMessage.value
+    title: '用户提问',
+    text: question,
+    chunks: []
   });
-
-  // 模拟AI回复
-  if (newMessage.value.includes('小猪老是呕吐，食欲不振怎么办')) {
-    messages.value.push({
-      type: 'doctor',
-      avatar: '@/assets/images/team/user-2.jpg',
-      text: '及时请兽医检查，明确病因后针对性治疗，如肠胃炎可用阿莫西林等抗生素、胃复安止吐，严格按指导用药，不可盲目喂药。'
-    });
-  } else {
-    messages.value.push({
-      type: 'doctor',
-      avatar: '@/assets/images/team/user-2.jpg',
-      text: '这是一个示例回复，请根据实际情况提出您的问题。'
-    });
-  }
-
-  // 清空输入框
   newMessage.value = '';
+  loading.value = true;
+  await scrollToBottom();
+
+  try {
+    const res = await conversationKnowledgeAsk({
+      prompt: question,
+      kbId: resolvedKbId,
+      sessionId: 1
+    });
+
+    const data = res.data?.data || {};
+    messages.value.push({
+      type: 'doctor',
+      title: '智能问答结果',
+      text: data.aiResponse || '暂无可用回答',
+      chunks: data.chunks || []
+    });
+  } catch (error) {
+    messages.value.push({
+      type: 'doctor',
+      title: '系统提示',
+      text: '问答请求失败，请稍后重试。',
+      chunks: []
+    });
+  } finally {
+    loading.value = false;
+    await scrollToBottom();
+  }
 };
 </script>
-
-<style scoped>
-/* 整体布局 */
-.smart-doctor {
-  display: flex;
-  flex-direction: column;
-  height: 100vh;
-  background-color: #f5f7fa;
-  box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
-  border-radius: 10px;
-  overflow: hidden;
-}
-
-/* 医生头部样式 */
-.doctor-header {
-  background: linear-gradient(135deg, #61dafb, #3498db);
-  padding: 20px;
-  display: flex;
-  align-items: center;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-}
-
-.doctor-avatar {
-  width: 60px;
-  height: 60px;
-  border-radius: 50%;
-  margin-right: 16px;
-  border: 3px solid #fff;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-}
-
-.doctor-info h3 {
-  margin: 0;
-  font-size: 1.5rem;
-  color: #fff;
-  font-weight: bold;
-}
-
-.doctor-info p {
-  margin: 4px 0 0;
-  color: #fff;
-  font-size: 0.9rem;
-}
-
-/* 聊天内容区域 */
-.chat-content {
-  flex: 1;
-  overflow-y: auto;
-  padding: 20px;
-  background-color: #fff;
-  scroll-behavior: smooth;
-}
-
-.chat-content::-webkit-scrollbar {
-  width: 8px;
-}
-
-.chat-content::-webkit-scrollbar-thumb {
-  background-color: #bfbfbf;
-  border-radius: 4px;
-}
-
-.chat-content::-webkit-scrollbar-track {
-  background-color: #f1f1f1;
-  border-radius: 4px;
-}
-
-.message {
-  margin-bottom: 20px;
-  display: flex;
-  flex-direction: column;
-}
-
-.message-item {
-  display: flex;
-  max-width: 80%;
-}
-
-.message-avatar {
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  margin-right: 12px;
-  object-fit: cover;
-}
-
-.message-text {
-  background-color: #f1f1f1;
-  padding: 12px 16px;
-  border-radius: 18px;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
-  font-size: 0.95rem;
-  line-height: 1.4;
-  word-break: break-word;
-}
-
-.message.user {
-  justify-content: flex-end;
-  margin-left: auto;
-}
-
-.message.user .message-text {
-  background-color: #e3f2fd;
-  color: #0d47a1;
-}
-
-.message.doctor {
-  justify-content: flex-start;
-}
-
-.message.doctor .message-text {
-  background-color: #f1f8e9;
-  color: #33691e;
-}
-
-/* 输入区域样式 */
-.input-area {
-  display: flex;
-  padding: 15px;
-  background-color: #fff;
-  box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.05);
-}
-
-textarea {
-  flex: 1;
-  height: 60px;
-  padding: 12px;
-  border: 2px solid #e0e0e0;
-  border-radius: 12px;
-  resize: none;
-  font-size: 0.95rem;
-  transition: border 0.3s;
-  outline: none;
-}
-
-textarea:focus {
-  border-color: #3498db;
-}
-
-button {
-  margin-left: 10px;
-  padding: 0 20px;
-  height: 40px;
-  background: linear-gradient(135deg, #3498db, #2980b9);
-  color: white;
-  border: none;
-  border-radius: 8px;
-  cursor: pointer;
-  font-size: 1rem;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-  transition: all 0.3s ease;
-}
-
-button:hover {
-  background: linear-gradient(135deg, #2980b9, #3498db);
-  transform: translateY(-2px);
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
-}
-
-/* 响应式设计 */
-@media (max-width: 768px) {
-  .doctor-header {
-    padding: 15px;
-  }
-
-  .doctor-avatar {
-    width: 50px;
-    height: 50px;
-  }
-
-  .doctor-info h3 {
-    font-size: 1.2rem;
-  }
-}
-</style>
