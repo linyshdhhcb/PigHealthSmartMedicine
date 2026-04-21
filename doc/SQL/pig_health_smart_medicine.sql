@@ -534,4 +534,82 @@ CREATE TABLE `user`  (
 INSERT INTO `user` VALUES (2, 'admin', '林总', '$2a$10$C4PdFjCdsRW2Q4Mu1x/Q8OzfUYYu09PH27iQfMHFozj05hqPfZ7x6', 18, '男', '13@qq.com', '13511111111', 1, 'https://tse4-mm.cn.bing.net/th/id/OIP-C.Xd88RmKtrH3ORAfPnL3gwAAAAA?w=168&h=180&c=7&r=0&o=5&dpr=1.3&pid=1.7', '2025-02-27 23:00:40', '2025-03-30 16:24:10');
 INSERT INTO `user` VALUES (9, 'linyi', '林一', '$2a$10$eRbcqLz4UUnnsv23xbVg1eH7F4jSlwX/M7tiYrZehlHKVrp/he7Ei', NULL, NULL, '13112665250@139.com', NULL, 0, 'https://tse4-mm.cn.bing.net/th/id/OIP-C.Xd88RmKtrH3ORAfPnL3gwAAAAA?w=168&h=180&c=7&r=0&o=5&dpr=1.3&pid=1.7', '2025-03-30 16:20:57', '2025-03-30 16:22:45');
 
+-- ----------------------------
+-- Table structure for knowledge_base
+-- ----------------------------
+DROP TABLE IF EXISTS `knowledge_base`;
+CREATE TABLE `knowledge_base`  (
+                                   `id` bigint NOT NULL AUTO_INCREMENT COMMENT '主键 ID',
+                                   `name` varchar(128) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT '知识库名称',
+                                   `embedding_model` varchar(128) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT '嵌入模型标识',
+                                   `collection_name` varchar(128) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'Milvus Collection',
+                                   `created_by` varchar(64) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT '创建人',
+                                   `updated_by` varchar(64) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT NULL COMMENT '修改人',
+                                   `create_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+                                   `update_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+                                   `deleted` tinyint(1) NOT NULL DEFAULT 0 COMMENT '是否删除 0：正常 1：删除',
+                                   PRIMARY KEY (`id`) USING BTREE,
+                                   UNIQUE INDEX `uk_collection_name`(`collection_name` ASC) USING BTREE COMMENT 'Collection 唯一约束',
+                                   INDEX `idx_kb_name`(`name` ASC) USING BTREE
+) ENGINE = InnoDB AUTO_INCREMENT = 2018586042835763203 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci COMMENT = 'RAG知识库表' ROW_FORMAT = DYNAMIC;
+
+-- ----------------------------
+-- Records of knowledge_base
+-- ----------------------------
+INSERT INTO `knowledge_base` VALUES (2018586042835763202, '默认知识库', 'default', 'rag_default_store_v2', 'system', 'system', '2026-04-21 18:30:50', '2026-04-21 13:46:49', 0);
+
+-- ----------------------------
+-- Table structure for knowledge_chunk
+-- ----------------------------
+DROP TABLE IF EXISTS `knowledge_chunk`;
+CREATE TABLE `knowledge_chunk`  (
+                                    `id` bigint NOT NULL AUTO_INCREMENT COMMENT 'ID',
+                                    `kb_id` bigint NOT NULL COMMENT '知识库ID',
+                                    `doc_id` bigint NOT NULL COMMENT '文档ID',
+                                    `chunk_index` int NOT NULL COMMENT '分块序号（从0开始）',
+                                    `content` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT '分块正文内容',
+                                    `content_hash` varchar(64) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT NULL COMMENT '内容哈希（用于幂等/去重）',
+                                    `char_count` int NULL DEFAULT NULL COMMENT '字符数（可用于统计/调参）',
+                                    `token_count` int NULL DEFAULT NULL COMMENT 'Token数（可选）',
+                                    `enabled` tinyint(1) NOT NULL DEFAULT 1 COMMENT '是否启用 0：禁用 1：启用',
+                                    `created_by` varchar(64) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT '创建人',
+                                    `updated_by` varchar(64) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT NULL COMMENT '修改人',
+                                    `create_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+                                    `update_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+                                    `deleted` tinyint(1) NOT NULL DEFAULT 0 COMMENT '是否删除 0：正常 1：删除',
+                                    PRIMARY KEY (`id`) USING BTREE,
+                                    INDEX `idx_doc_id`(`doc_id` ASC) USING BTREE
+) ENGINE = InnoDB AUTO_INCREMENT = 2019941971888291904 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci COMMENT = 'RAG知识库文档分块表' ROW_FORMAT = DYNAMIC;
+
+-- ----------------------------
+-- Table structure for knowledge_document
+-- ----------------------------
+DROP TABLE IF EXISTS `knowledge_document`;
+CREATE TABLE `knowledge_document`  (
+                                       `id` bigint NOT NULL AUTO_INCREMENT COMMENT 'ID',
+                                       `kb_id` bigint NOT NULL COMMENT '知识库ID',
+                                       `doc_name` varchar(256) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT '文档名称',
+                                       `enabled` tinyint(1) NOT NULL DEFAULT 1 COMMENT '是否启用 1：启用 0：禁用',
+                                       `chunk_count` int NULL DEFAULT 0 COMMENT '分块数（chunk 数量）',
+                                       `file_url` varchar(1024) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT '文件地址',
+                                       `file_type` varchar(32) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT '文件类型',
+                                       `file_size` bigint NULL DEFAULT NULL COMMENT '文件大小（单位字节）',
+                                       `process_mode` varchar(32) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT 'chunk' COMMENT '处理模式',
+                                       `status` varchar(32) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'pending' COMMENT '状态',
+                                       `source_type` varchar(32) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT NULL COMMENT '来源类型：file/url',
+                                       `source_location` varchar(1024) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT NULL COMMENT '来源位置（URL）',
+                                       `schedule_enabled` tinyint(1) NULL DEFAULT NULL COMMENT '定时拉取 0：否 1：是',
+                                       `schedule_cron` varchar(128) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT NULL COMMENT '定时拉取cron表达式',
+                                       `chunk_strategy` varchar(32) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT NULL COMMENT '分块策略',
+                                       `chunk_config` json NULL COMMENT '分块参数JSON',
+                                       `pipeline_id` bigint NULL DEFAULT NULL COMMENT '数据通道ID',
+                                       `created_by` varchar(64) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT '创建人',
+                                       `updated_by` varchar(64) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT NULL COMMENT '修改人',
+                                       `create_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+                                       `update_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+                                       `deleted` tinyint(1) NOT NULL DEFAULT 0 COMMENT '是否删除 0：正常 1：删除',
+                                       PRIMARY KEY (`id`) USING BTREE,
+                                       INDEX `idx_kb_id`(`kb_id` ASC) USING BTREE
+) ENGINE = InnoDB AUTO_INCREMENT = 2019941957409554439 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci COMMENT = 'RAG知识库文档表' ROW_FORMAT = DYNAMIC;
+
 SET FOREIGN_KEY_CHECKS = 1;
