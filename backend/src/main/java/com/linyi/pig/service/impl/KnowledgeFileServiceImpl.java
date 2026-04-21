@@ -201,16 +201,18 @@ public class KnowledgeFileServiceImpl extends ServiceImpl<KnowledgeFileMapper, K
     public KnowledgeQaResult qaByKbId(Long kbId, String question, int topK) {
         KnowledgeQaResult result = new KnowledgeQaResult();
         if (question == null || question.isBlank()) {
+            result.setQuestion(question);
             result.setChunks(List.of());
-            result.setAnswer(buildAnswerTemplate(question, List.of(), "请先提供问题。"));
+            result.setAnswer("请先提供问题。");
             return result;
         }
         Long resolvedKbId = kbId == null ? resolveKbId(null) : kbId;
+        result.setQuestion(question);
         List<KnowledgeChunk> chunks = milvusVectorService.searchByKbId(resolvedKbId, aiModelRouterService.embed(question), topK);
         List<KnowledgeChunkView> views = chunks.stream().map(this::toChunkView).toList();
         result.setChunks(views);
         if (views.isEmpty()) {
-            result.setAnswer(buildAnswerTemplate(question, views, "未检索到相关知识片段。"));
+            result.setAnswer("未检索到相关知识片段。");
             return result;
         }
         StringBuilder context = new StringBuilder();
@@ -219,7 +221,7 @@ public class KnowledgeFileServiceImpl extends ServiceImpl<KnowledgeFileMapper, K
         }
         String prompt = "你是猪病知识助手。请基于下面检索到的知识片段，简洁回答用户问题；如果片段不足，直接说明不确定。\n知识片段:" + context + "\n问题:" + question;
         String answer = aiModelRouterService.chat(prompt);
-        result.setAnswer(buildAnswerTemplate(question, views, answer));
+        result.setAnswer(answer == null || answer.isBlank() ? "暂无可用回答。" : answer.trim());
         return result;
     }
 
