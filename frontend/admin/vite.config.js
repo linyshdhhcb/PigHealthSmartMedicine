@@ -2,7 +2,7 @@ import { defineConfig } from 'vite'
 import vue from '@vitejs/plugin-vue'
 import path from 'path'
 
-const BACKEND_URL = 'http://117.72.101.170:19999'
+const BACKEND_URL = 'http://127.0.0.1:19999'
 
 export default defineConfig({
   plugins: [vue()],
