@@ -1,4 +1,4 @@
-import axios from 'axios';
+import axios from '@/axios';
 
 const authHeaders = () => ({
   'Content-Type': 'application/json',
@@ -6,5 +6,5 @@ const authHeaders = () => ({
 });
 
 export const conversationKnowledgeAsk = (params) => {
-  return axios.get('/api/conversation/getOllama', { params, headers: authHeaders() });
+  return axios.get('/conversation/getOllama', { params, headers: authHeaders() });
 };
