@@ -1,13 +1,38 @@
 import { defineConfig } from 'vite'
 import vue from '@vitejs/plugin-vue'
-import path from 'path' //导入 node.js path
+import path from 'path'
 
-// https://vitejs.dev/config/
+const BACKEND_URL = 'http://117.72.101.170:19999'
+
 export default defineConfig({
   plugins: [vue()],
   resolve: {
-    alias: { //配置路径别名
+    alias: {
       '@': path.resolve(__dirname, 'src')
+    }
+  },
+  define: {
+    __BACKEND_URL__: JSON.stringify(BACKEND_URL)
+  },
+  server: {
+    proxy: {
+      '/conversation': BACKEND_URL,
+      '/knowledge': BACKEND_URL,
+      '/user': BACKEND_URL,
+      '/illness': BACKEND_URL,
+      '/illnessKind': BACKEND_URL,
+      '/illnessMedicine': BACKEND_URL,
+      '/medicine': BACKEND_URL,
+      '/feedback': BACKEND_URL,
+      '/files': BACKEND_URL,
+      '/history': BACKEND_URL,
+      '/articles': BACKEND_URL,
+      '/articleType': BACKEND_URL,
+      '/newsArticles': BACKEND_URL,
+      '/travelNotes': BACKEND_URL,
+      '/pageview': BACKEND_URL,
+      '/operationLog': BACKEND_URL,
+      '/auth': BACKEND_URL
     }
   }
 })
