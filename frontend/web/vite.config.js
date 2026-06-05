@@ -16,24 +16,24 @@ export default defineConfig({
   },
   server: {
     proxy: {
-      '/conversation': BACKEND_URL,
-      '/knowledge': BACKEND_URL,
-      '/user': BACKEND_URL,
-      '/illness': BACKEND_URL,
-      '/illnessKind': BACKEND_URL,
-      '/illnessMedicine': BACKEND_URL,
-      '/medicine': BACKEND_URL,
-      '/feedback': BACKEND_URL,
-      '/files': BACKEND_URL,
-      '/history': BACKEND_URL,
-      '/articles': BACKEND_URL,
-      '/articleType': BACKEND_URL,
-      '/newsArticles': BACKEND_URL,
-      '/travelNotes': BACKEND_URL,
-      '/pageview': BACKEND_URL,
-      '/operationLog': BACKEND_URL,
-      '/auth': BACKEND_URL,
-      '/service': BACKEND_URL
+      '/conversation/': BACKEND_URL,
+      '/knowledge/': BACKEND_URL,
+      '/user/': BACKEND_URL,
+      '/illness/': BACKEND_URL,
+      '/illnessKind/': BACKEND_URL,
+      '/illnessMedicine/': BACKEND_URL,
+      '/medicine/': BACKEND_URL,
+      '/feedback/': BACKEND_URL,
+      '/files/': BACKEND_URL,
+      '/history/': BACKEND_URL,
+      '/articles/': BACKEND_URL,
+      '/articleType/': BACKEND_URL,
+      '/newsArticles/': BACKEND_URL,
+      '/travelNotes/': BACKEND_URL,
+      '/pageview/': BACKEND_URL,
+      '/operationLog/': BACKEND_URL,
+      '/auth/': BACKEND_URL,
+      '/service/': BACKEND_URL
     }
   }
 })
