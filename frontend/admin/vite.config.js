@@ -18,6 +18,8 @@ export default defineConfig({
     proxy: {
       '/conversation/': BACKEND_URL,
       '/knowledge/': BACKEND_URL,
+      '/knowledgeBase/': BACKEND_URL,
+      '/knowledgeChunk/': BACKEND_URL,
       '/user/': BACKEND_URL,
       '/illness/': BACKEND_URL,
       '/illnessKind/': BACKEND_URL,
