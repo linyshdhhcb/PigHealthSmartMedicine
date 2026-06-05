@@ -12,4 +12,6 @@ public interface MilvusVectorService {
     List<KnowledgeChunk> searchByKbId(Long kbId, List<Float> vector, int topK);
 
     void deleteByDocId(Long docId);
+
+    void dropCollection(String collectionName);
 }

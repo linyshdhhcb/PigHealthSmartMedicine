@@ -18,6 +18,7 @@ import io.milvus.v2.common.DataType;
 import io.milvus.v2.common.IndexParam;
 import io.milvus.v2.service.collection.request.CreateCollectionReq;
 import io.milvus.v2.service.collection.request.DescribeCollectionReq;
+import io.milvus.v2.service.collection.request.DropCollectionReq;
 import io.milvus.v2.service.collection.request.HasCollectionReq;
 import io.milvus.v2.service.collection.request.LoadCollectionReq;
 import io.milvus.v2.service.index.request.CreateIndexReq;
@@ -268,6 +269,20 @@ public class MilvusVectorServiceImpl implements MilvusVectorService {
                 .filter("metadata[\"doc_id\"] == " + docId)
                 .build());
         log.info("Milvus delete docId={}, deleteCnt={}", docId, resp == null ? null : resp.getDeleteCnt());
+    }
+
+    @Override
+    public void dropCollection(String collectionName) {
+        if (collectionName == null || collectionName.isBlank() || milvusClient == null) {
+            return;
+        }
+        boolean exists = Boolean.TRUE.equals(milvusClient.hasCollection(HasCollectionReq.builder().collectionName(collectionName).build()));
+        if (exists) {
+            milvusClient.dropCollection(DropCollectionReq.builder().collectionName(collectionName).build());
+            log.info("Milvus collection dropped: {}", collectionName);
+        } else {
+            log.warn("Milvus collection not found, skip drop: {}", collectionName);
+        }
     }
 
     private void createCollectionAndIndex(String col) {
