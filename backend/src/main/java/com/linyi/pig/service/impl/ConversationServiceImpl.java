@@ -74,8 +74,8 @@ public class ConversationServiceImpl extends ServiceImpl<ConversationMapper, Con
         Page<Conversation> page = new Page<>(conversationQueryVo.getPageNum(),
                 conversationQueryVo.getPageSize());
         Page<Conversation> pageNew = conversationMapper.selectPage(page, queryWrapper);
-        return new PageResult<>(pageNew.getRecords(), pageNew.getTotal(), pageNew.getPages(),
-                conversationQueryVo.getPageNum(), conversationQueryVo.getPageSize());
+        return new PageResult<>(pageNew.getRecords(), pageNew.getTotal(),
+                conversationQueryVo.getPageNum(), conversationQueryVo.getPageSize(), pageNew.getPages());
     }
 
     @Override

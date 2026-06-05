@@ -49,7 +49,7 @@ public class FeedbackServiceImpl extends ServiceImpl<FeedbackMapper, Feedback> i
         //查询数据
         Page<Feedback> pageNew = feedbackMapper.selectPage(page, queryWrapper);
         //返回分页数据
-        return new PageResult<>(pageNew.getRecords(), pageNew.getTotal(), pageNew.getPages(), feedbackQueryVo.getPageNum(), feedbackQueryVo.getPageSize());
+        return new PageResult<>(pageNew.getRecords(), pageNew.getTotal(), feedbackQueryVo.getPageNum(), feedbackQueryVo.getPageSize(), pageNew.getPages());
     }
 
     @Override

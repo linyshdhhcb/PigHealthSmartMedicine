@@ -52,7 +52,7 @@ public class NewsArticlesServiceImpl extends ServiceImpl<NewsArticlesMapper, New
         //查询数据
         Page<NewsArticles> pageNew = newsArticlesMapper.selectPage(page, queryWrapper);
         //返回分页数据
-        return new PageResult<>(pageNew.getRecords(), pageNew.getTotal(), pageNew.getPages(), newsArticlesQueryVo.getPageNum(), newsArticlesQueryVo.getPageSize());
+        return new PageResult<>(pageNew.getRecords(), pageNew.getTotal(), newsArticlesQueryVo.getPageNum(), newsArticlesQueryVo.getPageSize(), pageNew.getPages());
     }
 
     @Override

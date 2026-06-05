@@ -112,7 +112,7 @@ public class KnowledgeFileServiceImpl extends ServiceImpl<KnowledgeFileMapper, K
         }
         Page<KnowledgeFile> page = new Page<>(vo.getPageNum(), vo.getPageSize());
         Page<KnowledgeFile> res = this.baseMapper.selectPage(page, qw);
-        return new PageResult<>(res.getRecords(), res.getTotal(), res.getPages(), vo.getPageNum(), vo.getPageSize());
+        return new PageResult<>(res.getRecords(), res.getTotal(), vo.getPageNum(), vo.getPageSize(), res.getPages());
     }
 
     @Override

@@ -72,7 +72,7 @@ public class FilesServiceImpl extends ServiceImpl<FilesMapper, Files> implements
         //查询数据
         Page<Files> pageNew = filesMapper.selectPage(page, queryWrapper);
         //返回分页数据
-        return new PageResult<>(pageNew.getRecords(), pageNew.getTotal(), pageNew.getPages(), filesQueryVo.getPageNum(), filesQueryVo.getPageSize());
+        return new PageResult<>(pageNew.getRecords(), pageNew.getTotal(), filesQueryVo.getPageNum(), filesQueryVo.getPageSize(), pageNew.getPages());
     }
 
     @Override

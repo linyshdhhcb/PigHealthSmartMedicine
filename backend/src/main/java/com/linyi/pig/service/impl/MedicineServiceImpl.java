@@ -54,7 +54,7 @@ public class MedicineServiceImpl extends ServiceImpl<MedicineMapper, Medicine> i
         //查询数据
         Page<Medicine> pageNew = medicineMapper.selectPage(page, queryWrapper);
         //返回分页数据
-        return new PageResult<>(pageNew.getRecords(), pageNew.getTotal(), pageNew.getPages(), medicineQueryVo.getPageNum(), medicineQueryVo.getPageSize());
+        return new PageResult<>(pageNew.getRecords(), pageNew.getTotal(), medicineQueryVo.getPageNum(), medicineQueryVo.getPageSize(), pageNew.getPages());
     }
 
     @Override
