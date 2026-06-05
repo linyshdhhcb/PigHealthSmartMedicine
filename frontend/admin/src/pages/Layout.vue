@@ -276,6 +276,6 @@ const handleSelect = (index) => {
   padding: 20px;
   background: #fff;
   border-radius: 8px;
-  overflow: hidden;
+  overflow-y: auto;
 }
 </style>

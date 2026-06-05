@@ -2,12 +2,7 @@
   <el-card class="p-0">
     <h1>文件信息管理模块</h1>
 
-    <!-- 数据列表 -->
-    <el-row class="w-full h-full flex flex-col overflow-x-auto overflow-y-hidden">
-      <!-- 查询条件 -->
-      <div class="w-full">
-        <!-- 文件名和文件类型在同一行 -->
-        <el-row :gutter="10" class="w-full" v-if="showSearchRow">
+    <el-row :gutter="10" style="width: 100%;" v-if="showSearchRow">
           <el-col :span="6">
             <el-form :model="searchForm" inline label-position="left">
               <el-form-item label="文件名">
@@ -26,7 +21,7 @@
             <el-form :model="searchForm" inline label-position="left">
               <el-form-item label="文件大小">
                 <el-input-number v-model="searchForm.fileSizeMin" :precision="0" :step="4" placeholder="最小文件" />
-                <span class="mx-2">-</span>
+                <span style="margin-left: 8px; margin-right: 8px;">-</span>
                 <el-input-number v-model="searchForm.fileSizeMax" :precision="0" :step="5" placeholder="最大文件" />
               </el-form-item>
             </el-form>
@@ -34,7 +29,7 @@
         </el-row>
 
         <!-- 查询、重置、添加、刷新、收缩/展开在同一行 -->
-        <el-row :gutter="10" class="w-full mt-3">
+        <el-row :gutter="10" style="width: 100%; margin-top: 12px;">
           <el-col :span="12">
             <el-button type="primary" @click="getPageList(false)">
               <el-icon><Search /></el-icon>
@@ -67,13 +62,11 @@
           </el-col>
         </el-row>
 
-        <el-divider v-if="showSearchRow" class="mt-2" />
+        <el-divider v-if="showSearchRow" />
 
-        <!-- 数据展示区 -->
-        <el-row class="w-full flex-1 mt-3 overflow-y-auto" style="width: 100%; ">
-          <div class="table-container"   style="width: 100%; ">
+        <div class="table-container">
             <el-table
-              style="width: 100%; height: calc(100vh - 350px);"
+              style="width: 100%;"
               border
               :data="datatable.records"
               :loading="datatable.loading"
@@ -120,23 +113,18 @@
               </el-table-column>
             </el-table>
           </div>
-        </el-row>
-
         <!-- 分页 -->
-        <el-row class="w-full flex justify-end mt-2" style="margin: 10px auto;">
+        <el-row style="display: flex; justify-content: center; margin-top: 16px;">
           <el-pagination
-            v-if="datatable.total > 0"
             v-model:current-page="searchForm.pageNum"
             v-model:page-size="searchForm.pageSize"
             :total="datatable.total"
             :page-sizes="[10, 20, 50, 100, 200]"
-            layout="total, sizes, prev, pager, next, jumper"
+            layout="total, sizes, prev, pager, next, jumper" background
             @current-change="handlePageChange"
             @size-change="handleSizeChange"
           />
         </el-row>
-      </div>
-    </el-row>
 
     <!-- 添加/修改 模态框 -->
     <el-dialog v-model="modal.visible" fullscreen :close-on-click-modal="true" :close-on-press-escape="true" draggable>
@@ -397,11 +385,8 @@ getPageList();
 
 /* 新增关键样式 */
 .table-container {
-  overflow-x: auto;  /* 关键3：容器开启横向滚动 */
+  overflow-x: auto;
   position: relative;
-}
-.w-full{
-  width: 100%;
 }
 
 /* 优化固定列样式 */
@@ -480,9 +465,5 @@ getPageList();
   z-index: 2;
   background: #fff;
   box-shadow: -2px 0 8px rgba(0, 0, 0, 0.1);
-}
-
-table-container {
-  overflow-x: auto;
 }
 </style>

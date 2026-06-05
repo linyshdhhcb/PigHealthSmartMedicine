@@ -1,13 +1,8 @@
 <template>
-  <el-card class="p-0" style="height: 100%;">
+  <el-card class="p-0">
     <h1>文章类型管理模块</h1>
 
-    <!-- 数据列表 -->
-    <el-row class="el-row">
-      <!-- 查询条件 -->
-      <div class="w-full-box">
-        <!-- 查询条件在同一行 -->
-        <el-row :gutter="10" class="search" v-if="showSearchRow">
+    <el-row :gutter="10" class="search" v-if="showSearchRow">
           <el-col :span="6">
             <el-form class="search-bar" :model="searchForm" inline label-position="left">
               <el-form-item label="文章类型名称">
@@ -18,7 +13,7 @@
         </el-row>
 
         <!-- 查询、重置、添加、刷新、收缩/展开在同一行 -->
-        <el-row :gutter="10" class="w-full mt-3">
+        <el-row :gutter="10" style="width: 100%; margin-top: 12px;">
           <el-col :span="12">
             <el-button type="primary" @click="handleSearch">
               <el-icon><Search /></el-icon>
@@ -52,13 +47,11 @@
           </el-col>
         </el-row>
 
-        <el-divider v-if="showSearchRow" class="mt-2" />
+        <el-divider v-if="showSearchRow" />
 
-        <!-- 数据展示区 -->
-        <el-row class="w-full flex-1 mt-3 overflow-y-auto">
-          <div class="table-container">
+        <div class="table-container">
             <el-table
-              style="width: 100%; min-width: 800px; height: calc(100vh - 350px);"
+              style="width: 100%;"
               border
               :data="datatable.records"
               :loading="datatable.loading"
@@ -94,23 +87,19 @@
               </el-table-column>
             </el-table>
           </div>
-        </el-row>
 
         <!-- 分页 -->
-        <el-row class="w-full flex justify-end mt-2" style="margin: 10px auto;">
+        <el-row style="display: flex; justify-content: center; margin-top: 16px;">
           <el-pagination
-            v-if="datatable.total > 0"
             v-model:current-page="searchForm.pageNum"
             v-model:page-size="searchForm.pageSize"
             :total="datatable.total"
             :page-sizes="[10, 20, 50, 100, 200]"
-            layout="total, sizes, prev, pager, next, jumper"
+            layout="total, sizes, prev, pager, next, jumper" background
             @current-change="handlePageChange"
             @size-change="handleSizeChange"
           />
         </el-row>
-      </div>
-    </el-row>
 
     <!-- 添加/修改 模态框 -->
     <el-dialog 
@@ -309,25 +298,23 @@ onMounted(() => {
 </script>
 
 <style scoped>
-
-.el-row{
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 100%;
+.table-container {
+  overflow-x: auto;
+  position: relative;
 }
-.w-full-box{
+
+.ellipsis {
+  display: inline-block;
   width: 100%;
- 
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .search{
   display: flex;
-   /* background: skyblue; */
 }
 .search-bar{
-  /* background: gray; */
   margin-left: -150%;
 }
-
 </style>

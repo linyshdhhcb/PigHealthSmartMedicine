@@ -1,19 +1,13 @@
 <template>
-  <el-card class="p-0" style="height: 100%;">
+  <el-card class="p-0">
     <h1>浏览量管理模块</h1>
 
-    <!-- 数据列表 -->
-    <el-row class="w-full h-full flex flex-col overflow-x-auto overflow-y-auto">
-
-      <!-- 查询条件 -->
-      <div class="w-full" v-if="showSearchRow">
-        <!-- 查询条件在同一行 -->
-        <el-row :gutter="10" class="w-full">
+    <el-row :gutter="10" style="width: 100%;" v-if="showSearchRow">
           <el-col :span="6">
             <el-form :model="searchForm" inline label-position="left">
               <el-form-item label="浏览量范围">
                 <el-input-number v-model="searchForm.pageviewsMin" :precision="0" :step="1" placeholder="最小浏览量" />
-                <span class="mx-2">-</span>
+                <span style="margin-left: 8px; margin-right: 8px;">-</span>
                 <el-input-number v-model="searchForm.pageviewsMax" :precision="0" :step="1" placeholder="最大浏览量" />
               </el-form-item>
             </el-form>
@@ -28,7 +22,7 @@
         </el-row>
 
         <!-- 查询、重置、添加、刷新、收缩/展开在同一行 -->
-        <el-row :gutter="10" class="w-full mt-3">
+        <el-row :gutter="10" style="width: 100%; margin-top: 12px;">
           <el-col :span="12">
             <el-button type="primary" @click="getPageList(false)">
               <el-icon><Search /></el-icon>
@@ -61,13 +55,11 @@
           </el-col>
         </el-row>
 
-        <el-divider v-if="showSearchRow" class="mt-2" />
+        <el-divider v-if="showSearchRow" />
 
-        <!-- 数据展示区 -->
-        <el-row class="w-full flex-1 mt-3 overflow-y-auto" style="width: 100%;">
-          <div class="table-container"  style="width: 100%;">
+        <div class="table-container">
             <el-table
-              style="width: 100%; min-width: 800px; height: calc(100vh - 400px);"
+              style="width: 100%;"
               border
               :data="datatable.records"
               :loading="datatable.loading"
@@ -108,23 +100,19 @@
               </el-table-column>
             </el-table>
           </div>
-        </el-row>
 
         <!-- 分页 -->
-        <el-row class="w-full flex justify-end mt-2" style="margin: 10px auto;">
+        <el-row style="display: flex; justify-content: center; margin-top: 16px;">
           <el-pagination
-            v-if="datatable.total > 0"
             v-model:current-page="searchForm.pageNum"
             v-model:page-size="searchForm.pageSize"
             :total="datatable.total"
             :page-sizes="[10, 20, 50, 100, 200]"
-            layout="total, sizes, prev, pager, next, jumper"
+            layout="total, sizes, prev, pager, next, jumper" background
             @current-change="handlePageChange"
             @size-change="handleSizeChange"
           />
         </el-row>
-      </div>
-    </el-row>
 
     <!-- 添加/修改 模态框 -->
     <el-dialog v-model="modal.visible" fullscreen :close-on-click-modal="true" :close-on-press-escape="true" draggable>
@@ -434,8 +422,5 @@ onMounted(() => {
   z-index: 2;
   background: #fff;
   box-shadow: -2px 0 8px rgba(0, 0, 0, 0.1);
-}
-.w-full{
-  width: 100%;
 }
 </style>

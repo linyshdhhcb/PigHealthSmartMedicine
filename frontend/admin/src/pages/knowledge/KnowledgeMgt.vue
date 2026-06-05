@@ -1,5 +1,5 @@
 <template>
-    <el-card class="p-0" style="height: 100%;">
+    <el-card class="p-0">
         <h1>RAG 知识库</h1>
         <el-row :gutter="10" class="w-full mt-3">
             <el-col :span="12">
@@ -42,10 +42,10 @@
             </el-table>
         </div>
 
-        <el-row class="w-full flex justify-end mt-2" style="margin: 10px auto;">
-            <el-pagination v-if="datatable.total > 0" :current-page="searchForm.pageNum"
+        <el-row style="display: flex; justify-content: center; margin-top: 16px;">
+            <el-pagination :current-page="searchForm.pageNum"
                 :page-size="searchForm.pageSize" :total="datatable.total" :page-sizes="[10, 20, 50, 100, 200]"
-                layout="total, sizes, prev, pager, next, jumper" @current-change="handlePageChange"
+                layout="total, sizes, prev, pager, next, jumper" background @current-change="handlePageChange"
                 @size-change="handleSizeChange" />
         </el-row>
 

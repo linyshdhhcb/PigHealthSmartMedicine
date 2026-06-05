@@ -1,9 +1,7 @@
 import axios from "axios";
 const service = axios.create({
-    baseURL: __BACKEND_URL__,
-    // 请求超时50秒
+    baseURL: '',
     timeout: 500000,
-    // 允许发送和接收 Cookie
     withCredentials: true
 });
 

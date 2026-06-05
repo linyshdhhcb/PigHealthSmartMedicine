@@ -2,12 +2,7 @@
   <el-card class="p-0">
     <h1>对话管理模块</h1>
 
-    <!-- 数据列表 -->
-    <el-row class="w-full h-full flex flex-col overflow-x-auto overflow-y-hidden">
-      <!-- 查询条件 -->
-      <div class="w-full" >
-        <!-- 查询条件在同一行 -->
-        <el-row :gutter="10" class="w-full" v-if="showSearchRow">
+    <el-row :gutter="10" style="width: 100%;" v-if="showSearchRow">
           <el-col :span="6">
             <el-form :model="searchForm" inline label-position="left" >
               <el-form-item label="用户ID">
@@ -39,7 +34,7 @@
         </el-row>
 
         <!-- 查询、重置、添加、刷新、收缩/展开在同一行 -->
-        <el-row :gutter="10" class="w-full mt-3">
+        <el-row :gutter="10" style="width: 100%; margin-top: 12px;">
           <el-col :span="12">
             <el-button type="primary" @click="getPageList(false)">
               <el-icon><Search /></el-icon>
@@ -72,15 +67,13 @@
           </el-col>
         </el-row>
 
-        <el-divider v-if="showSearchRow" class="mt-2" />
+        <el-divider v-if="showSearchRow" />
 
-        <!-- 数据展示区 -->
-        <el-row class="w-full flex-1 mt-3 overflow-y-auto">
+        <div class="table-container">
           <el-table
-            class="w-full"
             :data="datatable.records"
             :loading="datatable.loading"
-            style="width: 100%; table-layout: fixed; height: calc(100vh - 350px);"
+            style="width: 100%;"
             :fit="true"
             :header-cell-style="{ background: '#f5f7fa', color: '#606266' }"
           >
@@ -127,23 +120,20 @@
               </template>
             </el-table-column>
           </el-table>
+        </div>
 
-          <!-- 分页 -->
-          <el-row class="w-full flex justify-end mt-2" style="margin: 10px auto;">
+        <!-- 分页 -->
+        <el-row style="display: flex; justify-content: center; margin-top: 16px;">
             <el-pagination
-              v-if="datatable.total > 0"
               v-model:current-page="searchForm.pageNum"
               v-model:page-size="searchForm.pageSize"
               :total="datatable.total"
               :page-sizes="[10, 20, 50, 100, 200]"
-              layout="total, sizes, prev, pager, next, jumper"
+              layout="total, sizes, prev, pager, next, jumper" background
               @current-change="handlePageChange"
               @size-change="handleSizeChange"
             />
           </el-row>
-        </el-row>
-      </div>
-    </el-row>
 
     <!-- 添加/修改 模态框 -->
     <el-dialog v-model="modal.visible" fullscreen :close-on-click-modal="true" :close-on-press-escape="true" draggable>
@@ -172,7 +162,7 @@ const showSearchRow = ref(true);
 // 查询参数表单
 const searchForm = reactive({
   pageNum: 1,
-  pageSize: 1000,
+  pageSize: 10,
   sortField: "",
   sortOrder: "",
   userId: null,
@@ -196,7 +186,7 @@ const getPageList = (isReset = false) => {
     searchForm.aiResponse = null;
     searchForm.modelName = null;
     searchForm.pageNum = 1;
-    searchForm.pageSize = 100;
+    searchForm.pageSize = 10;
   }
 
   datatable.loading = true;
@@ -338,19 +328,16 @@ const handleSizeChange = (pageSize) => {
 </script>
 
 <style scoped>
-.el-row{
-  width: 1500px;
+.table-container {
+  overflow-x: auto;
+  position: relative;
 }
-/* 根据需要添加样式 */
+
 .ellipsis {
   display: inline-block;
   width: 100%;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-}
-
-.w-full{
-  width: 100%;
 }
 </style>
