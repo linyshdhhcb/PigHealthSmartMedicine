@@ -5,9 +5,9 @@ server:
 spring:
   # 数据源配置
   datasource:
-    url: jdbc:mysql://127.0.0.1:3306/pig_health_smart_medicine?serverTimezone=Hongkong&useAffectedRows=true&characterEncoding=utf-8
-    username: your_username               #数据库用户名
-    password: your_password               #数据库密码
+    url: jdbc:mysql://localhost:3306/pig_health_smart_medicine?serverTimezone=Hongkong&useAffectedRows=true&characterEncoding=utf-8
+    username: root               #数据库用户名
+    password: your_db_password             #数据库密码
 
   # 邮件配置
   mail:
@@ -17,35 +17,60 @@ spring:
   # Redis配置
   data:
     redis:
-      host: 127.0.0.1
+      host: localhost
       port: 6379
-      password: redis_password
+      password: your_redis_password
 
   # MinIO配置
   minio:
     access-key: your_minio_access_key
     secret-key: your_minio_secret_key
-    url: your_url
+    url: http://localhost:9000
 
   # Milvus向量数据库配置
   ai:
     vectorstore:
       milvus:
         client:
-          host: 127.0.0.1
+          host: localhost
           port: 19530
+        collection-name: rag_default_store_v2
+        dimension: 4096
 
 # AI配置
 ai:
+  selection:
+    chat-provider: bailian
+    embedding-provider: siliconflow
+  chat:
+    default-model: qwen-plus-latest
+  embedding:
+    default-model: Qwen/Qwen3-Embedding-8B
+  chunk:
+    chunk-size: 800
+    chunk-overlap: 200
+    min-chunk-size-chars: 350
+    min-chunk-length-to-embed: 5
+    max-num-chunks: 10000
+    keep-separator: true
   providers:
     ollama:
-      url: http://127.0.0.1:11434
+      url: http://localhost:11434
+      endpoints:
+        chat: /v1/chat/completions
+        embedding: /api/embeddings
     bailian:
-      api-key: test_bailian_api_key
+      url: https://dashscope.aliyuncs.com
+      api-key: your_bailian_api_key
+      endpoints:
+        chat: /compatible-mode/v1/chat/completions
+        embedding: /compatible-mode/v1/embeddings
     siliconflow:
-      api-key: prod_siliconflow_api_key
-  ollama:
-    url: http://127.0.0.1:11434
+      url: https://api.siliconflow.cn
+      api-key: your_siliconflow_api_key
+      endpoints:
+        chat: /v1/chat/completions
+        embedding: /v1/embeddings
 
 # 日志配置
 logging:
