@@ -13,7 +13,7 @@ import axios from '@/axios';
  * @returns
  */
 export function articleTypesPage(params) {
-  return request.post(`/articleTypes/articleTypesPage`, params);
+  return axios.post(`/articleTypes/articleTypesPage`, params);
 }
 
 /** 2
@@ -23,27 +23,27 @@ export function articleTypesPage(params) {
  * @returns
  */
 export function articleTypesAdd(params) {
-  return request.post(`/articleTypes/articleTypesAdd`, params);
+  return axios.post(`/articleTypes/articleTypesAdd`, params);
 }
 
 
 /** 3
  * 根据主键ID删除文章类型
  * @param {string} id 
-  * @returns
+ * @returns
  */
 export function articleTypesDelete(id) {
-  return request.delete(`/articleTypes/articleTypesDelete?id=${id}`);
+  return axios.delete(`/articleTypes/articleTypesDelete?id=${id}`);
 }
 
 
 /** 4
  * 根据主键ID批量删除文章类型
  * @param {string} ids 
-  * @returns
+ * @returns
  */
 export function articleTypesListDelete(ids) {
-  return request.delete(`/articleTypes/articleTypesListDelete?ids=${ids}`);
+  return axios.delete(`/articleTypes/articleTypesListDelete?ids=${ids}`);
 }
 
 /** 5
@@ -54,14 +54,14 @@ export function articleTypesListDelete(ids) {
  * @returns
  */
 export function articleTypesUpdate(params) {
-  return request.put(`/articleTypes/articleTypesUpdate`, params);
+  return axios.put(`/articleTypes/articleTypesUpdate`, params);
 }
 
 /** 6
  * 根据主键ID查询文章类型
  * @param {string} id 
-  * @returns
+ * @returns
  */
 export function articleTypesUpdate_1(id) {
-  return request.get(`/articleTypes/getInfo?id=${id}`);
+  return axios.get(`/articleTypes/getInfo?id=${id}`);
 }
