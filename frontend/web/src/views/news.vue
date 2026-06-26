@@ -28,6 +28,7 @@
         layout="total, sizes, prev, pager, next, jumper"
         @current-change="handlePageChange"
         @size-change="handleSizeChange"
+        background
       />
     </div>
 
