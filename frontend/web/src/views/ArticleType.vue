@@ -22,29 +22,26 @@
 
 <script setup>
 import { ref, onMounted } from 'vue';
-// import { getArticleTypesPage } from '@/api/ArticleType';
-// import Article from './Article.vue';
-// import Article from '@/api/Article.js';
+import { articleTypesPage } from '@/api/ArticleType';
+import Article from './Article.vue';
 
 const articleTypes = ref([]);
 const selectedTypeId = ref(null);
 
 const fetchArticleTypes = async () => {
   try {
-    const response = await getArticleTypesPage({
-      pageNum: 0,
+    const response = await articleTypesPage({
+      pageNum: 1,
       pageSize: 100,
-      sortField: '',
-      sortOrder: '',
       typeName: ''
     });
-    if (response.data.code === 0) {
-      articleTypes.value = response.data.data.data;
+    if (response.code === 200) {
+      articleTypes.value = response.data.data;
       if (articleTypes.value.length > 0) {
         selectedTypeId.value = articleTypes.value[0].typeId;
       }
     } else {
-      alert('获取文章类型失败: ' + response.data.message);
+      alert('获取文章类型失败');
     }
   } catch (error) {
     console.error('获取文章类型失败:', error);
