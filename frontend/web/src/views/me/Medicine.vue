@@ -25,15 +25,18 @@
       </el-table-column>
     </el-table>
     <!-- 分页组件 -->
-    <el-pagination
-      v-model:current-page="currentPage"
-      v-model:page-size="pageSize"
-      :total="total"
-      layout="total, sizes, prev, pager, next, jumper"
-      :page-sizes="[10, 20, 30, 40]"
-      @size-change="fetchMedicineData"
-      @current-change="fetchMedicineData"
-    />
+    <div style="display:flex;justify-content:center;margin-top:16px;">
+      <el-pagination
+        v-model:current-page="currentPage"
+        v-model:page-size="pageSize"
+        :total="total"
+        layout="total, sizes, prev, pager, next, jumper"
+        :page-sizes="[10, 20, 30, 40]"
+        @size-change="fetchMedicineData"
+        @current-change="fetchMedicineData"
+        background
+      />
+    </div>
 
     <!-- 查看药品详情模态框 -->
     <el-dialog v-model="showViewDialog" title="药品详情" width="50%">
