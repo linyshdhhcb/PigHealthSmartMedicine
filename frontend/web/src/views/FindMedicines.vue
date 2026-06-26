@@ -127,6 +127,7 @@
             :page-sizes="[4, 8, 12, 16]"
             @current-change="handlePageChange"
             @size-change="handleSizeChange"
+            background
           />
         </footer>
       </main>
