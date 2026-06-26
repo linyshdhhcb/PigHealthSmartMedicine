@@ -214,6 +214,7 @@
                 layout="total, sizes, prev, pager, next, jumper"
                 @current-change="getFeedbacks"
                 @size-change="getFeedbacks"
+                background
               />
             </div>
           </div>
@@ -797,7 +798,7 @@ const addFeedback = async () => {
 .pagination {
   margin-top: 20px;
   display: flex;
-  justify-content: flex-end;
+  justify-content: center;
 }
 
 /* 注销内容 */
