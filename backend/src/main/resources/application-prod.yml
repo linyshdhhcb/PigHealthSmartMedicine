@@ -37,13 +37,38 @@ spring:
 
 # AI配置
 ai:
+  selection:
+    chat-provider: bailian
+    embedding-provider: siliconflow
+  chat:
+    default-model: qwen-plus-latest
+  embedding:
+    default-model: Qwen/Qwen3-Embedding-8B
+  chunk:
+    chunk-size: 800
+    chunk-overlap: 200
+    min-chunk-size-chars: 350
+    min-chunk-length-to-embed: 5
+    max-num-chunks: 10000
+    keep-separator: true
   providers:
     ollama:
       url: http://prod-server-ip:11434
+      endpoints:
+        chat: /v1/chat/completions
+        embedding: /api/embeddings
     bailian:
+      url: https://dashscope.aliyuncs.com
       api-key: prod_bailian_api_key
+      endpoints:
+        chat: /compatible-mode/v1/chat/completions
+        embedding: /compatible-mode/v1/embeddings
     siliconflow:
+      url: https://api.siliconflow.cn
       api-key: prod_siliconflow_api_key
+      endpoints:
+        chat: /v1/chat/completions
+        embedding: /v1/embeddings
   ollama:
     url: http://prod-server-ip:11434
 
