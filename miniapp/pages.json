@@ -10,64 +10,75 @@
     {
       "path": "pages/index/index",
       "style": {
-        "navigationBarTitleText": "文章列表",
+        "navigationBarTitleText": "智慧猪医",
         "enablePullDownRefresh": true,
-        "backgroundTextStyle": "dark"
+        "backgroundTextStyle": "dark",
+        "navigationBarBackgroundColor": "#2E7D32",
+        "navigationBarTextStyle": "white"
       }
     },
     {
       "path": "pages/article/article-detail",
       "style": {
-        "navigationBarTitleText": "文章详情"
+        "navigationBarTitleText": "文章详情",
+        "navigationBarBackgroundColor": "#FFFFFF"
       }
     },
     {
     	"path" : "pages/AIDoctor/AIDoctor",
-    	"style" : 
+    	"style" :
     	{
-    		"navigationBarTitleText" : "AI医生"
+    		"navigationBarTitleText" : "AI兽医",
+        "navigationBarBackgroundColor": "#43a047",
+        "navigationBarTextStyle": "white"
     	}
     },
     {
     	"path" : "pages/SearchIllness/SearchIllness",
-    	"style" : 
+    	"style" :
     	{
-    		"navigationBarTitleText" : "疾病"
+    		"navigationBarTitleText" : "疾病查询",
+        "navigationBarBackgroundColor": "#FFFFFF"
     	}
     },
     {
     	"path" : "pages/Knowledge/Knowledge",
-    	"style" : 
+    	"style" :
     	{
-    		"navigationBarTitleText" : "知识"
+    		"navigationBarTitleText" : "知识库",
+        "navigationBarBackgroundColor": "#FFFFFF"
     	}
     },
     {
     	"path" : "pages/user/user",
-    	"style" : 
+    	"style" :
     	{
-    		"navigationBarTitleText" : "我的"
+    		"navigationBarTitleText" : "我的",
+        "navigationStyle": "custom"
     	}
     },
     {
     	"path" : "pages/medicine/medicine",
-    	"style" : 
+    	"style" :
     	{
-    		"navigationBarTitleText" : "药品管理"
+    		"navigationBarTitleText" : "药品管理",
+        "navigationBarBackgroundColor": "#FFFFFF"
     	}
     },
     {
     	"path" : "pages/SearchIllness/IllnessDetail/IllnessDetail",
-    	"style" : 
+    	"style" :
     	{
-    		"navigationBarTitleText" : "疾病详情"
+    		"navigationBarTitleText" : "疾病详情",
+        "navigationStyle": "custom"
     	}
     },
     {
     	"path" : "pages/medicine/medicineDetail",
-    	"style" : 
+    	"style" :
     	{
-    		"navigationBarTitleText" : "药物详情"
+    		"navigationBarTitleText" : "药品详情",
+        "navigationStyle": "custom"
     	}
     }
   ],
@@ -75,11 +86,13 @@
     "navigationBarTextStyle": "black",
     "navigationBarTitleText": "猪病智能医疗",
     "navigationBarBackgroundColor": "#FFFFFF",
-    "backgroundColor": "#F8F8F8"
+    "backgroundColor": "#F7F8FA"
   },
   "tabBar": {
   	"color": "#9799a5",
-	"selectedColor": "#28b389",
+	"selectedColor": "#2E7D32",
+	"backgroundColor": "#ffffff",
+	"borderStyle": "white",
 	"list": [
 		{
 			"text": "首页",
@@ -88,7 +101,7 @@
 			"selectedIconPath": "/static/images/home.png"
 		},
 		{
-			"text": "ai兽医",
+			"text": "AI兽医",
 			"pagePath": "pages/AIDoctor/AIDoctor",
 			"iconPath": "/static/images/message.png",
 			"selectedIconPath": "/static/images/message-h.png"

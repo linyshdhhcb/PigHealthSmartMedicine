@@ -1,15 +1,16 @@
 <template>
   <scroll-view scroll-y class="scroll">
     <view class="illness-page">
-      <!-- 搜索栏 -->
-      <uni-search-bar
-        class="search-bar"
-        placeholder="搜索疾病名称或症状..."
-        v-model="keyword"
-        @input="onSearch"
-      ></uni-search-bar>
+      <view class="search-area">
+        <uni-search-bar
+          class="search-bar"
+          placeholder="搜索疾病名称或症状..."
+          v-model="keyword"
+          @input="onSearch"
+          bgColor="#f0f2f5"
+        />
+      </view>
 
-      <!-- 分类横向滚动 -->
       <scroll-view scroll-x class="kind-scroll">
         <view
           v-for="k in kindIllnessList"
@@ -22,7 +23,6 @@
         </view>
       </scroll-view>
 
-      <!-- 疾病卡片列表 -->
       <view class="card-list">
         <view
           v-for="item in showList"
@@ -30,35 +30,34 @@
           class="card"
           @click="gotoDetail(item)"
         >
-          <!-- 左侧疾病图 -->
           <image class="pic" :src="item.imageUrl" mode="aspectFill" />
-
-          <!-- 右侧疾病信息 -->
           <view class="info">
             <view class="top">
-              <view class="name">{{ item.illnessName }}</view>
-              <view class="views">
-                👁️ {{ item.pageviews || 0 }}
+              <text class="name">{{ item.illnessName }}</text>
+              <view class="views-wrap">
+                <uni-icons type="eye" size="14" color="#bbb" />
+                <text class="views">{{ item.pageviews || 0 }}</text>
               </view>
             </view>
-
-            <view class="kind">{{ item.kindName }} · {{ item.kindInfo }}</view>
-
+            <view class="kind-tag-row" v-if="item.kindName">
+              <text class="kind-badge">{{ item.kindName }}</text>
+              <text class="kind-info" v-if="item.kindInfo">{{ item.kindInfo }}</text>
+            </view>
             <view class="desc">
               <view class="desc-item">
-                <text class="desc-label">诱发原因：</text>
+                <text class="desc-label">诱发原因</text>
                 <text class="desc-value" v-if="item.illnessSymptom.length > 100">免疫力太弱</text>
-                <text class="desc-value" v-else>{{ shortText(item.includeReason, 40) }}</text>
+                <text class="desc-value" v-else>{{ shortText(item.includeReason, 30) }}</text>
               </view>
               <view class="desc-item">
-                <text class="desc-label">主要症状：</text>
-                <text class="desc-value" v-if="item.illnessSymptom.length > 100">高热，食欲不振，呼吸困难，皮肤发红</text>
-				<text class="desc-value" v-else>{{ shortText(item.illnessSymptom, 40) }}</text>
+                <text class="desc-label">主要症状</text>
+                <text class="desc-value" v-if="item.illnessSymptom.length > 100">高热，食欲不振，呼吸困难</text>
+                <text class="desc-value" v-else>{{ shortText(item.illnessSymptom, 30) }}</text>
               </view>
               <view class="desc-item">
-                <text class="desc-label">特殊症状：</text>
+                <text class="desc-label">特殊症状</text>
                 <text class="desc-value" v-if="item.specialSymptom.length > 100">抽搐，脱水，休克</text>
-				<text class="desc-value" v-else>{{ shortText(item.specialSymptom, 40) }}</text>
+                <text class="desc-value" v-else>{{ shortText(item.specialSymptom, 30) }}</text>
               </view>
             </view>
           </view>
@@ -74,10 +73,9 @@
 
 <script setup>
 import TabBar from '@/components/TabBar.vue'
-import { illnessPage, illnessKindPage, illnessMedicinePage, pageviewPage,pageviewAdd } from '@/api/articles.js'
+import { illnessPage, illnessKindPage, illnessMedicinePage, pageviewPage, pageviewAdd } from '@/api/articles.js'
 import { ref, computed } from 'vue'
 
-/* ---------- 基础变量 ---------- */
 const kindIllnessList = ref([])
 const IllnessList = ref([])
 const keyword = ref('')
@@ -85,7 +83,6 @@ const activeKind = ref(0)
 const IllnessMedicineList = ref([])
 const pageviewList = ref([])
 
-/* ---------- 图片资源随机绑定 ---------- */
 const pigImages = [
   '/static/images/pig1.jpg',
   '/static/images/pig2.jpg',
@@ -94,35 +91,28 @@ const pigImages = [
   '/static/images/pig5.jpg'
 ]
 
-// 稳定随机：利用疾病id生成固定索引
 function getStableRandomImage(id) {
   const hash = Array.from(String(id))
     .reduce((acc, ch) => acc + ch.charCodeAt(0), 0)
   return pigImages[hash % pigImages.length]
 }
 
-/* ---------- 导航 ---------- */
 const gotoDetail = async (item) => {
-	//1.浏览量加1
-	try{
+	try {
 		await pageviewAdd({
-			illnessId:item.id,
-			pageviews:(item.pageviews || 0) +1
+			illnessId: item.id,
+			pageviews: (item.pageviews || 0) + 1
 		})
-		//本地也先加1，防止用户秒回列表看到数字没变化
-		item.pageviews = (item.pageviews || 0) +1
-	} catch(e){
-		//即使失败也不阻塞跳转
-		console.error('浏览量+1失败',e)
+		item.pageviews = (item.pageviews || 0) + 1
+	} catch (e) {
+		console.error('浏览量+1失败', e)
 	}
-	
-	//2.跳转详情
+
   uni.navigateTo({
     url: `/pages/SearchIllness/IllnessDetail/IllnessDetail?id=${item.id}`
   })
 }
 
-/* ---------- 获取疾病浏览量分页数据 ---------- */
 async function getpageviewPage() {
   try {
     const params = {
@@ -138,13 +128,9 @@ async function getpageviewPage() {
   }
 }
 
-/* ---------- 疾病、分类、药物数据 ---------- */
 async function getillnessMedicinePage() {
   try {
-    const params = {
-      pageNum: 1,
-      pageSize: 100
-    }
+    const params = { pageNum: 1, pageSize: 100 }
     const res = await illnessMedicinePage(params)
     IllnessMedicineList.value = res.data.data
   } catch {
@@ -170,12 +156,10 @@ async function getList() {
   }
 }
 
-/* ---------- 合并kindName / 浏览量 / 图片 ---------- */
 function mergeAll(list1, kinds, views) {
   const kindMap = new Map(kinds.map(k => [k.id, { name: k.name, info: k.info }]))
   const viewMap = new Map()
 
-  // 累加相同 illnessId 的浏览量
   views.forEach(v => {
     viewMap.set(v.illnessId, (viewMap.get(v.illnessId) || 0) + v.pageviews)
   })
@@ -192,13 +176,11 @@ function mergeAll(list1, kinds, views) {
   })
 }
 
-/* ---------- 搜索 & 筛选 ---------- */
 const onSearch = () => {}
 function selectKind(id) {
   activeKind.value = id
 }
 
-/* ---------- 最终展示 ---------- */
 const showList = computed(() => {
   let list = IllnessList.value
   if (activeKind.value) list = list.filter(i => i.kindId === activeKind.value)
@@ -214,13 +196,11 @@ const showList = computed(() => {
   return list
 })
 
-/* ---------- 辅助函数 ---------- */
-function shortText(text, maxLen = 50) {
+function shortText(text, maxLen = 30) {
   if (!text) return ''
   return text.length > maxLen ? text.slice(0, maxLen) + '...' : text
 }
 
-/* ---------- 初始化 ---------- */
 Promise.all([getKind(), getpageviewPage(), getList()]).then(() => {
   IllnessList.value = mergeAll(IllnessList.value, kindIllnessList.value, pageviewList.value)
 })
@@ -231,37 +211,44 @@ getillnessMedicinePage()
 .scroll {
   height: 100vh;
 }
+
 .illness-page {
   background: #f7f8fa;
   min-height: 100vh;
   padding-bottom: 80rpx;
 }
 
+.search-area {
+  background: #fff;
+  padding: 16rpx 24rpx;
+  border-bottom: 1rpx solid #f0f0f0;
+}
+
 .search-bar {
   background: white;
-  padding: 10rpx 0;
-  border-bottom: 1rpx solid #eee;
 }
 
 .kind-scroll {
   white-space: nowrap;
-  padding: 20rpx 0 10rpx;
+  padding: 20rpx 24rpx;
   background: #fff;
-  box-shadow: 0 4rpx 10rpx rgba(0, 0, 0, 0.05);
+  box-shadow: 0 4rpx 12rpx rgba(0, 0, 0, 0.03);
 }
+
 .kind-tag {
   display: inline-block;
-  padding: 10rpx 30rpx;
-  margin-left: 20rpx;
+  padding: 12rpx 28rpx;
+  margin-right: 16rpx;
   font-size: 28rpx;
-  color: #444;
-  border-radius: 40rpx;
-  background: #f1f3f5;
+  color: #555;
+  border-radius: 32rpx;
+  background: #f0f2f5;
   transition: all 0.3s ease;
+
   &.active {
-    background: linear-gradient(135deg, #43a047, #81c784);
+    background: linear-gradient(135deg, #2e7d32, #43a047);
     color: #fff;
-    box-shadow: 0 6rpx 12rpx rgba(67, 160, 71, 0.3);
+    box-shadow: 0 4rpx 12rpx rgba(46, 125, 50, 0.25);
   }
 }
 
@@ -269,70 +256,101 @@ getillnessMedicinePage()
   padding: 24rpx;
   display: flex;
   flex-direction: column;
-  gap: 24rpx;
+  gap: 20rpx;
 }
 
 .card {
   display: flex;
   background: #fff;
-  border-radius: 20rpx;
-  box-shadow: 0 4rpx 12rpx rgba(0, 0, 0, 0.05);
+  border-radius: 24rpx;
+  box-shadow: 0 4rpx 16rpx rgba(0, 0, 0, 0.04);
   overflow: hidden;
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
-  &:hover {
-    transform: translateY(-4rpx);
-    box-shadow: 0 8rpx 20rpx rgba(0, 0, 0, 0.08);
+  transition: transform 0.2s ease;
+
+  &:active {
+    transform: scale(0.98);
   }
+
   .pic {
     width: 200rpx;
     height: 200rpx;
     object-fit: cover;
     flex-shrink: 0;
   }
+
   .info {
     flex: 1;
-    padding: 20rpx;
+    padding: 20rpx 24rpx;
     display: flex;
     flex-direction: column;
     justify-content: space-between;
   }
+
   .top {
     display: flex;
     justify-content: space-between;
     align-items: center;
+
     .name {
       font-size: 32rpx;
       font-weight: 700;
       color: #222;
     }
+
+    .views-wrap {
+      display: flex;
+      align-items: center;
+      gap: 4rpx;
+    }
+
     .views {
-      font-size: 26rpx;
-      color: #999;
+      font-size: 24rpx;
+      color: #bbb;
     }
   }
-  .kind {
-    font-size: 26rpx;
-    color: #666;
-    margin: 6rpx 0 10rpx;
+
+  .kind-tag-row {
+    display: flex;
+    align-items: center;
+    gap: 8rpx;
+    margin: 8rpx 0;
   }
+
+  .kind-badge {
+    font-size: 22rpx;
+    color: #43a047;
+    background: rgba(67, 160, 71, 0.08);
+    padding: 4rpx 12rpx;
+    border-radius: 6rpx;
+  }
+
+  .kind-info {
+    font-size: 24rpx;
+    color: #999;
+  }
+
   .desc {
-    font-size: 26rpx;
+    font-size: 24rpx;
     color: #444;
     display: flex;
     flex-direction: column;
     gap: 6rpx;
+
     .desc-item {
       display: flex;
-      flex-wrap: wrap;
       line-height: 1.5;
+
       .desc-label {
-        color: #888;
-        width: 150rpx;
+        color: #999;
+        width: 120rpx;
         flex-shrink: 0;
+        font-size: 24rpx;
       }
+
       .desc-value {
         flex: 1;
-        color: #333;
+        color: #555;
+        font-size: 24rpx;
       }
     }
   }

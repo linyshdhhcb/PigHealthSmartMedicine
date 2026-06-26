@@ -1,37 +1,39 @@
 <template>
-	
 	<view class="layout">
-		<uni-search-bar placeholder="搜索药品名称或适应症..." v-model="keyword" @input="onSearch"  ></uni-search-bar>
-		
-		
+		<view class="search-area">
+			<uni-search-bar placeholder="搜索药品名称或适应症..." v-model="keyword" @input="onSearch" bgColor="#f0f2f5" />
+		</view>
+
 		<scroll-view scroll-x class="tag-scroll">
-			<view class="tag-item" :class="{active :currentTag === ''}" @click="switchTag('')">全部</view>
-				<view v-for="t in allTags" :key="t" class="tag-item" :class="{active:currentTag === t}" @click="switchTag(t)">
-				{{t}}
-				</view>
-		</scroll-view>
-		
-		<scroll-view class="drug-list" scroll-y="true">
-			<view v-for="item in filteredList" :key="item.id" class="drug-card"  @click="gotoDetail(item)">
-			<image :src="item.imgPath" mode="aspectFill" class="drug-img"></image>
-			<view class="drug-info">
-				<view class="box1">
-					<view class="left">
-						<view class="name">{{item.medicineName}}</view>
-						<view class="factory">{{item.medicineBrand}}</view>
-					</view>
-					<view class="price right">￥{{item.medicinePrice.toFixed(2)}}</view>
-				</view>
-				<view class="effect">✔️适应症:{{item.medicineEffect}}</view>
-				<view class="usage">ℹ️用法:{{item.usAge}}</view>
-				<view class="taboo">⚠️禁忌{{item.taboo}}</view>
+			<view class="tag-item" :class="{ active: currentTag === '' }" @click="switchTag('')">全部</view>
+			<view v-for="t in allTags" :key="t" class="tag-item" :class="{ active: currentTag === t }" @click="switchTag(t)">
+				{{ t }}
 			</view>
+		</scroll-view>
+
+		<scroll-view class="drug-list" scroll-y="true">
+			<view v-for="item in filteredList" :key="item.id" class="drug-card" @click="gotoDetail(item)">
+				<image :src="item.imgPath" mode="aspectFill" class="drug-img" />
+				<view class="drug-info">
+					<view class="info-top">
+						<view class="info-left">
+							<text class="name">{{ item.medicineName }}</text>
+							<text class="factory">{{ item.medicineBrand }}</text>
+						</view>
+						<text class="price">¥{{ item.medicinePrice.toFixed(2) }}</text>
+					</view>
+					<view class="info-tags">
+						<text class="tag tag-green">适应症: {{ shortText(item.medicineEffect, 20) }}</text>
+						<text class="tag tag-blue">用法: {{ shortText(item.usAge, 15) }}</text>
+						<text class="tag tag-red">禁忌: {{ shortText(item.taboo, 15) }}</text>
+					</view>
+				</view>
 			</view>
 		</scroll-view>
 	</view>
-	
+
 	<!-- #ifdef H5 -->
-		<TabBar />
+	<TabBar />
 	<!-- #endif -->
 </template>
 
@@ -41,18 +43,15 @@ import { ref, computed } from 'vue'
 import { medicinePage } from "@/api/articles.js"
 
 const gotoDetail = (e) => {
-	console.log('e',e);
 	uni.navigateTo({
-		url:`/pages/medicine/medicineDetail?id=${e.id}`
+		url: `/pages/medicine/medicineDetail?id=${e.id}`
 	})
 }
 
-// 1. 定义响应式数据
 const MedicineList = ref([])
 const keyword = ref('')
 const currentTag = ref('')
 
-// 2. 定义计算属性（必须在组件实例作用域内）
 const filteredList = computed(() => MedicineList.value.filter(item => {
   const hitTag = !currentTag.value || item.keyword.split(',').some(k => k.trim() === currentTag.value)
   const hitKeyword = !keyword.value || item.medicineName.includes(keyword.value) || item.medicineEffect.includes(keyword.value)
@@ -67,7 +66,6 @@ const allTags = computed(() => {
   return Array.from(set)
 })
 
-// 3. 异步获取数据的函数
 async function getmedicine() {
   try {
     const CSparams = {
@@ -78,101 +76,154 @@ async function getmedicine() {
     }
     const res = await medicinePage(CSparams)
     MedicineList.value = res.data.data
-    console.log('MedicineList.value', MedicineList.value);
   } catch {
     uni.showToast({ title: '获取药品列表失败', icon: 'none' })
   }
 }
 
-// 4. 切换标签和搜索的方法
 function switchTag(tag) {
   currentTag.value = tag
 }
 
-function onSearch() {
-  // keyword 已双向绑定，自动触发 filteredList 计算属性
+function onSearch() {}
+
+function shortText(text, maxLen = 15) {
+	if (!text) return ''
+	return text.length > maxLen ? text.slice(0, maxLen) + '...' : text
 }
 
-// 5. 页面加载时调用接口
 getmedicine()
 </script>
 
 <style lang="scss" scoped>
+.layout {
+	min-height: 100vh;
+	background: #f7f8fa;
+	display: flex;
+	flex-direction: column;
+}
 
-.tag-scroll{
+.search-area {
+	padding: 16rpx 24rpx;
+	background: #fff;
+}
+
+.tag-scroll {
 	white-space: nowrap;
-	padding: 20rpx 0 0 24rpx;
-	height: 100rpx;
-	.tag-item{
-		display: inline-block;
-		padding: 12rpx 28rpx;
-		margin-right: 20rpx;
-		background: #e6f7ff;
-		color: #1890ff;
-		border-radius: 30rpx;
-		font-size: 26rpx;
-		&.active{
-			background: rgb(22, 163, 74);
-			color: #fff;
-		}
+	padding: 20rpx 24rpx;
+	background: #fff;
+	border-bottom: 1rpx solid #f0f0f0;
+}
+
+.tag-item {
+	display: inline-block;
+	padding: 12rpx 28rpx;
+	margin-right: 16rpx;
+	background: #f0f2f5;
+	color: #666;
+	border-radius: 32rpx;
+	font-size: 26rpx;
+	transition: all 0.3s ease;
+
+	&.active {
+		background: linear-gradient(135deg, #2e7d32, #43a047);
+		color: #fff;
+		box-shadow: 0 4rpx 12rpx rgba(46, 125, 50, 0.25);
 	}
 }
 
-.drug-list{
-	flex:1;
-	padding: 0 24rpx 30rpx;
-	.drug-card{
-		display: flex;
-		background: #fff;
-		border-radius: 16rpx;
-		padding: 24rpx;
-		margin-top: 24rpx;
-		box-shadow: 0 4rpx 12rpx rgba(0,0,0,0.05);
-		.drug-img{
-			width: 160rpx;
-			height: 160rpx;
-			border-radius: 12rpx;
-			margin-right: 24rpx;
-			flex-shrink: 0;
-		}
-		.drug-info{
-			flex: 1;
-			line-height: 1.6;
-			.name{
-				font-size: 32rpx;
-				font-weight: 600;
-				color: #333;
-			}
-			.factory{
-				font-size: 26rpx;
-				color: #666;
-				margin: 4rpx 0;
-			}
-			.box1{
-				display: flex;
-				justify-content: space-between;
-				.right{
-					margin-right: 30rpx;
-					font-size: 36rpx;
-				}
-			}
-			.price{
-				font-size: 30rpx;
-				color: #ff4d4f;
-				margin: 6rpx 0;
-			}
-			.effect,
-			.usage,
-			.taboo{
-				font-size: 24rpx;
-				color: #555;
-				margin-top: 6rpx;
-			}
-		}
-	}
-	
+.drug-list {
+	flex: 1;
+	padding: 24rpx;
 }
 
+.drug-card {
+	display: flex;
+	background: #fff;
+	border-radius: 24rpx;
+	padding: 24rpx;
+	margin-bottom: 20rpx;
+	box-shadow: 0 4rpx 16rpx rgba(0, 0, 0, 0.04);
+	transition: transform 0.2s ease;
 
+	&:active {
+		transform: scale(0.98);
+	}
+}
 
+.drug-img {
+	width: 160rpx;
+	height: 160rpx;
+	border-radius: 20rpx;
+	margin-right: 24rpx;
+	flex-shrink: 0;
+}
+
+.drug-info {
+	flex: 1;
+	display: flex;
+	flex-direction: column;
+	justify-content: space-between;
+}
+
+.info-top {
+	display: flex;
+	justify-content: space-between;
+	align-items: flex-start;
+}
+
+.info-left {
+	flex: 1;
+}
+
+.name {
+	font-size: 32rpx;
+	font-weight: 700;
+	color: #222;
+	display: block;
+}
+
+.factory {
+	font-size: 24rpx;
+	color: #999;
+	margin-top: 4rpx;
+	display: block;
+}
+
+.price {
+	font-size: 34rpx;
+	font-weight: 800;
+	color: #e63946;
+	flex-shrink: 0;
+}
+
+.info-tags {
+	display: flex;
+	flex-direction: column;
+	gap: 8rpx;
+	margin-top: 16rpx;
+}
+
+.tag {
+	font-size: 24rpx;
+	padding: 6rpx 16rpx;
+	border-radius: 8rpx;
+	display: inline-block;
+	line-height: 1.5;
+}
+
+.tag-green {
+	color: #2e7d32;
+	background: rgba(46, 125, 50, 0.08);
+}
+
+.tag-blue {
+	color: #1565c0;
+	background: rgba(21, 101, 192, 0.08);
+}
+
+.tag-red {
+	color: #c62828;
+	background: rgba(198, 40, 40, 0.08);
+}
 </style>

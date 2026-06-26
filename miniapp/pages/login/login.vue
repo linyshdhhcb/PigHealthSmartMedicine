@@ -1,25 +1,37 @@
 <template>
     <view class="login-container">
+        <view class="bg-top"></view>
         <view class="logo-box">
-            <image class="logo" src="/static/images/logo.jpg"></image>
+            <view class="logo-wrap">
+                <image class="logo" src="/static/images/logo.jpg" mode="aspectFill" />
+            </view>
             <text class="app-name">猪病智能医疗</text>
+            <text class="app-slogan">专业的生猪健康管理平台</text>
         </view>
 
         <view class="form-box">
             <view class="input-group">
                 <text class="input-label">账号</text>
-                <input class="input" type="text" v-model="userAccount" placeholder="请输入账号" />
+                <view class="input-wrap">
+                    <uni-icons type="person" size="20" color="#999" />
+                    <input class="input" type="text" v-model="userAccount" placeholder="请输入账号" />
+                </view>
             </view>
 
             <view class="input-group">
                 <text class="input-label">密码</text>
-                <input class="input" type="password" v-model="password" placeholder="请输入密码" password />
+                <view class="input-wrap">
+                    <uni-icons type="locked" size="20" color="#999" />
+                    <input class="input" type="password" v-model="password" placeholder="请输入密码" password />
+                </view>
             </view>
 
-            <button class="login-btn" @click="handleLogin">登录</button>
+            <button class="login-btn" @click="handleLogin">
+                <text class="btn-text">登 录</text>
+            </button>
 
             <view class="tips">
-                <text>还没有账号？请联系管理员</text>
+                <text class="tips-text">还没有账号？请联系管理员</text>
             </view>
         </view>
     </view>
@@ -58,81 +70,137 @@ async function handleLogin() {
   }
 }
 </script>
-<style>
+<style lang="scss" scoped>
 .login-container {
     display: flex;
     flex-direction: column;
     align-items: center;
-    padding: 40rpx;
-    height: 100vh;
-    background-color: #f8f8f8;
+    min-height: 100vh;
+    background: #f7f8fa;
+    position: relative;
+    overflow: hidden;
+}
+
+.bg-top {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 520rpx;
+    background: linear-gradient(135deg, #1b5e20 0%, #2e7d32 40%, #43a047 70%, #66bb6a 100%);
+    border-radius: 0 0 60rpx 60rpx;
 }
 
 .logo-box {
+    position: relative;
+    z-index: 1;
     display: flex;
     flex-direction: column;
     align-items: center;
-    margin-top: 80rpx;
+    margin-top: 100rpx;
     margin-bottom: 60rpx;
 }
 
+.logo-wrap {
+    width: 160rpx;
+    height: 160rpx;
+    border-radius: 40rpx;
+    background: rgba(255, 255, 255, 0.2);
+    padding: 16rpx;
+    margin-bottom: 24rpx;
+    box-shadow: 0 8rpx 32rpx rgba(0, 0, 0, 0.15);
+}
+
 .logo {
-    width: 180rpx;
-    height: 180rpx;
-    margin-bottom: 20rpx;
+    width: 128rpx;
+    height: 128rpx;
+    border-radius: 28rpx;
 }
 
 .app-name {
-    font-size: 36rpx;
-    font-weight: bold;
-    color: #333;
+    font-size: 40rpx;
+    font-weight: 700;
+    color: #fff;
+    margin-bottom: 8rpx;
+}
+
+.app-slogan {
+    font-size: 26rpx;
+    color: rgba(255, 255, 255, 0.75);
 }
 
 .form-box {
-    width: 100%;
+    position: relative;
+    z-index: 1;
+    width: calc(100% - 64rpx);
     background-color: #fff;
-    border-radius: 20rpx;
-    padding: 40rpx;
-    box-shadow: 0 2rpx 12rpx 0 rgba(0, 0, 0, 0.1);
+    border-radius: 32rpx;
+    padding: 48rpx 40rpx;
+    box-shadow: 0 8rpx 40rpx rgba(0, 0, 0, 0.08);
 }
 
 .input-group {
-    margin-bottom: 30rpx;
+    margin-bottom: 36rpx;
 }
 
 .input-label {
     font-size: 28rpx;
-    color: #666;
-    margin-bottom: 10rpx;
+    color: #555;
+    font-weight: 600;
+    margin-bottom: 16rpx;
     display: block;
 }
 
+.input-wrap {
+    display: flex;
+    align-items: center;
+    background: #f7f8fa;
+    border-radius: 20rpx;
+    padding: 0 28rpx;
+    height: 96rpx;
+    border: 2rpx solid #eee;
+    transition: border-color 0.3s ease;
+}
+
 .input {
-    width: 100%;
-    height: 90rpx;
-    background-color: #f5f5f5;
-    border-radius: 45rpx;
-    padding: 0 30rpx;
-    font-size: 28rpx;
+    flex: 1;
+    height: 96rpx;
+    font-size: 30rpx;
+    margin-left: 16rpx;
 }
 
 .login-btn {
     width: 100%;
-    height: 90rpx;
-    background-color: #07c160;
+    height: 96rpx;
+    background: linear-gradient(135deg, #2e7d32, #43a047);
     color: white;
-    border-radius: 45rpx;
-    font-size: 32rpx;
-    margin-top: 50rpx;
+    border-radius: 20rpx;
+    font-size: 34rpx;
+    margin-top: 48rpx;
     display: flex;
     align-items: center;
     justify-content: center;
+    box-shadow: 0 8rpx 24rpx rgba(46, 125, 50, 0.3);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+
+    &:active {
+        transform: scale(0.98);
+        box-shadow: 0 4rpx 12rpx rgba(46, 125, 50, 0.2);
+    }
+}
+
+.btn-text {
+    font-weight: 600;
+    letter-spacing: 8rpx;
 }
 
 .tips {
-    margin-top: 30rpx;
+    margin-top: 36rpx;
     text-align: center;
+}
+
+.tips-text {
     font-size: 24rpx;
-    color: #999;
+    color: #bbb;
 }
 </style>

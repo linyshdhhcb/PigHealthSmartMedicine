@@ -1,28 +1,33 @@
 <template>
     <view class="article-detail">
-        <!-- 文章内容 -->
         <view class="article-content" v-if="article">
             <view class="article-header">
                 <text class="article-title">{{ article.title }}</text>
                 <view class="article-meta">
-                    <text class="article-author">{{ article.author || '未知作者' }}</text>
+                    <view class="meta-left">
+                        <view class="author-avatar">
+                            <uni-icons type="person" size="16" color="#43a047" />
+                        </view>
+                        <text class="article-author">{{ article.author || '未知作者' }}</text>
+                    </view>
                     <text class="article-date">{{ formatDate(article.createTime) }}</text>
                 </view>
             </view>
 
+            <view class="divider"></view>
+
             <view class="article-body">
-                <!-- 使用rich-text组件渲染HTML内容 -->
                 <rich-text :nodes="article.content"></rich-text>
             </view>
         </view>
 
-        <!-- 加载状态 -->
         <view class="loading-state" v-if="loading">
+            <view class="loading-spinner"></view>
             <text class="loading-text">加载中...</text>
         </view>
 
-        <!-- 错误状态 -->
         <view class="error-state" v-if="error">
+            <uni-icons type="closeempty" size="60" color="#ddd" />
             <text class="error-text">{{ error }}</text>
             <button class="retry-btn" @click="getArticleDetail">重试</button>
         </view>
@@ -34,13 +39,11 @@ import { ref } from 'vue'
 import { onLoad } from '@dcloudio/uni-app'
 import { getArticleById } from '../../api/articles.js'
 
-/* 响应式数据 */
 const articleId = ref('')
 const article   = ref(null)
 const loading   = ref(true)
 const error     = ref('')
 
-/* 生命周期 */
 onLoad((options) => {
   if (options?.id) {
     articleId.value = options.id
@@ -51,7 +54,6 @@ onLoad((options) => {
   }
 })
 
-/* 方法 */
 async function getArticleDetail() {
   loading.value = true
   error.value   = ''
@@ -78,21 +80,29 @@ function formatDate(dateStr) {
   ).padStart(2, '0')}`
 }
 </script>
-<style>
+
+<style lang="scss" scoped>
 .article-detail {
-    padding: 30rpx;
-    background-color: #fff;
     min-height: 100vh;
+    background: #f7f8fa;
+}
+
+.article-content {
+    background: #fff;
+    margin: 24rpx;
+    border-radius: 24rpx;
+    padding: 36rpx 32rpx;
+    box-shadow: 0 4rpx 16rpx rgba(0, 0, 0, 0.04);
 }
 
 .article-header {
-    margin-bottom: 40rpx;
+    margin-bottom: 24rpx;
 }
 
 .article-title {
     font-size: 40rpx;
-    font-weight: bold;
-    color: #333;
+    font-weight: 700;
+    color: #222;
     line-height: 1.4;
     margin-bottom: 20rpx;
     display: block;
@@ -101,31 +111,62 @@ function formatDate(dateStr) {
 .article-meta {
     display: flex;
     justify-content: space-between;
+    align-items: center;
+}
+
+.meta-left {
+    display: flex;
+    align-items: center;
+}
+
+.author-avatar {
+    width: 48rpx;
+    height: 48rpx;
+    border-radius: 50%;
+    background: rgba(67, 160, 71, 0.1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 12rpx;
+}
+
+.article-author {
+    font-size: 26rpx;
+    color: #666;
+}
+
+.article-date {
     font-size: 24rpx;
-    color: #999;
+    color: #bbb;
+}
+
+.divider {
+    height: 1rpx;
+    background: #f0f0f0;
+    margin-bottom: 28rpx;
 }
 
 .article-body {
-    margin-bottom: 60rpx;
+    margin-bottom: 40rpx;
 }
 
-/* 富文本内容样式 */
-.article-body>>>p {
+.article-body ::v-deep p {
     margin-bottom: 20rpx;
     line-height: 1.8;
     font-size: 30rpx;
-    color: #333;
+    color: #444;
 }
 
-.article-body>>>a {
-    color: #07c160;
+.article-body ::v-deep a {
+    color: #43a047;
     text-decoration: none;
 }
 
-.article-body>>>img {
+.article-body ::v-deep img {
     max-width: 100%;
     height: auto;
     margin: 20rpx 0;
+    border-radius: 12rpx;
 }
 
 .loading-state,
@@ -134,25 +175,35 @@ function formatDate(dateStr) {
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    padding: 100rpx 0;
+    padding: 200rpx 0;
+}
+
+.loading-spinner {
+    width: 48rpx;
+    height: 48rpx;
+    border: 4rpx solid #e0e0e0;
+    border-top-color: #43a047;
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+    margin-bottom: 20rpx;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
 }
 
 .loading-text,
 .error-text {
     font-size: 28rpx;
     color: #999;
-    margin-bottom: 30rpx;
+    margin-bottom: 20rpx;
 }
 
 .retry-btn {
-    width: 200rpx;
-    height: 70rpx;
-    background-color: #07c160;
+    padding: 16rpx 56rpx;
+    background: linear-gradient(135deg, #2e7d32, #43a047);
     color: white;
-    border-radius: 35rpx;
+    border-radius: 40rpx;
     font-size: 28rpx;
-    display: flex;
-    align-items: center;
-    justify-content: center;
 }
 </style>

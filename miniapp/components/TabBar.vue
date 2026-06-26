@@ -4,6 +4,7 @@
       v-for="item in list"
       :key="item.pagePath"
       class="tab-item"
+      :class="{ active: current === item.pagePath }"
       @click="switchTab(item)"
     >
       <image
@@ -32,7 +33,7 @@ const list = [
     selectedIconPath: '/static/images/home.png'
   },
   {
-    text: 'ai兽医',
+    text: 'AI兽医',
     pagePath: '/pages/AIDoctor/AIDoctor',
     iconPath: '/static/images/message.png',
     selectedIconPath: '/static/images/message-h.png'
@@ -70,11 +71,13 @@ function switchTab(item) {
   bottom: 0;
   left: 0;
   right: 0;
-  height: 50px;
+  height: 56px;
   background: #fff;
-  border-top: 1px solid #eee;
+  border-top: 1px solid #f0f0f0;
   display: flex;
   z-index: 999;
+  padding-bottom: env(safe-area-inset-bottom);
+  box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.03);
 }
 .tab-item {
   flex: 1;
@@ -82,16 +85,24 @@ function switchTab(item) {
   flex-direction: column;
   align-items: center;
   justify-content: center;
+  transition: all 0.2s ease;
 }
 .tab-icon {
   width: 24px;
   height: 24px;
+  transition: transform 0.2s ease;
+}
+.tab-item.active .tab-icon {
+  transform: scale(1.1);
 }
 .tab-text {
-  font-size: 12px;
+  font-size: 11px;
   color: #9799a5;
+  margin-top: 2px;
+  transition: color 0.2s ease;
 }
 .tab-text.active {
-  color: #28b389;
+  color: #2e7d32;
+  font-weight: 600;
 }
 </style>

@@ -1,423 +1,407 @@
 <template>
-  <!-- ======================== 加载与错误状态 ======================== -->
-  <!-- 如果数据正在加载，显示加载提示 -->
-  <view v-if="loading" class="center">
-    <text class="loading-text">正在调取病历…</text>
-  </view>
+	<view v-if="loading" class="center">
+		<view class="loading-spinner"></view>
+		<text class="loading-text">正在调取病历...</text>
+	</view>
 
-  <!-- 如果加载失败，显示错误提示和重试按钮 -->
-  <view v-else-if="error" class="center">
-    <text class="error-text">病历调取失败</text>
-    <button class="retry" @click="loadAll">重新调取</button>
-  </view>
+	<view v-else-if="error" class="center">
+		<uni-icons type="closeempty" size="60" color="#ddd" />
+		<text class="error-text">病历调取失败</text>
+		<button class="retry" @click="loadAll">重新调取</button>
+	</view>
 
-  <!-- ======================== 正文部分 ======================== -->
-  <!-- 当不处于加载或错误状态时，显示病历内容 -->
-  <scroll-view v-else scroll-y class="page">
-    
-    <!-- 病历头部信息 -->
-    <view class="record-header">
-      <!-- 左侧图标 -->
-      <image class="icon" src="/static/images/pig.jpg" mode="aspectFit" />
-      
-      <!-- 中间部分显示病名与编号 -->
-      <view class="title-wrap">
-        <text class="name">{{ illnessData.illnessName }}</text>
-        <text class="id">病历编号：{{ illnessData.id }}</text>
-      </view>
+	<scroll-view v-else scroll-y class="page">
+		<view class="record-header">
+			<view class="header-bg"></view>
+			<view class="header-content">
+				<view class="header-top">
+					<view class="icon-wrap">
+						<uni-icons type="staff" size="28" color="#fff" />
+					</view>
+					<view class="title-wrap">
+						<text class="name">{{ illnessData.illnessName }}</text>
+						<text class="id">编号：{{ illnessData.id }}</text>
+					</view>
+				</view>
+				<text class="update">更新于 {{ illnessData.updateTime }}</text>
+			</view>
+		</view>
 
-      <!-- 右侧更新时间 -->
-      <text class="update">{{ illnessData.updateTime }} 更新</text>
-    </view>
+		<view class="content-area">
+			<view class="block">
+				<view class="block-hd">
+					<view class="hd-dot dot-orange"></view>
+					<text class="hd-txt">病因 / 诱因</text>
+				</view>
+				<view class="block-bd">
+					<mp-html :content="illnessData.includeReason" />
+				</view>
+			</view>
 
-    <!-- ======================== 病因 / 诱因 ======================== -->
-    <view class="block">
-      <view class="block-hd">
-        <image class="hd-icon" src="/static/images/pig.jpg" />
-        <text class="hd-txt">病因 / 诱因</text>
-      </view>
-      <view class="block-bd">
-        <!-- 使用 mp-html 组件来解析并渲染富文本（HTML内容） -->
-        <mp-html :content="illnessData.includeReason"></mp-html>
-      </view>
-    </view>
+			<view class="block">
+				<view class="block-hd">
+					<view class="hd-dot dot-red"></view>
+					<text class="hd-txt">常见症状</text>
+				</view>
+				<view class="block-bd">
+					<mp-html :content="illnessData.illnessSymptom" />
+				</view>
+			</view>
 
-    <!-- ======================== 常见症状 ======================== -->
-    <view class="block">
-      <view class="block-hd">
-        <image class="hd-icon" src="/static/images/pig.jpg" />
-        <text class="hd-txt">常见症状</text>
-      </view>
-      <view class="block-bd">
-        <mp-html :content="illnessData.illnessSymptom"></mp-html>
-      </view>
-    </view>
+			<view class="block">
+				<view class="block-hd">
+					<view class="hd-dot dot-purple"></view>
+					<text class="hd-txt">特殊症状</text>
+				</view>
+				<view class="block-bd">
+					<mp-html :content="illnessData.specialSymptom" />
+				</view>
+			</view>
 
-    <!-- ======================== 特殊症状 ======================== -->
-    <view class="block">
-      <view class="block-hd">
-        <image class="hd-icon" src="/static/images/pig.jpg" />
-        <text class="hd-txt">特殊症状</text>
-      </view>
-      <view class="block-bd">
-        <mp-html :content="illnessData.specialSymptom"></mp-html>
-      </view>
-    </view>
+			<view class="block" v-if="medicineList.length">
+				<view class="block-hd">
+					<view class="hd-dot dot-green"></view>
+					<text class="hd-txt">推荐治疗方案</text>
+					<text class="hd-sub">{{ medicineList.length }} 种药物</text>
+				</view>
 
-    <!-- ======================== 治疗药物 ======================== -->
-    <view class="block drug-block">
-      <view class="block-hd">
-        <image class="hd-icon" src="/static/images/pig.jpg" />
-        <text class="hd-txt">推荐治疗方案</text>
-        <text class="hd-sub">共 {{ medicineList.length }} 种药物</text>
-      </view>
+				<view class="drug-list">
+					<view class="drug-card" v-for="m in medicineList" :key="m.id" @click="toDrugDetail(m.id)">
+						<image class="drug-img" :src="m.imgPath" mode="aspectFill" />
+						<view class="drug-info">
+							<view class="info-hd">
+								<text class="name">{{ m.medicineName }}</text>
+								<text class="price">¥{{ m.medicinePrice }}</text>
+							</view>
+							<text class="brand">{{ m.medicineBrand }}</text>
+							<text class="effect">{{ m.medicineEffect }}</text>
+							<view class="tags">
+								<text class="tag tag-blue">用法：{{ m.usAge }}</text>
+								<text class="tag tag-red">禁忌：{{ m.taboo }}</text>
+							</view>
+						</view>
+					</view>
+				</view>
+			</view>
+		</view>
 
-      <!-- 药物列表 -->
-      <view class="drug-list">
-        <!-- 遍历药品数组 -->
-        <view
-          class="drug-card"
-          v-for="m in medicineList"
-          :key="m.id"
-          @click="toDrugDetail(m.id)"
-        >
-          <!-- 左侧药物图片 -->
-          <image class="drug-img" :src="m.imgPath" mode="aspectFill" />
-          
-          <!-- 右侧药物信息 -->
-          <view class="drug-info">
-            <!-- 药名与价格 -->
-            <view class="info-hd">
-              <text class="name">{{ m.medicineName }}</text>
-              <text class="price">¥{{ m.medicinePrice }}</text>
-            </view>
-
-            <!-- 品牌与功效 -->
-            <text class="brand">{{ m.medicineBrand }}</text>
-            <text class="effect">{{ m.medicineEffect }}</text>
-
-            <!-- 用法与禁忌标签 -->
-            <view class="tags">
-              <text class="tag-small">用法：{{ m.usAge }}</text>
-              <text class="tag-small danger">禁忌：{{ m.taboo }}</text>
-            </view>
-          </view>
-        </view>
-      </view>
-    </view>
-
-    <!-- ======================== 底部时间戳 ======================== -->
-    <view class="footer">
-      <text>创建时间：{{ illnessData.createTime }}</text>
-      <text>最后更新：{{ illnessData.updateTime }}</text>
-    </view>
-  </scroll-view>
+		<view class="footer">
+			<text class="footer-text">创建：{{ illnessData.createTime }} · 更新：{{ illnessData.updateTime }}</text>
+		</view>
+	</scroll-view>
 </template>
 
 <script setup>
-// ======================================================
-// 1️⃣ 依赖导入区
-// ======================================================
-import { ref } from 'vue'  // Vue 3 响应式 API
-import { onLoad } from '@dcloudio/uni-app' // uni-app 的页面生命周期钩子
+import { ref } from 'vue'
+import { onLoad } from '@dcloudio/uni-app'
 import {
-  illnessGetinfo,         // 获取病历详情的接口
-  illnessMedicinePage,     // 获取病历与药物关联表的接口
-  medicineGetinfo          // 获取药品详情的接口
-} from '@/api/articles.js' // 引入API模块
+  illnessGetinfo,
+  illnessMedicinePage,
+  medicineGetinfo
+} from '@/api/articles.js'
 
-// ======================================================
-// 2️⃣ 响应式数据定义
-// ======================================================
-const loading = ref(true)        // 是否正在加载
-const error = ref(false)         // 是否出现错误
-const illnessData = ref({})      // 存储病历数据
-const medicineList = ref([])     // 存储药品列表
-const illnessId = ref('')        // 当前病历ID
+const loading = ref(true)
+const error = ref(false)
+const illnessData = ref({})
+const medicineList = ref([])
+const illnessId = ref('')
 
-// ======================================================
-// 3️⃣ 页面加载时执行（uni-app生命周期）
-// ======================================================
 onLoad((opt) => {
-  illnessId.value = opt.id     // 从页面参数中取出病历id
-  loadAll()                    // 调用统一加载函数
+  illnessId.value = opt.id
+  loadAll()
 })
 
-// ======================================================
-// 4️⃣ 核心函数区
-// ======================================================
-
-/**
- * 统一加载所有数据：病历信息 + 药品列表
- */
 async function loadAll() {
   loading.value = true
   error.value = false
   try {
-    await getIllnessInfo()    // 获取病历详情
-    await getMedicineList()   // 获取药品列表
+    await getIllnessInfo()
+    await getMedicineList()
   } catch {
-    error.value = true        // 任何一步失败都显示错误
+    error.value = true
   } finally {
-    loading.value = false     // 不论成功失败，都结束加载
+    loading.value = false
   }
 }
 
-/**
- * 获取病历信息
- */
 async function getIllnessInfo() {
   const res = await illnessGetinfo(illnessId.value)
-  // 将接口返回的数据存储到 illnessData
   illnessData.value = res.data
 }
 
-/**
- * 获取该病对应的药品列表
- */
 async function getMedicineList() {
-  // 调用接口，获取所有病历-药品关联信息
   const rel = await illnessMedicinePage({
     pageNum: 1,
     pageSize: 100
   })
 
-  // 过滤出当前病历关联的药品ID
   const ids = rel.data.data
     .filter(i => i.illnessId === illnessData.value.id)
     .map(i => i.medicineId)
 
-  // 如果没有药物，直接返回
   if (!ids.length) return
 
-  // 根据药品ID数组，发起多个并行请求
   const tasks = ids.map(id => medicineGetinfo(id))
-
-  // Promise.all 同时等待所有请求完成
   const resArr = await Promise.all(tasks)
-
-  // 把每个药品的返回数据提取出来存入数组
   medicineList.value = resArr.map(r => r.data)
 }
 
-/**
- * 跳转到药品详情页
- */
 function toDrugDetail(id) {
   uni.navigateTo({ url: `/pages/medicine/medicineDetail?id=${id}` })
 }
 </script>
 
 <style lang="scss" scoped>
-/* ======================== 全局样式变量 ======================== */
-$primary: #0d7377;    /* 主色调（青绿色） */
-$danger: #e63946;     /* 危险色（红色） */
-$radius: 24rpx;       /* 圆角大小 */
-$shadow: 0 6rpx 24rpx rgba(0, 0, 0, 0.06); /* 阴影 */
-
-/* ======================== 页面布局 ======================== */
 .page {
-  background: #f8f9fa;
-  min-height: 100vh;
+	min-height: 100vh;
+	background: #f7f8fa;
 }
 
-/* ======================== 加载 / 错误页 ======================== */
 .center {
-  height: 100vh;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-
-  .loading-text,
-  .error-text {
-    font-size: 32rpx;
-    color: #999;
-  }
-
-  .retry {
-    margin-top: 32rpx;
-    padding: 12rpx 56rpx;
-    font-size: 30rpx;
-    color: #fff;
-    background: $primary;
-    border-radius: 50rpx;
-  }
+	height: 100vh;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
 }
 
-/* ======================== 病历头部 ======================== */
+.loading-spinner {
+	width: 48rpx;
+	height: 48rpx;
+	border: 4rpx solid #e0e0e0;
+	border-top-color: #43a047;
+	border-radius: 50%;
+	animation: spin 0.8s linear infinite;
+	margin-bottom: 20rpx;
+}
+
+@keyframes spin {
+	to { transform: rotate(360deg); }
+}
+
+.loading-text {
+	font-size: 28rpx;
+	color: #999;
+}
+
+.error-text {
+	font-size: 28rpx;
+	color: #999;
+	margin: 20rpx 0;
+}
+
+.retry {
+	margin-top: 16rpx;
+	padding: 16rpx 56rpx;
+	font-size: 28rpx;
+	color: #fff;
+	background: linear-gradient(135deg, #2e7d32, #43a047);
+	border-radius: 40rpx;
+}
+
 .record-header {
-  display: flex;
-  align-items: center;
-  background: $primary;
-  color: #fff;
-  padding: 40rpx;
-
-  .icon {
-    width: 80rpx;
-    height: 80rpx;
-    margin-right: 24rpx;
-  }
-
-  .title-wrap {
-    flex: 1;
-    .name {
-      display: block;
-      font-size: 44rpx;
-      font-weight: 700;
-    }
-    .id {
-      display: block;
-      font-size: 24rpx;
-      opacity: 0.85;
-      margin-top: 6rpx;
-    }
-  }
-
-  .update {
-    font-size: 24rpx;
-    opacity: 0.85;
-  }
+	position: relative;
+	overflow: hidden;
 }
 
-/* ======================== 通用内容块 ======================== */
+.header-bg {
+	position: absolute;
+	top: 0;
+	left: 0;
+	right: 0;
+	bottom: 0;
+	background: linear-gradient(135deg, #1b5e20 0%, #2e7d32 40%, #43a047 70%, #66bb6a 100%);
+}
+
+.header-content {
+	position: relative;
+	z-index: 1;
+	padding: 48rpx 32rpx 40rpx;
+}
+
+.header-top {
+	display: flex;
+	align-items: center;
+	margin-bottom: 16rpx;
+}
+
+.icon-wrap {
+	width: 72rpx;
+	height: 72rpx;
+	border-radius: 20rpx;
+	background: rgba(255, 255, 255, 0.15);
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	margin-right: 20rpx;
+}
+
+.title-wrap {
+	flex: 1;
+}
+
+.name {
+	display: block;
+	font-size: 40rpx;
+	font-weight: 700;
+	color: #fff;
+}
+
+.id {
+	display: block;
+	font-size: 24rpx;
+	color: rgba(255, 255, 255, 0.7);
+	margin-top: 4rpx;
+}
+
+.update {
+	font-size: 24rpx;
+	color: rgba(255, 255, 255, 0.6);
+}
+
+.content-area {
+	padding: 24rpx 24rpx 0;
+	margin-top: -16rpx;
+	position: relative;
+	z-index: 1;
+}
+
 .block {
-  margin: 24rpx 24rpx 0;
-  background: #fff;
-  border-radius: $radius;
-  box-shadow: $shadow;
-  padding: 32rpx;
-
-  &-hd {
-    display: flex;
-    align-items: center;
-    margin-bottom: 24rpx;
-
-    .hd-icon {
-      width: 40rpx;
-      height: 40rpx;
-      margin-right: 12rpx;
-    }
-
-    .hd-txt {
-      font-size: 34rpx;
-      font-weight: 600;
-      color: #222;
-    }
-
-    .hd-sub {
-      margin-left: auto;
-      font-size: 26rpx;
-      color: #999;
-    }
-  }
-
-  &-bd {
-    .content {
-      font-size: 32rpx;
-      line-height: 1.6;
-      color: #444;
-      &.special {
-        color: $danger;
-        font-weight: 600;
-      }
-    }
-  }
+	background: #fff;
+	border-radius: 24rpx;
+	padding: 28rpx 32rpx;
+	margin-bottom: 20rpx;
+	box-shadow: 0 4rpx 16rpx rgba(0, 0, 0, 0.04);
 }
 
-/* ======================== 药品列表 ======================== */
+.block-hd {
+	display: flex;
+	align-items: center;
+	margin-bottom: 20rpx;
+}
+
+.hd-dot {
+	width: 12rpx;
+	height: 12rpx;
+	border-radius: 50%;
+	margin-right: 12rpx;
+}
+
+.dot-orange { background: #ff9800; box-shadow: 0 0 0 6rpx rgba(255, 152, 0, 0.15); }
+.dot-red { background: #e63946; box-shadow: 0 0 0 6rpx rgba(230, 57, 70, 0.15); }
+.dot-purple { background: #9c27b0; box-shadow: 0 0 0 6rpx rgba(156, 39, 176, 0.15); }
+.dot-green { background: #43a047; box-shadow: 0 0 0 6rpx rgba(67, 160, 71, 0.15); }
+
+.hd-txt {
+	font-size: 32rpx;
+	font-weight: 700;
+	color: #222;
+}
+
+.hd-sub {
+	margin-left: auto;
+	font-size: 24rpx;
+	color: #999;
+}
+
 .drug-list {
-  display: flex;
-  flex-direction: column;
-  gap: 24rpx;
-  margin-top: 24rpx;
+	display: flex;
+	flex-direction: column;
+	gap: 16rpx;
+	margin-top: 16rpx;
 }
 
 .drug-card {
-  display: flex;
-  background: #f8f9fa;
-  border-radius: $radius;
-  padding: 24rpx;
-  gap: 24rpx;
+	display: flex;
+	background: #f7f8fa;
+	border-radius: 20rpx;
+	padding: 20rpx;
+	gap: 20rpx;
+	transition: transform 0.2s ease;
 
-  .drug-img {
-    width: 160rpx;
-    height: 160rpx;
-    border-radius: 12rpx;
-    flex-shrink: 0;
-  }
-
-  .drug-info {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-
-    .info-hd {
-      display: flex;
-      justify-content: space-between;
-      align-items: baseline;
-
-      .name {
-        font-size: 36rpx;
-        font-weight: 700;
-        color: #222;
-      }
-      .price {
-        font-size: 40rpx;
-        color: $danger;
-        font-weight: 800;
-      }
-    }
-
-    .brand {
-      font-size: 28rpx;
-      color: #666;
-      margin-top: 6rpx;
-    }
-
-    .effect {
-      font-size: 30rpx;
-      color: #555;
-      margin-top: 12rpx;
-      line-height: 1.5;
-      display: -webkit-box;
-      -webkit-box-orient: vertical;
-      -webkit-line-clamp: 2;
-      overflow: hidden;
-    }
-
-    .tags {
-      margin-top: 16rpx;
-      display: flex;
-      flex-wrap: wrap;
-      gap: 12rpx;
-
-      .tag-small {
-        font-size: 24rpx;
-        color: $primary;
-        background: rgba($primary, 0.06);
-        padding: 6rpx 16rpx;
-        border-radius: 8rpx;
-
-        &.danger {
-          color: $danger;
-          background: rgba($danger, 0.06);
-        }
-      }
-    }
-  }
+	&:active {
+		transform: scale(0.98);
+	}
 }
 
-/* ======================== 底部时间 ======================== */
-.footer {
-  text-align: center;
-  font-size: 24rpx;
-  color: #aaa;
-  padding: 40rpx 0 60rpx;
+.drug-img {
+	width: 140rpx;
+	height: 140rpx;
+	border-radius: 16rpx;
+	flex-shrink: 0;
+}
 
-  text {
-    display: block;
-    margin-top: 8rpx;
-  }
+.drug-info {
+	flex: 1;
+	display: flex;
+	flex-direction: column;
+}
+
+.info-hd {
+	display: flex;
+	justify-content: space-between;
+	align-items: baseline;
+}
+
+.name {
+	font-size: 32rpx;
+	font-weight: 700;
+	color: #222;
+}
+
+.price {
+	font-size: 32rpx;
+	color: #e63946;
+	font-weight: 800;
+}
+
+.brand {
+	font-size: 24rpx;
+	color: #999;
+	margin-top: 4rpx;
+}
+
+.effect {
+	font-size: 26rpx;
+	color: #555;
+	margin-top: 8rpx;
+	line-height: 1.5;
+	display: -webkit-box;
+	-webkit-box-orient: vertical;
+	-webkit-line-clamp: 2;
+	overflow: hidden;
+}
+
+.tags {
+	margin-top: 12rpx;
+	display: flex;
+	flex-wrap: wrap;
+	gap: 8rpx;
+}
+
+.tag {
+	font-size: 22rpx;
+	padding: 4rpx 12rpx;
+	border-radius: 6rpx;
+}
+
+.tag-blue {
+	color: #1565c0;
+	background: rgba(21, 101, 192, 0.08);
+}
+
+.tag-red {
+	color: #c62828;
+	background: rgba(198, 40, 40, 0.08);
+}
+
+.footer {
+	text-align: center;
+	padding: 32rpx 0 80rpx;
+}
+
+.footer-text {
+	font-size: 24rpx;
+	color: #bbb;
 }
 </style>
