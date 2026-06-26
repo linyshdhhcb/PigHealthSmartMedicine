@@ -167,7 +167,7 @@ async function loadAll() {
  * 获取病历信息
  */
 async function getIllnessInfo() {
-  const res = await illnessGetinfo({ id: illnessId.value })
+  const res = await illnessGetinfo(illnessId.value)
   // 将接口返回的数据存储到 illnessData
   illnessData.value = res.data
 }
@@ -191,7 +191,7 @@ async function getMedicineList() {
   if (!ids.length) return
 
   // 根据药品ID数组，发起多个并行请求
-  const tasks = ids.map(id => medicineGetinfo({ id }))
+  const tasks = ids.map(id => medicineGetinfo(id))
 
   // Promise.all 同时等待所有请求完成
   const resArr = await Promise.all(tasks)
