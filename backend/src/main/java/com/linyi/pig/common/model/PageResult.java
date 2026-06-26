@@ -18,22 +18,22 @@ public class PageResult<T> {
     /**
      * 总记录数
      */
-    private long total;
+    private int total;
 
     /**
      * 当前页码
      */
-    private long pageNum;
+    private int pageNum;
 
     /**
      * 每页记录数
      */
-    private long pageSize;
+    private int pageSize;
 
     /**
      * 总页数
      */
-    private long totalPages;
+    private int totalPages;
 
 
 }
