@@ -140,6 +140,13 @@ ai:
     default-model: qwen2.5:7b
   embedding:
     default-model: nomic-embed-text
+  chunk:
+    chunk-size: 800
+    chunk-overlap: 200
+    min-chunk-size-chars: 350
+    min-chunk-length-to-embed: 5
+    max-num-chunks: 10000
+    keep-separator: true
   ollama:
     chat:
       options:
