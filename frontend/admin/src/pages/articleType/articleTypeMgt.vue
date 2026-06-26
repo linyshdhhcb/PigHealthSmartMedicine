@@ -194,13 +194,16 @@ const getPageList = (isReset = false) => {
   // 调用分页接口
   articleTypesPage(searchForm)
     .then(res => {
-      if (res.code === 200) {
+      if (res && res.code === 200) {
         datatable.records = res.data.data;
-        allData.value = res.data.data; // ✅ 备份完整数据
+        allData.value = res.data.data;
         datatable.total = res.data.total;
       } else {
-        ElMessage.error(res.message || '获取文章类型列表失败');
+        ElMessage.error((res && res.message) || '获取文章类型列表失败');
       }
+    })
+    .catch(() => {
+      ElMessage.error('获取文章类型列表失败');
     })
     .finally(() => {
       datatable.loading = false;
