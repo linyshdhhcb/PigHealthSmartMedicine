@@ -29,7 +29,7 @@ export default defineConfig({
       '/files/': BACKEND_URL,
       '/history/': BACKEND_URL,
       '/articles/': BACKEND_URL,
-      '/articleType/': BACKEND_URL,
+      '/articleTypes/': BACKEND_URL,
       '/newsArticles/': BACKEND_URL,
       '/travelNotes/': BACKEND_URL,
       '/pageview/': BACKEND_URL,
