@@ -48,7 +48,7 @@ public class HistoryServiceImpl extends ServiceImpl<HistoryMapper, History> impl
         //查询数据
         Page<History> pageNew = historyMapper.selectPage(page, queryWrapper);
         //返回分页数据
-        return new PageResult<>(pageNew.getRecords(), pageNew.getTotal(), historyQueryVo.getPageNum(), historyQueryVo.getPageSize(), pageNew.getPages());
+        return new PageResult<>(pageNew.getRecords(), (int)pageNew.getTotal(), historyQueryVo.getPageNum(), historyQueryVo.getPageSize(), (int)pageNew.getPages());
     }
 
     @Override

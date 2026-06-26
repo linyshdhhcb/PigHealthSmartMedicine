@@ -49,7 +49,7 @@ public class ArticlesServiceImpl extends ServiceImpl<ArticlesMapper, Articles> i
         //查询数据
         Page<Articles> pageNew = articlesMapper.selectPage(page, queryWrapper);
         //返回分页数据
-        return new PageResult<>(pageNew.getRecords(), pageNew.getTotal(), articlesQueryVo.getPageNum(), articlesQueryVo.getPageSize(), pageNew.getPages());
+        return new PageResult<>(pageNew.getRecords(), (int)pageNew.getTotal(), articlesQueryVo.getPageNum(), articlesQueryVo.getPageSize(), (int)pageNew.getPages());
     }
 
     @Override

@@ -60,7 +60,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         //查询数据
         Page<User> pageNew = userMapper.selectPage(page, queryWrapper);
         //返回分页数据
-        return new PageResult<>(pageNew.getRecords(), pageNew.getTotal(), userQueryVo.getPageNum(), userQueryVo.getPageSize(), pageNew.getPages());
+        return new PageResult<>(pageNew.getRecords(), (int)pageNew.getTotal(), userQueryVo.getPageNum(), userQueryVo.getPageSize(), (int)pageNew.getPages());
     }
 
     @Override

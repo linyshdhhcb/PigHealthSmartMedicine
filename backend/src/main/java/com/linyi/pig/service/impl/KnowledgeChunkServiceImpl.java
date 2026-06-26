@@ -29,6 +29,6 @@ public class KnowledgeChunkServiceImpl extends ServiceImpl<KnowledgeChunkMapper,
         qw.orderByAsc(KnowledgeChunk::getDocId, KnowledgeChunk::getChunkIndex);
         Page<KnowledgeChunk> page = new Page<>(vo.getPageNum(), vo.getPageSize());
         Page<KnowledgeChunk> res = this.baseMapper.selectPage(page, qw);
-        return new PageResult<>(res.getRecords(), res.getTotal(), vo.getPageNum(), vo.getPageSize(), res.getPages());
+        return new PageResult<>(res.getRecords(), (int)res.getTotal(), vo.getPageNum(), vo.getPageSize(), (int)res.getPages());
     }
 }

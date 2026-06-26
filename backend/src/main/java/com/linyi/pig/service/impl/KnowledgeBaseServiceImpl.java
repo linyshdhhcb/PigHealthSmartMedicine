@@ -35,7 +35,7 @@ public class KnowledgeBaseServiceImpl extends ServiceImpl<KnowledgeBaseMapper, K
         }
         Page<KnowledgeBase> page = new Page<>(vo.getPageNum(), vo.getPageSize());
         Page<KnowledgeBase> res = this.baseMapper.selectPage(page, qw);
-        return new PageResult<>(res.getRecords(), res.getTotal(), vo.getPageNum(), vo.getPageSize(), res.getPages());
+        return new PageResult<>(res.getRecords(), (int)res.getTotal(), vo.getPageNum(), vo.getPageSize(), (int)res.getPages());
     }
 
     @Override

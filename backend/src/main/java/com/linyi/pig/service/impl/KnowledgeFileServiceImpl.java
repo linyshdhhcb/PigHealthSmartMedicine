@@ -26,8 +26,8 @@ import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.text.PDFTextStripper;
 import org.apache.poi.xwpf.extractor.XWPFWordExtractor;
 import org.apache.poi.xwpf.usermodel.XWPFDocument;
-import org.springframework.ai.document.Document;
-import org.springframework.ai.transformer.splitter.TokenTextSplitter;
+import com.linyi.pig.config.ChunkProperties;
+import com.linyi.pig.util.ChunkSplitter;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -52,6 +52,7 @@ public class KnowledgeFileServiceImpl extends ServiceImpl<KnowledgeFileMapper, K
     private final KnowledgeBaseMapper knowledgeBaseMapper;
     private final AiModelRouterService aiModelRouterService;
     private final MilvusVectorService milvusVectorService;
+    private final ChunkProperties chunkProperties;
 
     @Override
     @Transactional(rollbackFor = Exception.class)
@@ -112,7 +113,7 @@ public class KnowledgeFileServiceImpl extends ServiceImpl<KnowledgeFileMapper, K
         }
         Page<KnowledgeFile> page = new Page<>(vo.getPageNum(), vo.getPageSize());
         Page<KnowledgeFile> res = this.baseMapper.selectPage(page, qw);
-        return new PageResult<>(res.getRecords(), res.getTotal(), vo.getPageNum(), vo.getPageSize(), res.getPages());
+        return new PageResult<>(res.getRecords(), (int)res.getTotal(), vo.getPageNum(), vo.getPageSize(), (int)res.getPages());
     }
 
     @Override
@@ -265,13 +266,15 @@ public class KnowledgeFileServiceImpl extends ServiceImpl<KnowledgeFileMapper, K
             updateById(doc);
             return;
         }
-        List<Document> docs = new ArrayList<>();
-        docs.add(new Document(text));
-        var chunks = new TokenTextSplitter().apply(docs);
+        ChunkSplitter splitter = new ChunkSplitter(chunkProperties);
+        List<ChunkSplitter.ChunkResult> chunks = splitter.split(text);
+        log.info("文档[{}]分块完成: 原文{}字符, 分为{}块, chunkSize={}, overlap={}",
+                doc.getFileName(), text.length(), chunks.size(),
+                chunkProperties.getChunkSize(), chunkProperties.getChunkOverlap());
         int index = 0;
         List<KnowledgeChunk> savedChunks = new ArrayList<>();
-        for (Document chunkDoc : chunks) {
-            String chunkText = chunkDoc.getContent();
+        for (ChunkSplitter.ChunkResult chunkResult : chunks) {
+            String chunkText = chunkResult.getText();
             KnowledgeChunk chunk = new KnowledgeChunk();
             chunk.setKbId(doc.getKbId());
             chunk.setDocId(doc.getId());
@@ -279,6 +282,7 @@ public class KnowledgeFileServiceImpl extends ServiceImpl<KnowledgeFileMapper, K
             chunk.setContent(chunkText);
             chunk.setContentHash(contentHash);
             chunk.setCharCount(chunkText == null ? 0 : chunkText.length());
+            chunk.setTokenCount(chunkResult.getTokenCount());
             chunk.setCreatedBy(doc.getCreateBy());
             chunk.setUpdatedBy(doc.getCreateBy());
             chunk.setCreateTime(LocalDateTime.now());

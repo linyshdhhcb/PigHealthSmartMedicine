@@ -47,7 +47,7 @@ public class PageviewServiceImpl extends ServiceImpl<PageviewMapper, Pageview> i
         //查询数据
         Page<Pageview> pageNew = pageviewMapper.selectPage(page, queryWrapper);
         //返回分页数据
-        return new PageResult<>(pageNew.getRecords(), pageNew.getTotal(), pageviewQueryVo.getPageNum(), pageviewQueryVo.getPageSize(), pageNew.getPages());
+        return new PageResult<>(pageNew.getRecords(), (int)pageNew.getTotal(), pageviewQueryVo.getPageNum(), pageviewQueryVo.getPageSize(), (int)pageNew.getPages());
     }
 
     @Override

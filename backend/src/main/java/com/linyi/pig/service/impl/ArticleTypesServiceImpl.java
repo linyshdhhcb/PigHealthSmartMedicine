@@ -46,7 +46,7 @@ public class ArticleTypesServiceImpl extends ServiceImpl<ArticleTypesMapper, Art
         //查询数据
         Page<ArticleTypes> pageNew = articleTypesMapper.selectPage(page, queryWrapper);
         //返回分页数据
-        return new PageResult<>(pageNew.getRecords(), pageNew.getTotal(), articleTypesQueryVo.getPageNum(), articleTypesQueryVo.getPageSize(), pageNew.getPages());
+        return new PageResult<>(pageNew.getRecords(), (int)pageNew.getTotal(), articleTypesQueryVo.getPageNum(), articleTypesQueryVo.getPageSize(), (int)pageNew.getPages());
     }
 
     @Override

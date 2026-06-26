@@ -45,7 +45,7 @@ public class IllnessMedicineServiceImpl extends ServiceImpl<IllnessMedicineMappe
         //查询数据
         Page<IllnessMedicine> pageNew = illnessMedicineMapper.selectPage(page, queryWrapper);
         //返回分页数据
-        return new PageResult<>(pageNew.getRecords(), pageNew.getTotal(), illnessMedicineQueryVo.getPageNum(), illnessMedicineQueryVo.getPageSize(), pageNew.getPages());
+        return new PageResult<>(pageNew.getRecords(), (int)pageNew.getTotal(), illnessMedicineQueryVo.getPageNum(), illnessMedicineQueryVo.getPageSize(), (int)pageNew.getPages());
     }
 
     @Override
