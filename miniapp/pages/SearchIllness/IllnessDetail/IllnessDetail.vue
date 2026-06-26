@@ -14,6 +14,12 @@
 		<view class="record-header">
 			<view class="header-bg"></view>
 			<view class="header-content">
+				<view class="nav-bar">
+					<view class="back-btn" @click="goBack">
+						<uni-icons type="left" size="20" color="#fff" />
+					</view>
+					<text class="nav-title">疾病详情</text>
+				</view>
 				<view class="header-top">
 					<view class="icon-wrap">
 						<uni-icons type="staff" size="28" color="#fff" />
@@ -149,6 +155,10 @@ async function getMedicineList() {
 function toDrugDetail(id) {
   uni.navigateTo({ url: `/pages/medicine/medicineDetail?id=${id}` })
 }
+
+function goBack() {
+  uni.navigateBack({ delta: 1 })
+}
 </script>
 
 <style lang="scss" scoped>
@@ -217,6 +227,27 @@ function toDrugDetail(id) {
 	position: relative;
 	z-index: 1;
 	padding: 48rpx 32rpx 40rpx;
+}
+
+.nav-bar {
+	display: flex;
+	align-items: center;
+	margin-bottom: 24rpx;
+}
+
+.back-btn {
+	width: 64rpx;
+	height: 64rpx;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	margin-right: 16rpx;
+}
+
+.nav-title {
+	font-size: 36rpx;
+	font-weight: 700;
+	color: #fff;
 }
 
 .header-top {
