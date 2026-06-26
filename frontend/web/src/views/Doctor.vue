@@ -198,7 +198,7 @@ const sendMessage = async () => {
 
   isSending.value = true
   try {
-    const res = await getOllama(content, currentSessionId.value)
+    const res = await getOllama(content, null, currentSessionId.value)
     const reply = res && res.code === 200 && res.data ? (res.data.aiResponse || '抱歉，我没有获取到有效回复。') : '抱歉，服务繁忙，请稍后重试。'
     // 替换 loading 为真正回复
     currentMessages.value.pop()
