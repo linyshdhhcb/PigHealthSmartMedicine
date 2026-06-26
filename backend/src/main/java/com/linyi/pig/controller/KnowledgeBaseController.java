@@ -35,6 +35,9 @@ public class KnowledgeBaseController {
     @Operation(summary = "新增知识库")
     @PostMapping("/add")
     public Result<KnowledgeBase> add(@RequestBody KnowledgeBase knowledgeBase) {
+        if (knowledgeBase.getCreatedBy() == null || knowledgeBase.getCreatedBy().isEmpty()) {
+            knowledgeBase.setCreatedBy("system");
+        }
         knowledgeBaseService.save(knowledgeBase);
         return Result.success(knowledgeBase);
     }
