@@ -1,6 +1,6 @@
 # 测试环境配置
 server:
-  port: 19998
+  port: 19999
 
 spring:
   # 数据源配置
@@ -8,19 +8,19 @@ spring:
     url: jdbc:mysql://test-server-ip:3306/pig_health_smart_medicine?serverTimezone=Hongkong&useAffectedRows=true&characterEncoding=utf-8
     username: test_username               #测试环境数据库用户名
     password: test_password               #测试环境数据库密码
-  
+
   # 邮件配置
   mail:
     username: test_qq_email               # 测试环境qq邮箱
     password: test_qq_email_password      # 测试环境qq邮箱授权码
-  
+
   # Redis配置
   data:
     redis:
       host: test-server-ip
       port: 6379
       password: test_redis_password
-  
+
   # MinIO配置
   minio:
     access-key: test_minio_access_key
@@ -37,13 +37,38 @@ spring:
 
 # AI配置
 ai:
+  selection:
+    chat-provider: bailian
+    embedding-provider: siliconflow
+  chat:
+    default-model: qwen-plus-latest
+  embedding:
+    default-model: Qwen/Qwen3-Embedding-8B
+  chunk:
+    chunk-size: 800
+    chunk-overlap: 200
+    min-chunk-size-chars: 350
+    min-chunk-length-to-embed: 5
+    max-num-chunks: 10000
+    keep-separator: true
   providers:
     ollama:
       url: http://test-server-ip:11434
+      endpoints:
+        chat: /v1/chat/completions
+        embedding: /api/embeddings
     bailian:
+      url: https://dashscope.aliyuncs.com
       api-key: test_bailian_api_key
+      endpoints:
+        chat: /compatible-mode/v1/chat/completions
+        embedding: /compatible-mode/v1/embeddings
     siliconflow:
+      url: https://api.siliconflow.cn
       api-key: test_siliconflow_api_key
+      endpoints:
+        chat: /v1/chat/completions
+        embedding: /v1/embeddings
   ollama:
     url: http://test-server-ip:11434
 
