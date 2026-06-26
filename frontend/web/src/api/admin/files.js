@@ -99,7 +99,11 @@ export function policy(fileName) {
   * @returns
  */
 export function upload(file) {
-  return axios.post(`/files/upload?file=${file}`);
+  const formData = new FormData()
+  formData.append('file', file)
+  return axios.post(`/files/upload`, formData, {
+    headers: { 'Content-Type': 'multipart/form-data' }
+  });
 }
 
 
