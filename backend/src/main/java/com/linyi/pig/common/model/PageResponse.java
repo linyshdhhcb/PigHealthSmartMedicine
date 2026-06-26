@@ -8,12 +8,12 @@ public class PageResponse {
     /**
      * 当前页码（从1开始）
      */
-    private long pageNum;
+    private int pageNum;
 
     /**
      * 每页记录数
      */
-    private long pageSize;
+    private int pageSize;
 
     /**
      * 排序字段
