@@ -58,7 +58,7 @@ async function getmedicineGetinfo() {
   loading.value = true
   error.value = false
   try {
-    const res = await medicineGetinfo({ id: medicineId.value })
+    const res = await medicineGetinfo(medicineId.value)
     medicineInfo.value = res.data
   } catch {
     error.value = true
