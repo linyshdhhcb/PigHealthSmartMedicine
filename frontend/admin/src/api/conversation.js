@@ -81,7 +81,7 @@ export function conversationUpdate(params) {
   * @returns
  */
 export function getApiLLM(prompt) {
-  return axios.get(`/conversation/getApiLLM?prompt=${prompt}`);
+  return axios.get(`/conversation/getApiLLM?prompt=${encodeURIComponent(prompt)}`);
 }
 
 
@@ -111,6 +111,8 @@ export function conversationUpdate_1(id) {
  * @param {string} prompt 
   * @returns
  */
-export function getOllama(prompt) {
-  return axios.get(`/conversation/getOllama?prompt=${prompt}`);
+export function getOllama(prompt, kbId, sessionId) {
+  const k = kbId ? `&kbId=${kbId}` : "";
+  const s = sessionId ? `&sessionId=${sessionId}` : "";
+  return axios.get(`/conversation/getOllama?prompt=${encodeURIComponent(prompt)}${k}${s}`);
 }
